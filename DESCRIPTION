@@ -8,3 +8,4 @@ Depends: R (>= 3.1.2)
 License: GNU GPL
 Encoding: UTF-8
 LazyData: true
+Suggests: testthat
