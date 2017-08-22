@@ -1,0 +1,10 @@
+Package: eutradeflows
+Title: A Validation Algorithm for Forest Products Trade Data from Comext
+Version: 0.0.1
+Authors@R: c(
+    person("Paul", "Rougieux", , "paul.rougieux@gmail.com", c("aut", "cre")))
+Description: A Validation Algorithm for Forest Products Trade Data from Comext
+Depends: R (>= 3.1.2)
+License: GNU GPL
+Encoding: UTF-8
+LazyData: true
