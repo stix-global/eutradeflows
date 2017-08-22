@@ -7,6 +7,7 @@
 #' (defaults to the package config directory)
 #' @param messageonly boolean if TRUE prints only a message and doesn't
 #' transfer the database structure
+#' @param verbose boolean if TRUE print messages, if FALSE mute messages
 #' @examples
 #' # Load new database structures in the test database
 #' # Load a database structure designed to contain raw data

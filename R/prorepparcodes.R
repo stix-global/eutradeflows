@@ -2,7 +2,7 @@
 #'
 #' Takes a raw codes table from comext, select codes which have the most
 #' recent \code{datestart} and make sure they are unique.
-#' @param RMySQLcon database connection object created by \code{RMySQL::\link{dbConnect}}
+#' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
 #' @param tableread character name of the table to read from
 #' @param tablewrite character name of the table to write to
 #' @param codevariable unquoted code variable (à la dplyr verbs)
@@ -29,7 +29,6 @@
 #' }
 #' @export
 cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
-    require(dplyr)
     # Implementation based on the "programming with dplyr" vignette
     # https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
     codevariable <- enquo(codevariable)
@@ -112,7 +111,7 @@ cleanallcomextcodes <- function(RMySQLcon){
 
 #' Add product reporter and partner to a tbl object
 #' @return a tbl object left joined to the product, reporter and partner tables.
-#' @param RMySQLcon database connection object created by \code{RMySQL::\link{dbConnect}}
+#' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
 #' @param maintbl tbl containing trade data, with productcode, reportercode and partnercode
 #' @examples \dontrun{
 #' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
