@@ -1,14 +1,14 @@
 -- Database structure of the validated comext data
 --
 -- To load this table in the database, use the R function:
---     tradeflows::createdbstructure(sqlfile = "val_comext.sql", dbname = "test")
+--     tradeflows::createdbstructure(sqlfile = "vld_comext.sql", dbname = "test")
 --
 
 --
--- Table structure for table `val_comext_product`
+-- Table structure for table `vld_comext_product`
 --
-DROP TABLE IF EXISTS `val_comext_product`;
-CREATE TABLE `val_comext_product` (
+DROP TABLE IF EXISTS `vld_comext_product`;
+CREATE TABLE `vld_comext_product` (
   `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   `productdescription` text COLLATE utf8_unicode_ci,
   UNIQUE KEY `productcode` (`productcode`)
@@ -16,10 +16,10 @@ CREATE TABLE `val_comext_product` (
 
 
 --
--- Table structure for table `val_comext_reporter`
+-- Table structure for table `vld_comext_reporter`
 --
-DROP TABLE IF EXISTS `val_comext_reporter`;
-CREATE TABLE `val_comext_reporter` (
+DROP TABLE IF EXISTS `vld_comext_reporter`;
+CREATE TABLE `vld_comext_reporter` (
   `reportercode` int DEFAULT NULL,
   `reporter` text COLLATE utf8_unicode_ci,
   UNIQUE KEY `reportercode` (`reportercode`)
@@ -27,10 +27,10 @@ CREATE TABLE `val_comext_reporter` (
 
 
 --
--- Table structure for table `val_comext_partner`
+-- Table structure for table `vld_comext_partner`
 --
-DROP TABLE IF EXISTS `val_comext_partner`;
-CREATE TABLE `val_comext_partner` (
+DROP TABLE IF EXISTS `vld_comext_partner`;
+CREATE TABLE `vld_comext_partner` (
   `partnercode` int DEFAULT NULL,
   `partner` text COLLATE utf8_unicode_ci,
   UNIQUE KEY `partnercode` (`partnercode`)

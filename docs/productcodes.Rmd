@@ -21,7 +21,7 @@ if(FALSE){ # If codes are not present, transfer them
     # create emtpty database structure for raw codes
     createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'test')
     # create empty database structure for validated codes
-    createdbstructure(sqlfile = 'val_comext.sql', dbname = 'test')
+    createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'test')
     # transfer raw codes
     con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
     tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
@@ -101,16 +101,80 @@ diffdates <- allproducts %>%
 No there are 8 rows in which this is not the case.
 
 # cleancodes
-## 20170816 cleancodes function debugging before the change of productcodes to a character variable
+## cleanallcodes function
+```{r}
+# See steps above to recreate the database if needed
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+
+
+try(cleancode(con, "raw_comext_product", "vld_comext_product", productcode))
+
+
+
+# In debug mode inside the cleancode function,
+# nrow(dtf) 
+# [1] 23994
+# nrow(unique(dtf))
+# [1] 23994
+# Browse[2]> nrow(distinct(dtf, !!codevariable))
+# [1] 23994
+# Are there no duplicates?
+
+# number of rows
+res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_product")
+sqltable <- RMySQL::dbFetch(res)
+RMySQL::dbClearResult(res)
+sqltable$nrow
+
+RMySQL::dbDisconnect(con)
+
+```
+
+
+## Clean codes on the server
+### 201708
+```{r eval=FALSE}
+# I first had to update the package
+devtools::install_github("EuropeanForestInstitute/tradeflows")
+library(tradeflows)
+# Update the database structures for raw and validated data
+createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
+createdbstructure(sqlfile = "vld_comext.sql", dbname = "tradeflows")
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+# Transfer raw codes from the files to the database
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201707/text/english/")
+# Clean codes
+cleanallcomextcodes(con)
+
+# Transfer monthly data again, because productcode has a INT type instead of VARCHAT(10).
+library(tradeharvester)
+# Transfer monthly recent
+transfer7zfolder2db(con,
+                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201708/data",
+                    productcodestart = c(44, 94),
+                    tablename = "raw_comext_monthly_201708",
+                    tabletemplate = "raw_comext_monthly")
+
+# Transfer monthly archive
+# raw_comext_monthly_2016S1 had approximately 30309561 rows before the update
+transfer7zfolder2db(con,
+                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/2016S1/data",
+                    productcodestart = c(44, 94),
+                    tablename = "raw_comext_monthly_2016S1",
+                    tabletemplate = "raw_comext_monthly")
+```
+
+## Debug cleancode
+### 20170816 cleancodes function debugging before the change of productcodes to a character variable
 ```{r eval=FALSE}
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
 inputfields <- RMySQL::dbListFields(con,"raw_comext_product")
-outputfields <- RMySQL::dbListFields(con,"val_comext_product")
+outputfields <- RMySQL::dbListFields(con,"vld_comext_product")
 # validated fields should exist in the raw table
 stopifnot(outputfields %in% inputfields)
 
 # clean products:
-cleancode(con, "raw_comext_product", "val_comext_product", productcode)
+cleancode(con, "raw_comext_product", "vld_comext_product", productcode)
 # inside that function, dtf has 21833 rows, this is the number of most recent codes
 # returns the error
 # Error: identical(nrow(unique(dtf)), nrow(distinct(dtf, !(!codevariable)))) is not TRUE
@@ -196,78 +260,14 @@ max(nchar(as.character(product0$V1)))
 ```
 
 
-## cleanallcodes function
-```{r}
-# See steps above to recreate the database if needed
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-
-
-try(cleancode(con, "raw_comext_product", "val_comext_product", productcode))
-
-
-
-# In debug mode inside the cleancode function,
-# nrow(dtf) 
-# [1] 23994
-# nrow(unique(dtf))
-# [1] 23994
-# Browse[2]> nrow(distinct(dtf, !!codevariable))
-# [1] 23994
-# Are there no duplicates?
-
-# number of rows
-res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM val_comext_product")
-sqltable <- RMySQL::dbFetch(res)
-RMySQL::dbClearResult(res)
-sqltable$nrow
-
-RMySQL::dbDisconnect(con)
-
-```
-
-
-## Clean codes on the server
-#### 201708
-```{r eval=FALSE}
-# I first had to update the package
-devtools::install_github("EuropeanForestInstitute/tradeflows")
-library(tradeflows)
-# Update the database structures for raw and validated data
-createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
-createdbstructure(sqlfile = "val_comext.sql", dbname = "tradeflows")
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
-# Transfer raw codes from the files to the database
-tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201707/text/english/")
-# Clean codes
-cleanallcomextcodes(con)
-
-# Transfer monthly data again, because productcode has a INT type instead of VARCHAT(10).
-library(tradeharvester)
-# Transfer monthly recent
-transfer7zfolder2db(con,
-                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201708/data",
-                    productcodestart = c(44, 94),
-                    tablename = "raw_comext_monthly_201708",
-                    tabletemplate = "raw_comext_monthly")
-
-# Transfer monthly archive
-# raw_comext_monthly_2016S1 had approximately 30309561 rows before the update
-transfer7zfolder2db(con,
-                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/2016S1/data",
-                    productcodestart = c(44, 94),
-                    tablename = "raw_comext_monthly_2016S1",
-                    tabletemplate = "raw_comext_monthly")
-```
-
-
 # Add information 
 ## Merge with dplyr::left_join
 ```{r}
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
 # tables
-product <- tbl(con, "val_comext_product")
-reporter <- tbl(con, "val_comext_reporter")
-partner <- tbl(con, "val_comext_partner")
+product <- tbl(con, "vld_comext_product")
+reporter <- tbl(con, "vld_comext_reporter")
+partner <- tbl(con, "vld_comext_partner")
 monthly <- tbl(con, "raw_comext_monthly_201707")
 
 
@@ -326,11 +326,11 @@ SELECT *
   FROM (SELECT `TBL_LEFT`.`reportercode` AS `reportercode`, `TBL_LEFT`.`partnercode` AS `partnercode`, `TBL_LEFT`.`productcode` AS `productcode`, `TBL_LEFT`.`flowcode` AS `flowcode`, `TBL_LEFT`.`statregime` AS `statregime`, `TBL_LEFT`.`period` AS `period`, `TBL_LEFT`.`tradevalue` AS `tradevalue`, `TBL_LEFT`.`weight` AS `weight`, `TBL_LEFT`.`quantity` AS `quantity`, `TBL_LEFT`.`productdescription` AS `productdescription`, `TBL_RIGHT`.`reporter` AS `reporter`
   FROM (SELECT `TBL_LEFT`.`reportercode` AS `reportercode`, `TBL_LEFT`.`partnercode` AS `partnercode`, `TBL_LEFT`.`productcode` AS `productcode`, `TBL_LEFT`.`flowcode` AS `flowcode`, `TBL_LEFT`.`statregime` AS `statregime`, `TBL_LEFT`.`period` AS `period`, `TBL_LEFT`.`tradevalue` AS `tradevalue`, `TBL_LEFT`.`weight` AS `weight`, `TBL_LEFT`.`quantity` AS `quantity`, `TBL_RIGHT`.`productdescription` AS `productdescription`
   FROM (SELECT * FROM `raw_comext_monthly_201707` WHERE (`productcode` = 44)) `TBL_LEFT`
-  LEFT JOIN `val_comext_product` AS `TBL_RIGHT`
+  LEFT JOIN `vld_comext_product` AS `TBL_RIGHT`
        ON (`TBL_LEFT`.`productcode` = `TBL_RIGHT`.`productcode`)) `TBL_LEFT`
-  LEFT JOIN `val_comext_reporter` AS `TBL_RIGHT`  
+  LEFT JOIN `vld_comext_reporter` AS `TBL_RIGHT`  
        ON (`TBL_LEFT`.`reportercode` = `TBL_RIGHT`.`reportercode`)) `TBL_LEFT`
-  LEFT JOIN `val_comext_partner` AS `TBL_RIGHT`
+  LEFT JOIN `vld_comext_partner` AS `TBL_RIGHT`
        ON (`TBL_LEFT`.`partnercode` = `TBL_RIGHT`.`partnercode`)
 ```
 Is it possible to reduce the size of this chunk?
@@ -341,7 +341,7 @@ Stackoverflow [Multiple left join and where clause](https://stackoverflow.com/a/
 ```{sql eval=FALSE}
 SELECT *
 FROM   raw_comext_monthly_201707
-JOIN   val_comext_product ON  raw_comext_monthly_201707.productcode = val_comext_product.productcode
+JOIN   vld_comext_product ON  raw_comext_monthly_201707.productcode = vld_comext_product.productcode
 WHERE  raw_comext_monthly_201707.productcode = 44
 ```
 
@@ -350,9 +350,9 @@ WHERE  raw_comext_monthly_201707.productcode = 44
 ```{sql eval=FALSE}
 SELECT *
 FROM   raw_comext_monthly_201707
-LEFT JOIN val_comext_product ON  raw_comext_monthly_201707.productcode = val_comext_product.productcode
-LEFT JOIN val_comext_reporter ON raw_comext_monthly_201707.reportercode = val_comext_reporter.reportercode
-LEFT JOIN val_comext_partner ON raw_comext_monthly_201707.partnercode = val_comext_partner.partnercode
+LEFT JOIN vld_comext_product ON  raw_comext_monthly_201707.productcode = vld_comext_product.productcode
+LEFT JOIN vld_comext_reporter ON raw_comext_monthly_201707.reportercode = vld_comext_reporter.reportercode
+LEFT JOIN vld_comext_partner ON raw_comext_monthly_201707.partnercode = vld_comext_partner.partnercode
 WHERE  raw_comext_monthly_201707.productcode = 44
 ```
 
@@ -361,9 +361,9 @@ The same using an alias
 ```{sql sqlwithalias, connection=con}
 SELECT *
 FROM   raw_comext_monthly_201707 as m
-LEFT JOIN val_comext_product ON m.productcode = val_comext_product.productcode
-LEFT JOIN val_comext_reporter ON m.reportercode = val_comext_reporter.reportercode
-LEFT JOIN val_comext_partner ON m.partnercode = val_comext_partner.partnercode
+LEFT JOIN vld_comext_product ON m.productcode = vld_comext_product.productcode
+LEFT JOIN vld_comext_reporter ON m.reportercode = vld_comext_reporter.reportercode
+LEFT JOIN vld_comext_partner ON m.partnercode = vld_comext_partner.partnercode
 WHERE  m.productcode = 44
 ```
 

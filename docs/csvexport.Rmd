@@ -19,9 +19,9 @@ library(ggplot2)
 ## UK import from Indonesia
 ```{r}
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
-tbl(con, "val_comext_reporter") %>% collect() 
+tbl(con, "vld_comext_reporter") %>% collect() 
 # UK reportercode is 6
-tbl(con, "val_comext_partner") %>% 
+tbl(con, "vld_comext_partner") %>% 
     collect() %>% filter(grepl("Indonesia",partner))
 # Indonesia partnercode is 700
 # recent data

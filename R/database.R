@@ -17,7 +17,7 @@
 #' @export
 createdbstructure <- function(sqlfile,
                               dbname = "tradeflows",
-                              sqlfolder = system.file("config", package="tradeflows", mustWork = TRUE),
+                              sqlfolder = system.file("config", package="eutradeflows", mustWork = TRUE),
                               messageonly = FALSE,
                               verbose = TRUE){
     sqlfile <- file.path(sqlfolder, sqlfile)

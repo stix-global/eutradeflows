@@ -47,10 +47,10 @@ reporter %>%
 # Clean using the function
 ## Clean reporter code
 ```{r}
-try(cleancode(con, "raw_comext_reporter", "val_comext_reporter", reportercode))
+try(cleancode(con, "raw_comext_reporter", "vld_comext_reporter", reportercode))
 # dtf has 29 observations inside the cleancode function in breakpoint mode
 # nrows in the database
-res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM val_comext_reporter")
+res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_reporter")
 sqltable <- RMySQL::dbFetch(res)
 RMySQL::dbClearResult(res)
 sqltable$nrow
@@ -60,10 +60,10 @@ sqltable$nrow
 
 ## Clean partner codes
 ```{r error=TRUE, message=TRUE, warning=TRUE}
-try(cleancode(con, "raw_comext_partner", "val_comext_partner", partnercode))
+try(cleancode(con, "raw_comext_partner", "vld_comext_partner", partnercode))
 # dtf has 295 observation inside the cleancode function in breakpoint mode
 # nrows in the database
-res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM val_comext_partner")
+res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_partner")
 sqltable <- RMySQL::dbFetch(res)
 RMySQL::dbClearResult(res)
 sqltable$nrow

@@ -5,8 +5,8 @@
 \title{Creates a database structure based on a sql dump file}
 \usage{
 createdbstructure(sqlfile, dbname = "tradeflows",
-  sqlfolder = system.file("config", package = "tradeflows", mustWork = TRUE),
-  messageonly = FALSE, verbose = TRUE)
+  sqlfolder = system.file("config", package = "eutradeflows", mustWork =
+  TRUE), messageonly = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{sqlfile}{character name of an SQL file}
