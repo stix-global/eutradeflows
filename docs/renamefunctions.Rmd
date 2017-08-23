@@ -1,0 +1,23 @@
+---
+title: "Rename functions"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+library(knitr)
+opts_knit$set(root.dir="../../..") # file paths are relative to the root of the project directory
+library(tradeflows)
+library(dplyr)
+library(reshape2)
+library(tidyr)
+``` 
+
+# Command used to rename val_ tables to vld_ tables
+This command uses git grep and the perl replacement utility
+
+```{bash eval=FALSE}
+git grep -lz 'val_'| xargs -0 perl -i'' -pE "s/val_/vld_/g"
+```
+
