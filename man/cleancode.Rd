@@ -38,8 +38,8 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
 # Write dummy codes to the database table "raw_code"
 raw_code <- data.frame(code = c(4L, 4L), datestart = c(1L, 2L))
 RMySQL::dbWriteTable(con, "raw_code", raw_code, row.names = FALSE, overwrite = TRUE)
-# Clean the codes and write them to the database table "val_code" (for validated code)
-cleancode(con, tableread = "raw_code", tablewrite = "val_code", codevariable = "code")
+# Clean the codes and write them to the database table "vld_code" (for validated code)
+cleancode(con, tableread = "raw_code", tablewrite = "vld_code", codevariable = "code")
 
 # Comext codes
 if(FALSE){ # If raw codes are not present, transfer them

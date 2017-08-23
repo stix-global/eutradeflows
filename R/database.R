@@ -13,7 +13,7 @@
 #' # Load a database structure designed to contain raw data
 #' createdbstructure(sqlfile = "raw_comext.sql", dbname = "test")
 #' # Load a database structure designed to contain validated data
-#' createdbstructure(sqlfile = "val_comext.sql", dbname = "test")
+#' createdbstructure(sqlfile = "vld_comext.sql", dbname = "test")
 #' @export
 createdbstructure <- function(sqlfile,
                               dbname = "tradeflows",

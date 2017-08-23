@@ -14,8 +14,8 @@
 #' # Write dummy codes to the database table "raw_code"
 #' raw_code <- data.frame(code = c(4L, 4L), datestart = c(1L, 2L))
 #' RMySQL::dbWriteTable(con, "raw_code", raw_code, row.names = FALSE, overwrite = TRUE)
-#' # Clean the codes and write them to the database table "val_code" (for validated code)
-#' cleancode(con, tableread = "raw_code", tablewrite = "val_code", codevariable = "code")
+#' # Clean the codes and write them to the database table "vld_code" (for validated code)
+#' cleancode(con, tableread = "raw_code", tablewrite = "vld_code", codevariable = "code")
 #'
 #' # Comext codes
 #' if(FALSE){ # If raw codes are not present, transfer them
@@ -53,7 +53,7 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
     if(sqltable$nrow > 0){
         stop("Table ", tablewrite, " is not empty.",
              "You can recreate an empty table structure with:\n",
-             sprintf("tradeflows::createdbstructure(sqlfile = 'val_comext.sql', dbname = '%s')",
+             sprintf("tradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
                      RMySQL::dbGetInfo(RMySQLcon)$dbname))
     }
     
@@ -85,27 +85,27 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
 #' @rdname cleancode
 #' @export
 cleanallcomextcodes <- function(RMySQLcon){
-    createdbstructure(sqlfile = "val_comext.sql",
+    createdbstructure(sqlfile = "vld_comext.sql",
                       # extract db name from the RMySQL connection object
                       dbname = RMySQL::dbGetInfo(RMySQLcon)$dbname)
     message("Cleaning product, reporter and partner codes...")
-    cleancode(RMySQLcon, "raw_comext_product", "val_comext_product", productcode)
-    cleancode(RMySQLcon, "raw_comext_reporter", "val_comext_reporter", reportercode)
-    cleancode(RMySQLcon, "raw_comext_partner", "val_comext_partner", partnercode)
+    cleancode(RMySQLcon, "raw_comext_product", "vld_comext_product", productcode)
+    cleancode(RMySQLcon, "raw_comext_reporter", "vld_comext_reporter", reportercode)
+    cleancode(RMySQLcon, "raw_comext_partner", "vld_comext_partner", partnercode)
     
     # Diagnostics
     # Display row count information
     # based on https://stackoverflow.com/a/1775272/2641825
     res <- RMySQL::dbSendQuery(RMySQLcon, "SELECT
-                               (SELECT COUNT(*) FROM   val_comext_product)  AS product,
-                               (SELECT COUNT(*) FROM   val_comext_reporter) AS reporter,
-                               (SELECT COUNT(*) FROM   val_comext_partner)  AS partner")
+                               (SELECT COUNT(*) FROM   vld_comext_product)  AS product,
+                               (SELECT COUNT(*) FROM   vld_comext_reporter) AS reporter,
+                               (SELECT COUNT(*) FROM   vld_comext_partner)  AS partner")
     nrows <- RMySQL::dbFetch(res)
     RMySQL::dbClearResult(res)
     message("Transfered:\n",
-            nrows$product, " rows to the val_comext_product table\n",
-            nrows$reporter, " rows to the val_comext_reporter table\n",
-            nrows$partner, " rows to the val_comext_partner table.\n")
+            nrows$product, " rows to the vld_comext_product table\n",
+            nrows$reporter, " rows to the vld_comext_reporter table\n",
+            nrows$partner, " rows to the vld_comext_partner table.\n")
 }
 
 
@@ -126,10 +126,10 @@ cleanallcomextcodes <- function(RMySQLcon){
 #' @export
 addproreppar2tbl <- function(RMySQLcon, maintbl){
     maintbl %>%
-        left_join(tbl(RMySQLcon, "val_comext_product"),
+        left_join(tbl(RMySQLcon, "vld_comext_product"),
                   by = "productcode") %>%
-        left_join(tbl(RMySQLcon, "val_comext_reporter"),
+        left_join(tbl(RMySQLcon, "vld_comext_reporter"),
                   by = "reportercode") %>%
-        left_join(tbl(RMySQLcon, "val_comext_partner"),
+        left_join(tbl(RMySQLcon, "vld_comext_partner"),
                   by = "partnercode")
 }

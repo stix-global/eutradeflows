@@ -80,26 +80,26 @@ test_that("codes correspond to the max(datestart) and are unique", {
 
     # Clean dummy codes
     # !Attention use unquoted name
-    cleancode(con, tableread = "raw_dummy_code", tablewrite = "val_dummy_code",
+    cleancode(con, tableread = "raw_dummy_code", tablewrite = "vld_dummy_code",
               codevariable = code)
     # Clean product codes
-    cleancode(con, tableread = "raw_dummy_product", tablewrite = "val_dummy_product",
+    cleancode(con, tableread = "raw_dummy_product", tablewrite = "vld_dummy_product",
               codevariable = productcode)
     # Clean reporter codes
-    cleancode(con, tableread = "raw_dummy_reporter", tablewrite = "val_dummy_reporter",
+    cleancode(con, tableread = "raw_dummy_reporter", tablewrite = "vld_dummy_reporter",
               codevariable = reportercode)
     # Read back data
-    val_dummy_code <- RMySQL::dbReadTable(con, "val_dummy_code", row.names=FALSE)
-    val_dummy_product <- RMySQL::dbReadTable(con, "val_dummy_product")
-    val_dummy_reporter <- RMySQL::dbReadTable(con, "val_dummy_reporter")
+    vld_dummy_code <- RMySQL::dbReadTable(con, "vld_dummy_code", row.names=FALSE)
+    vld_dummy_product <- RMySQL::dbReadTable(con, "vld_dummy_product")
+    vld_dummy_reporter <- RMySQL::dbReadTable(con, "vld_dummy_reporter")
     # Test unique
-    expect_equal(val_dummy_code$code, unique(raw_dummy_code$code))
-    expect_equal(val_dummy_product$code, unique(raw_dummy_product$code))
-    expect_equal(val_dummy_reporter$code, unique(raw_dummy_reporter$code))
+    expect_equal(vld_dummy_code$code, unique(raw_dummy_code$code))
+    expect_equal(vld_dummy_product$code, unique(raw_dummy_product$code))
+    expect_equal(vld_dummy_reporter$code, unique(raw_dummy_reporter$code))
     # Test most recent description
-    expect_equal(val_dummy_code$description, "recent")
-    expect_equal(val_dummy_product$productdescription, "recent")
-    expect_equal(val_dummy_reporter$reporter, c("recentcountryB", "recentcountryA"))
+    expect_equal(vld_dummy_code$description, "recent")
+    expect_equal(vld_dummy_product$productdescription, "recent")
+    expect_equal(vld_dummy_reporter$reporter, c("recentcountryB", "recentcountryA"))
 })
 
 
@@ -114,7 +114,7 @@ test_that("an error is raised if most recent codes are not exact duplicates", {
                                    description = c("a", "b", "c"),
                                    stringsAsFactors = FALSE)
     RMySQL::dbWriteTable(con, "raw_dummy_code", raw_dummy_code_deffect, row.names = FALSE, overwrite = TRUE)
-    expect_error(cleancode(con, tableread = "raw_dummy_code", tablewrite = "val_dummy_code", codevariable = code),
+    expect_error(cleancode(con, tableread = "raw_dummy_code", tablewrite = "vld_dummy_code", codevariable = code),
                  regexp = "identical")
 })
 
