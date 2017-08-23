@@ -7,7 +7,7 @@ output:
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
 library(knitr)
-opts_knit$set(root.dir="../../..") # file paths are relative to the root of the project directory
+opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
 library(tradeflows)
 library(dplyr)
 library(reshape2)
@@ -101,15 +101,53 @@ diffdates <- allproducts %>%
 No there are 8 rows in which this is not the case.
 
 # cleancodes
-## cleanallcodes function
+## cleanallcomextcodes function
+```{r}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+try(cleanallcomextcodes(con))
+RMySQL::dbDisconnect(con)
+```
+
+
+## cleanallcomextcodes on the server
+```{r eval=FALSE}
+# first update the package
+devtools::install_github("stix-global/tradeflows")
+library(tradeflows)
+# Update the database structures for raw and validated data
+createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
+createdbstructure(sqlfile = "vld_comext.sql", dbname = "tradeflows")
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+# Transfer raw codes from the files to the database
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201707/text/english/")
+# Clean codes
+cleanallcomextcodes(con)
+
+
+# If needed, transfer monthly data again
+library(tradeharvester)
+# Transfer monthly recent
+transfer7zfolder2db(con,
+                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201708/data",
+                    productcodestart = c(44, 94),
+                    tablename = "raw_comext_monthly_201708",
+                    tabletemplate = "raw_comext_monthly")
+
+# Transfer monthly archive
+# raw_comext_monthly_2016S1 had approximately 30309561 rows before the update
+transfer7zfolder2db(con,
+                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/2016S1/data",
+                    productcodestart = c(44, 94),
+                    tablename = "raw_comext_monthly_2016S1",
+                    tabletemplate = "raw_comext_monthly")
+```
+
+
+## Clean product codes function
 ```{r}
 # See steps above to recreate the database if needed
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-
-
 try(cleancode(con, "raw_comext_product", "vld_comext_product", productcode))
-
-
 
 # In debug mode inside the cleancode function,
 # nrow(dtf) 
@@ -130,39 +168,6 @@ RMySQL::dbDisconnect(con)
 
 ```
 
-
-## Clean codes on the server
-### 201708
-```{r eval=FALSE}
-# I first had to update the package
-devtools::install_github("EuropeanForestInstitute/tradeflows")
-library(tradeflows)
-# Update the database structures for raw and validated data
-createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
-createdbstructure(sqlfile = "vld_comext.sql", dbname = "tradeflows")
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
-# Transfer raw codes from the files to the database
-tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201707/text/english/")
-# Clean codes
-cleanallcomextcodes(con)
-
-# Transfer monthly data again, because productcode has a INT type instead of VARCHAT(10).
-library(tradeharvester)
-# Transfer monthly recent
-transfer7zfolder2db(con,
-                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201708/data",
-                    productcodestart = c(44, 94),
-                    tablename = "raw_comext_monthly_201708",
-                    tabletemplate = "raw_comext_monthly")
-
-# Transfer monthly archive
-# raw_comext_monthly_2016S1 had approximately 30309561 rows before the update
-transfer7zfolder2db(con,
-                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/2016S1/data",
-                    productcodestart = c(44, 94),
-                    tablename = "raw_comext_monthly_2016S1",
-                    tabletemplate = "raw_comext_monthly")
-```
 
 ## Debug cleancode
 ### 20170816 cleancodes function debugging before the change of productcodes to a character variable
@@ -230,7 +235,7 @@ dtf_c_u$productdescription[1:5]
 ```
 
 
-### Reading the raw text file directly
+#### Reading the raw text file directly
 ```{r}
 # Looking at the source file, the duplicated codes issue seems to be due to the fact that 
 # productcodes do not contain only numbers, but can also contain characters
@@ -258,6 +263,44 @@ max(nchar(as.character(product0$V1)))
 
 # I'll make it a varchar(10)
 ```
+
+### 20170823 many codes in one description
+```{r}
+# Reuse a MySQL connection handle "con" from above
+# Issue present in validated product codes
+pvld <- tbl(con, "vld_comext_product") %>% 
+    filter(productcode == 03035590) %>% 
+    collect()
+pvld$productdescription
+pvld %>% kable()
+
+# Issue also present in raw product codes
+praw <- tbl(con, "raw_comext_product") %>% collect()
+
+
+# !!! only visible if I collect that product alone (data type issue?)
+praw03035590 <- tbl(con, "raw_comext_product")  %>% 
+    filter(productcode == 03035590) %>% 
+    collect()
+praw03035590$productdescription
+praw03035590 %>% kable()
+# by comparison this data frame supposed to contain all products doesn't contain it
+praw %>% filter(productcode == 03035590) 
+
+
+# Did something similar happen for forest products as well?
+
+```
+
+What happened in the text file?
+```{r}
+cntxt <- readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>% 
+    grep("03035590", ., value=TRUE)
+cntxt
+```
+
+It appears there are 3 quotes in the middle of the description. 
+Which seems to be traded as one long character by the function that transfer product codes.
 
 
 # Add information 
