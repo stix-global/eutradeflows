@@ -10,4 +10,4 @@ before_script:
   - printf "[rs-dbi]\nusername=R\npassword=supersecret\n" > ~/.my.cnf
 
 after_success:
-  - cat /home/travis/build/stix-global/eutradeflows/eutradeflows.Rcheck/00check.log
+  - Rscript -e 'devtools::install();devtools::test()'
