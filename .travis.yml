@@ -4,6 +4,10 @@ cache: packages
 warnings_are_errors: false
 service: mysql
 
+r_binary_packages:
+  - devtools
+  - roxygen2
+
 before_script:
   - mysql -e "create database IF NOT EXISTS test;" -uroot
   - mysql -e "CREATE USER 'R'@'localhost' IDENTIFIED BY 'supersecret';" -uroot
