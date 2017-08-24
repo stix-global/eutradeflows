@@ -11,7 +11,8 @@ r_binary_packages:
 before_script:
   - mysql -e "create database IF NOT EXISTS test;" -uroot
   - mysql -e "CREATE USER 'R'@'localhost' IDENTIFIED BY 'supersecret';" -uroot
-  - printf "[rs-dbi]\nusername=R\npassword=supersecret\n" > ~/.my.cnf
+  - printf "[rs-dbi]\nuser=R\npassword=supersecret\n" > ~/.my.cnf
 
 after_success:
+  - cat ~/.my.cnf
   - Rscript -e 'devtools::install();devtools::test()'
