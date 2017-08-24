@@ -1,0 +1,46 @@
+---
+title: "Gap analysis"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+library(knitr)
+opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
+library(tradeflows)
+library(dplyr)
+library(reshape2)
+library(tidyr)
+``` 
+
+```{r dbConnect}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+```
+
+
+# Gaps in tradevalue
+```{r}
+tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(productcode == 44) %>% 
+    filter(is.na(tradevalue))
+```
+No gaps in the trade value for product 44
+
+# Gaps in weight data
+```{r}
+tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(productcode == 44) %>% 
+    filter(is.na(weight))
+
+```
+
+
+# Gaps in Volume data
+
+
+
+```{r dbDisconnect}
+RMySQL::dbDisconnect(con)
+```
+

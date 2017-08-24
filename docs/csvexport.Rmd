@@ -7,7 +7,7 @@ output:
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
 library(knitr)
-opts_knit$set(root.dir="../../..") # file paths are relative to the root of the project directory
+opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
 library(tradeflows)
 library(dplyr)
 library(tidyr)

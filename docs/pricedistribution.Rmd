@@ -1,5 +1,5 @@
 ---
-title: "Rename functions"
+title: "Price distribution"
 output:
   html_document:
     toc: true
@@ -14,10 +14,8 @@ library(reshape2)
 library(tidyr)
 ``` 
 
-# Command used to rename val_ tables to vld_ tables
-This command uses git grep and the perl replacement utility
 
-```{bash eval=FALSE}
-git grep -lz 'val_'| xargs -0 perl -i'' -pE "s/val_/vld_/g"
-```
+# Tonnage price
+
+# Volumetric price
 
