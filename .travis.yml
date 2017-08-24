@@ -15,4 +15,6 @@ before_script:
 
 after_success:
   - cat ~/.my.cnf
+  - mysql -e "connect test;show tables;" -u R -psupersecret
   - Rscript -e 'devtools::install();devtools::test()'
+  
