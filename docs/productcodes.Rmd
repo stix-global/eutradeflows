@@ -112,7 +112,7 @@ RMySQL::dbDisconnect(con)
 ## cleanallcomextcodes on the server
 ```{r eval=FALSE}
 # first update the package
-devtools::install_github("stix-global/tradeflows")
+devtools::install_github("stix-global/eutradeflows")
 library(tradeflows)
 # Update the database structures for raw and validated data
 createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
@@ -265,6 +265,9 @@ max(nchar(as.character(product0$V1)))
 ```
 
 ### 20170823 many codes in one description
+This issue is also present in the harvested raw data. 
+See further development in tradeharvester/docs/productcoddes.Rmd.
+
 ```{r}
 # Reuse a MySQL connection handle "con" from above
 # Issue present in validated product codes
@@ -276,7 +279,6 @@ pvld %>% kable()
 
 # Issue also present in raw product codes
 praw <- tbl(con, "raw_comext_product") %>% collect()
-
 
 # !!! only visible if I collect that product alone (data type issue?)
 praw03035590 <- tbl(con, "raw_comext_product")  %>% 

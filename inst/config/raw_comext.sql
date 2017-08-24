@@ -64,10 +64,10 @@ CREATE TABLE `raw_comext_partner` (
 
 
 --
--- Table structure for table `raw_comext_monthly`
+-- Table structure for table `raw_comext_monthly_template`
 --
-DROP TABLE IF EXISTS `raw_comext_monthly`;
-CREATE TABLE `raw_comext_monthly` (
+DROP TABLE IF EXISTS `raw_comext_monthly_template`;
+CREATE TABLE `raw_comext_monthly_template` (
   `reportercode` int DEFAULT NULL,
   `partnercode` int DEFAULT NULL,
   `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -86,10 +86,10 @@ CREATE TABLE `raw_comext_monthly` (
 
 
 --
--- Table structure for table `raw_comext_yearly`
+-- Table structure for table `raw_comext_yearly_template`
 --
-DROP TABLE IF EXISTS `raw_comext_yearly`;
-CREATE TABLE `raw_comext_yearly` (
+DROP TABLE IF EXISTS `raw_comext_yearly_template`;
+CREATE TABLE `raw_comext_yearly_template` (
   `reportercode` int DEFAULT NULL,
   `partnercode` int DEFAULT NULL,
   `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
