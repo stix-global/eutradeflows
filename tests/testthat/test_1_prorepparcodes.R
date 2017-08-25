@@ -80,6 +80,7 @@ test_that("codes correspond to the max(datestart) and are unique", {
 
     # Clean dummy codes
     # !Attention use unquoted name
+    require(dbplyr)
     cleancode(con, tableread = "raw_dummy_code", tablewrite = "vld_dummy_code",
               codevariable = code)
     # Clean product codes
