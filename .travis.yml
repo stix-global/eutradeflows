@@ -8,11 +8,14 @@ r_binary_packages:
   - devtools
   - roxygen2
 
+r_packages:
+  - dbplyr
+
 before_script:
   - mysql -e "create database IF NOT EXISTS test;" -uroot
   - mysql -e "CREATE USER 'R'@'localhost' IDENTIFIED BY 'supersecret';" -uroot
-  - printf "[rs-dbi]\nuser=R\npassword=supersecret\n" > ~/.my.cnf
+  - mysql -e "GRANT ALL PRIVILEGES ON test.* TO 'R'@'localhost';" -uroot
+  - printf "[rs-dbi]\nuser=R\nhost = localhost\npassword=supersecret\n" > ~/.my.cnf
 
 after_success:
-  - cat ~/.my.cnf
   - Rscript -e 'devtools::install();devtools::test()'
