@@ -1,0 +1,24 @@
+---
+title: "Continuous Integration with Travis"
+author: "Paul Rougieux"
+date: "25 August 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Mysql with travis
+
+Travis-ci issue: [Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock](https://github.com/travis-ci/travis-ci/issues/6842)
+
+Benpbolton:
+
+      # Wait for mysql service to respond
+    - which mysql && until mysql -u root -e "show status" &>/dev/null; do sleep 1; done
+
+
+
+# testthat with travis
