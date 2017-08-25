@@ -14,6 +14,7 @@
 *.RDATA
 *.rdata
 *.synctex.gz
+*.swp
 *.tex
 *.toc
 *.ods#

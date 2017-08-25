@@ -12,6 +12,7 @@ r_packages:
   - dbplyr
 
 before_script:
+  - Rscript -e "install.packages('dbplyr')" 
   - Rscript -e "library(dplyr); summarise(group_by(iris, Species), pl = sum(Petal.Length))"
   - Rscript -e "dplyr::check_dbplyr(); dbplyr::translate_sql(x +1)"
   - mysql -e "create database IF NOT EXISTS test;" -uroot
