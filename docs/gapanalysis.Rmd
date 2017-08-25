@@ -1,45 +1,159 @@
 ---
 title: "Gap analysis"
 output:
+  pdf_document: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
   html_document:
     toc: true
 ---
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+# Render this long document in a separate bash console with the command:
+# cd ~/R/eutradeflows && Rscript -e "rmarkdown::render('docs/gapanalysis.Rmd')"
+#
 library(knitr)
 opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
-library(tradeflows)
+library(eutradeflows)
 library(dplyr)
-library(reshape2)
 library(tidyr)
+library(ggplot2)
 ``` 
 
+
+Connect to the database.
 ```{r dbConnect}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```
 
 
-# Gaps in tradevalue
-```{r}
-tbl(con, "raw_comext_monthly_201708") %>% 
-    filter(productcode == 44) %>% 
-    filter(is.na(tradevalue))
+# Gaps in trade value
+Number of lines for which the trade value equals 0
+```{r gapsintradevalue}
+gtv <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(tradevalue == 0) %>% 
+    group_by(productcode, reportercode) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "vld_comext_reporter"),by="reportercode") %>% 
+    collect() %>% ungroup() %>%  
+    mutate(productcode = as.character(productcode),
+           prod2 = substr(productcode, 1,2)) 
+gtv %>%
+    group_by(reporter, prod2) %>% 
+    summarise(n = n()) %>% 
+    spread(prod2, n, fill="") %>% 
+    kable()
+
+# # Show lines for which the trade value equals 0, for product code 44
+# tbl(con, "raw_comext_monthly_201708") %>% 
+#     filter(productcode == 44 & tradevalue == 0) %>% 
+#     addproreppar2tbl(con, .) %>% 
+#     select(productcode, reportercode, reporter, partnercode, partner, 
+#            period, tradevalue, weight, quantity) %>% 
+#     kable()
+
+# May use rotated text at some point to place country names in table heading
+# https://tex.stackexchange.com/questions/201696/how-to-rotate-text-in-a-cell-and-center-it-vertically-and-horizontally
 ```
-No gaps in the trade value for product 44
+
+
+## Plot gaps in trade value
+Heat map inspired by a blog post on 
+[learnr.wordpress.com](https://learnr.wordpress.com/2010/01/26/ggplot2-quick-heatmap-plotting/).
+
+```{r ,fig.cap="Number of gaps in trade value by period", fig.height=10}
+gtv_period <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(tradevalue == 0) %>% 
+    group_by(reportercode, period) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "val_comext_reporter"), by = "reportercode") %>% 
+    collect() %>% 
+    mutate(period = as.character(period))
+
+ggplot(gtv_period, aes(reporter, period)) +
+    geom_tile(aes(fill = n), colour = "white") + 
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+```{r ,fig.cap="Number of gaps in trade value by product"}
+gtv_product <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(tradevalue == 0) %>% 
+    group_by(reportercode, productcode) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "val_comext_reporter"), by = "reportercode") %>% 
+    collect() %>% 
+    mutate(productcode = as.character(productcode),
+           p4 = substr(productcode, 1,4)) 
+
+#
+ggplot(gtv_product, aes(reporter, p4)) +
+    geom_tile(aes(fill = n), colour = "white") + 
+    scale_fill_gradient(low = "white", high = "steelblue") 
+
+# More detailed plot
+ggplot(gtv_product, aes(reporter, productcode)) +
+    geom_tile(aes(fill = n), colour = "white") + 
+    scale_fill_gradient(low = "white", high = "steelblue") 
+```
+There was a time in 2015 where Croatia had a great number of gaps
+in the trade value, but in 2017, this has been mostly fixed.
+
 
 # Gaps in weight data
 ```{r}
 tbl(con, "raw_comext_monthly_201708") %>% 
     filter(productcode == 44) %>% 
     filter(is.na(weight))
+```
+
+## Plot weight gap by country
+```{r}
+wg <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(productcode == 44) %>% collect()
+```
+In the current version empty values have the value 0, 
+
+
+# Gaps in volume data
+```{r}
 
 ```
 
 
-# Gaps in Volume data
+# Issues
+## 20170825 Issue with the encoding of empty values mysql NULL, R NA
+How are empty values encoded in the text file?
+```{bash eval=FALSE}
+cp ~/R/tradeharvester/data-raw/comext/201708/data/nc201501.7z /tmp/comext
+cd /tmp/comext/
+7zr e nc201501.7z 
+# Extract all productcode starting with 44
+awk -F, '$3 ~ /^44/' nc201501.dat | less
+```
 
+In `less`, search for /2675.752 
+Empty value is represented by an empty string at the end of the line.
+Compared for example the end of the 2 lines below:
+```
+001,0053,44,1,4,201501,2675.752,3247.776,
+001,0053,44032011,2,4,201501,35.48,391.5,870
+```
 
+Can this be read as NA instead of 0?
+How about in the middle of the line?
+It seems empty values are then encoded as "0" when in the middle of the line:
+```
+003,0960,44,1,4,201501,0.157,0,
+003,0960,44,2,4,201501,0.141,0.003,
+003,0960,44190090,2,4,201501,0.139,0.003,
+003,0960,44MMM000,1,4,201501,0.157,0,
+003,0960,44MMM000,2,4,201501,0.002,0,
+```
 
+Disconnect from the database.
 ```{r dbDisconnect}
 RMySQL::dbDisconnect(con)
 ```
