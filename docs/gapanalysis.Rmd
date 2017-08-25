@@ -19,6 +19,9 @@ library(eutradeflows)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+
+# Use rotated text at some point to place country names in table heading
+# https://tex.stackexchange.com/questions/201696/how-to-rotate-text-in-a-cell-and-center-it-vertically-and-horizontally
 ``` 
 
 
@@ -28,41 +31,52 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```
 
 
-# Gaps in trade value
-Number of lines for which the trade value equals 0
-```{r gapsintradevalue}
-gtv <- tbl(con, "raw_comext_monthly_201708") %>% 
-    filter(tradevalue == 0) %>% 
-    group_by(productcode, reportercode) %>% 
-    summarise(n = n()) %>% 
-    left_join(tbl(con, "vld_comext_reporter"),by="reportercode") %>% 
-    collect() %>% ungroup() %>%  
-    mutate(productcode = as.character(productcode),
-           prod2 = substr(productcode, 1,2)) 
-gtv %>%
-    group_by(reporter, prod2) %>% 
-    summarise(n = n()) %>% 
-    spread(prod2, n, fill="") %>% 
-    kable()
+# Introduction
+Following analysis is based on the most recent data between January 2015 and June 2017, downloaded from the [Eurostat Comext bulk repository](http://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext) folder 201708.
 
-# # Show lines for which the trade value equals 0, for product code 44
-# tbl(con, "raw_comext_monthly_201708") %>% 
-#     filter(productcode == 44 & tradevalue == 0) %>% 
-#     addproreppar2tbl(con, .) %>% 
-#     select(productcode, reportercode, reporter, partnercode, partner, 
-#            period, tradevalue, weight, quantity) %>% 
-#     kable()
+Descriptive queries on the database table raw_comext_monthly :
+```{sql rowsintable, connection=con}
+select count(*) from raw_comext_monthly_201708;
+```
 
-# May use rotated text at some point to place country names in table heading
-# https://tex.stackexchange.com/questions/201696/how-to-rotate-text-in-a-cell-and-center-it-vertically-and-horizontally
+```{sql periods, connection=con}
+select distinct(period) from raw_comext_monthly_201708;
 ```
 
 
-## Plot gaps in trade value
-Heat map inspired by a blog post on 
+# Gaps in trade value
+Number of database rows for which the trade value is equal to 0. 
+```{r gapsintradevalue}
+gtv <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(tradevalue == 0) %>% 
+    group_by(productcode, reportercode, period) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "vld_comext_reporter"), by="reportercode") %>% 
+    collect() %>% ungroup() %>%  
+    mutate(productcode = as.character(productcode),
+           prod2 = as.numeric(substr(productcode, 1,2)))
+gtv %>%
+    group_by(reporter, prod2) %>% 
+    summarise(n = sum(n)) %>% 
+    left_join(tradeharvester::products2harvest, 
+              by = c("prod2" = "productcode")) %>% 
+    unite(product, prod2, productdescription) %>% 
+    spread(product, n, fill="") %>% 
+    kable()
+
+gtv %>%
+    mutate(year = substr(as.character(period),1,4)) %>% 
+    group_by(reporter, year) %>% 
+    summarise(n = sum(n)) %>% 
+    spread(year, n, fill="") %>% 
+    kable()
+```
+
+
+Heat map plots inspired by a blog post on 
 [learnr.wordpress.com](https://learnr.wordpress.com/2010/01/26/ggplot2-quick-heatmap-plotting/).
 
-```{r ,fig.cap="Number of gaps in trade value by period", fig.height=10}
+```{r ,fig.cap="Number of gaps in trade value by country and period", fig.height=10}
 gtv_period <- tbl(con, "raw_comext_monthly_201708") %>% 
     filter(tradevalue == 0) %>% 
     group_by(reportercode, period) %>% 
@@ -78,7 +92,7 @@ ggplot(gtv_period, aes(reporter, period)) +
 ```
 
 
-```{r ,fig.cap="Number of gaps in trade value by product"}
+```{r ,fig.cap="Number of gaps in trade value by country and product"}
 gtv_product <- tbl(con, "raw_comext_monthly_201708") %>% 
     filter(tradevalue == 0) %>% 
     group_by(reportercode, productcode) %>% 
