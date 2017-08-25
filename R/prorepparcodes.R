@@ -59,6 +59,7 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
     
     
     # load all codes and keep only most recent codes
+    src <- dbplyr::src_dbi(RMySQLcon)
     dtf <- tbl(RMySQLcon, tableread) %>%
         collect() %>%
         group_by(!!codevariable) %>%
