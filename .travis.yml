@@ -12,6 +12,7 @@ r_packages:
   - dbplyr
 
 before_script:
+  - Rscript -e "dplyr::check_dbplyr();dbplyr::translate_sql(x < 5 & !(y >= 5))"
   - mysql -e "create database IF NOT EXISTS test;" -uroot
   - mysql -e "CREATE USER 'R'@'localhost' IDENTIFIED BY 'supersecret';" -uroot
   - mysql -e "GRANT ALL PRIVILEGES ON test.* TO 'R'@'localhost';" -uroot
