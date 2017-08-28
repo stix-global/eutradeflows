@@ -53,7 +53,7 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
     if(sqltable$nrow > 0){
         stop("Table ", tablewrite, " is not empty.",
              "You can recreate an empty table structure with:\n",
-             sprintf("tradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
+             sprintf("createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
                      RMySQL::dbGetInfo(RMySQLcon)$dbname))
     }
     

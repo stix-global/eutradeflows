@@ -1,0 +1,26 @@
+---
+title: "Package options"
+author: "Paul Rougieux"
+date: "28 August 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Set package options
+
+Example use of `.onAttach()` to set package options in the 
+[rpushbullet package by Dirk Eddelbuettel](https://github.com/eddelbuettel/rpushbullet/blob/master/R/init.R).
+Create an `.onAttach()` function, which sets options such as
+` options("rpushbullet.key" = pb[["key"]])`.
+
+[Set options in own package](https://stackoverflow.com/questions/30411691/auto-set-options-in-own-package)
+```{r}
+options(tradeflows = list(template = "template"))
+getOption("tradeflows")
+getOption("tradeflows")$template
+```
+

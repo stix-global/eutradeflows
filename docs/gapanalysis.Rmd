@@ -32,15 +32,47 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 
 
 # Introduction
-Following analysis is based on the most recent data between January 2015 and June 2017, downloaded from the [Eurostat Comext bulk repository](http://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext) folder 201708.
+Following analysis is based on the most recent monthly data downloaded from the [Eurostat Comext bulk repository](http://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext).
 
-Descriptive queries on the database table raw_comext_monthly :
+
+## Summary
+The eurostat Comext database contains information on import and export flows
+between european countries and over 200 partner countries. 
+Each flow between a reporter and a partner country contains 3 informations: trade value, weight and quantity.
+All 3 informations given by the Comext trade database can have gaps.
+Gaps are measured below in terms of number of database rows for which a given value is equal to zero.
+There are far fewer gaps in trade value compared to weight and quantity.
+```{sql comparegaps, connection = con}
+select * from 
+(select count(*) as 'gaps in trade value' from raw_comext_monthly_201708 where tradevalue = 0 ) as x, 
+(select count(*) as 'gaps in weight' from raw_comext_monthly_201708 where weight = 0) as y, 
+(select count(*) as 'gaps in quantity' from raw_comext_monthly_201708 where quantity = 0) as z, 
+(select count(*) as 'total number of rows' from raw_comext_monthly_201708) as t;
+```
+
+
+## Descriptive statistics of the recent Comext monthly data
+Descriptive queries on the database table raw_comext_monthly.
+Number of rows in the table:
 ```{sql rowsintable, connection=con}
 select count(*) from raw_comext_monthly_201708;
 ```
 
-```{sql periods, connection=con}
-select distinct(period) from raw_comext_monthly_201708;
+Number of products
+```{sql countproduct, connection=con}
+select count(distinct(productcode)) from raw_comext_monthly_201708;
+```
+
+Number of reporter and partner countries
+```{sql countreporter, connection=con}
+select count(distinct(reportercode)) as 'number of reporters',
+       count(distinct(partnercode))  as 'number of partners' 
+from raw_comext_monthly_201708;
+```
+
+First and last month
+```{sql minperiod, connection=con}
+select min(period), max(period) from raw_comext_monthly_201708;
 ```
 
 
@@ -76,7 +108,7 @@ gtv %>%
 Heat map plots inspired by a blog post on 
 [learnr.wordpress.com](https://learnr.wordpress.com/2010/01/26/ggplot2-quick-heatmap-plotting/).
 
-```{r ,fig.cap="Number of gaps in trade value by country and period", fig.height=10}
+```{r gtv_period,fig.cap="Number of gaps in trade value by country and period", fig.height=10}
 gtv_period <- tbl(con, "raw_comext_monthly_201708") %>% 
     filter(tradevalue == 0) %>% 
     group_by(reportercode, period) %>% 
@@ -92,7 +124,7 @@ ggplot(gtv_period, aes(reporter, period)) +
 ```
 
 
-```{r ,fig.cap="Number of gaps in trade value by country and product"}
+```{r gtv_product,fig.cap="Number of gaps in trade value by country and product", fig.height=10}
 gtv_product <- tbl(con, "raw_comext_monthly_201708") %>% 
     filter(tradevalue == 0) %>% 
     group_by(reportercode, productcode) %>% 
@@ -102,39 +134,80 @@ gtv_product <- tbl(con, "raw_comext_monthly_201708") %>%
     mutate(productcode = as.character(productcode),
            p4 = substr(productcode, 1,4)) 
 
-#
 ggplot(gtv_product, aes(reporter, p4)) +
     geom_tile(aes(fill = n), colour = "white") + 
-    scale_fill_gradient(low = "white", high = "steelblue") 
-
-# More detailed plot
-ggplot(gtv_product, aes(reporter, productcode)) +
-    geom_tile(aes(fill = n), colour = "white") + 
-    scale_fill_gradient(low = "white", high = "steelblue") 
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 There was a time in 2015 where Croatia had a great number of gaps
 in the trade value, but in 2017, this has been mostly fixed.
 
 
 # Gaps in weight data
-```{r}
-tbl(con, "raw_comext_monthly_201708") %>% 
-    filter(productcode == 44) %>% 
-    filter(is.na(weight))
+
+Number of lines for which the weight is equal to zero.
+
+```{r gapsinweight}
+gw <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(weight == 0) %>% 
+    group_by(productcode, reportercode, period) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "vld_comext_reporter"), by="reportercode") %>% 
+    collect() %>% ungroup() %>%  
+    mutate(productcode = as.character(productcode),
+           prod2 = as.numeric(substr(productcode, 1,2)))
+gw %>%
+    group_by(reporter, prod2) %>% 
+    summarise(n = sum(n)) %>% 
+    left_join(tradeharvester::products2harvest, 
+              by = c("prod2" = "productcode")) %>% 
+    unite(product, prod2, productdescription) %>% 
+    spread(product, n, fill="") %>% 
+    kable()
+
+gw %>%
+    mutate(year = substr(as.character(period),1,4)) %>% 
+    group_by(reporter, year) %>% 
+    summarise(n = sum(n)) %>% 
+    spread(year, n, fill="") %>% 
+    kable()
 ```
 
-## Plot weight gap by country
-```{r}
-wg <- tbl(con, "raw_comext_monthly_201708") %>% 
-    filter(productcode == 44) %>% collect()
-```
-In the current version empty values have the value 0, 
 
+
+
+```{r fig.cap="Number of gaps in weight data by country and period", fig.height=10}
+gw_period <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(weight == 0) %>% 
+    group_by(reportercode, period) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "val_comext_reporter"), by = "reportercode") %>% 
+    collect() %>% 
+    mutate(period = as.character(period))
+
+ggplot(gw_period, aes(reporter, period)) +
+    geom_tile(aes(fill = n), colour = "white") + 
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+```{r fig.cap="Number of gaps in weight data by country and product", fig.height=10}
+gw_product <- tbl(con, "raw_comext_monthly_201708") %>% 
+    filter(weight== 0) %>% 
+    group_by(reportercode, productcode) %>% 
+    summarise(n = n()) %>% 
+    left_join(tbl(con, "val_comext_reporter"), by = "reportercode") %>% 
+    collect() %>% 
+    mutate(productcode = as.character(productcode),
+           p4 = substr(productcode, 1,4)) 
+
+ggplot(gw_product, aes(reporter, p4)) +
+    geom_tile(aes(fill = n), colour = "white") + 
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
 
 # Gaps in volume data
-```{r}
-
-```
 
 
 # Issues
@@ -166,6 +239,17 @@ It seems empty values are then encoded as "0" when in the middle of the line:
 003,0960,44MMM000,1,4,201501,0.157,0,
 003,0960,44MMM000,2,4,201501,0.002,0,
 ```
+
+# Product descriptions
+
+```{r}
+tbl(con, "raw_comext_monthly_201708") %>% 
+    distinct(productcode) %>% 
+    left_join(tbl(con, "val_comext_product"), by = "productcode") %>% 
+    kable()
+```
+
+
 
 Disconnect from the database.
 ```{r dbDisconnect}

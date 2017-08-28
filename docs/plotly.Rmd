@@ -1,0 +1,27 @@
+---
+title: "Plotly interactive web plots"
+author: "Paul Rougieux"
+date: "28 August 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Introduction
+
+Plotly is used in :
+
+ * [Plotly R library](https://plot.ly/r/)
+ * [Plotly python library](https://plot.ly/products/dash/)
+ * [Dash interactive python-based analysis websites](https://plot.ly/products/dash/),
+ similar to the Shiny framework for R
+
+
+# Examples
+```{r}
+
+```
+

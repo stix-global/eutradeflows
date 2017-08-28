@@ -169,7 +169,114 @@ RMySQL::dbDisconnect(con)
 ```
 
 
-## Debug cleancode
+# Add information 
+## Merge with dplyr::left_join
+```{r}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+# tables
+product <- tbl(con, "vld_comext_product")
+reporter <- tbl(con, "vld_comext_reporter")
+partner <- tbl(con, "vld_comext_partner")
+monthly <- tbl(con, "raw_comext_monthly_201707")
+
+
+# if needed put back the data again
+if(FALSE){
+    # Run this in a separate R session, the transfer will take several minutes
+    library(tradeharvester)
+    setwd("~/R/tradeharvester")
+    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+    transfer7zfolder2db(con,
+                        rawdatacomextfolder = "data-raw/comext/201707/data",
+                        productcodestart = c(44, 94),
+                        tablename = "raw_comext_monthly_201707",
+                        tabletemplate = "raw_comext_monthly")
+    RMySQL::dbDisconnect(con)
+}
+
+
+# Get only raw data for one product code
+wp <- monthly %>% 
+    filter(productcode == 44L) %>% collect()
+# Get raw data with product and country information for one product code
+query <- monthly %>% 
+    filter(productcode == 44L) %>% 
+    # join    
+    left_join(product, by = "productcode") %>% 
+    left_join(reporter, by = "reportercode") %>% 
+    left_join(partner, by = "partnercode")
+# Show the SQL query
+query %>% explain()
+# Get data from the database
+dtf <- query %>% collect()
+dtf %>% head %>% kable()
+
+RMySQL::dbDisconnect(con)
+
+```
+
+
+### Use the function addproreppar2tbl
+```{r}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+monthly <- tbl(con, "raw_comext_monthly_201707")
+m44 <-monthly %>%
+    filter(productcode == 44) %>%
+    addproreppar2tbl(con, .) %>%
+    collect()
+m44 %>% head(20) %>%  kable()
+unique(m44[c("productcode","productdescription")])
+```
+
+
+## Merge with SQL LEFT JOIN 
+```{sql sqlfromdplyr, connection=con}
+SELECT *
+  FROM (SELECT `TBL_LEFT`.`reportercode` AS `reportercode`, `TBL_LEFT`.`partnercode` AS `partnercode`, `TBL_LEFT`.`productcode` AS `productcode`, `TBL_LEFT`.`flowcode` AS `flowcode`, `TBL_LEFT`.`statregime` AS `statregime`, `TBL_LEFT`.`period` AS `period`, `TBL_LEFT`.`tradevalue` AS `tradevalue`, `TBL_LEFT`.`weight` AS `weight`, `TBL_LEFT`.`quantity` AS `quantity`, `TBL_LEFT`.`productdescription` AS `productdescription`, `TBL_RIGHT`.`reporter` AS `reporter`
+  FROM (SELECT `TBL_LEFT`.`reportercode` AS `reportercode`, `TBL_LEFT`.`partnercode` AS `partnercode`, `TBL_LEFT`.`productcode` AS `productcode`, `TBL_LEFT`.`flowcode` AS `flowcode`, `TBL_LEFT`.`statregime` AS `statregime`, `TBL_LEFT`.`period` AS `period`, `TBL_LEFT`.`tradevalue` AS `tradevalue`, `TBL_LEFT`.`weight` AS `weight`, `TBL_LEFT`.`quantity` AS `quantity`, `TBL_RIGHT`.`productdescription` AS `productdescription`
+  FROM (SELECT * FROM `raw_comext_monthly_201707` WHERE (`productcode` = 44)) `TBL_LEFT`
+  LEFT JOIN `vld_comext_product` AS `TBL_RIGHT`
+       ON (`TBL_LEFT`.`productcode` = `TBL_RIGHT`.`productcode`)) `TBL_LEFT`
+  LEFT JOIN `vld_comext_reporter` AS `TBL_RIGHT`  
+       ON (`TBL_LEFT`.`reportercode` = `TBL_RIGHT`.`reportercode`)) `TBL_LEFT`
+  LEFT JOIN `vld_comext_partner` AS `TBL_RIGHT`
+       ON (`TBL_LEFT`.`partnercode` = `TBL_RIGHT`.`partnercode`)
+```
+Is it possible to reduce the size of this chunk?
+
+Stackoverflow [Multiple left join and where clause](https://stackoverflow.com/a/14261094/2641825)
+    
+## Join 2 tables
+```{sql eval=FALSE}
+SELECT *
+FROM   raw_comext_monthly_201707
+JOIN   vld_comext_product ON  raw_comext_monthly_201707.productcode = vld_comext_product.productcode
+WHERE  raw_comext_monthly_201707.productcode = 44
+```
+
+
+### Join 4 tables: monthly data, product, reporter, partner 
+```{sql eval=FALSE}
+SELECT *
+FROM   raw_comext_monthly_201707
+LEFT JOIN vld_comext_product ON  raw_comext_monthly_201707.productcode = vld_comext_product.productcode
+LEFT JOIN vld_comext_reporter ON raw_comext_monthly_201707.reportercode = vld_comext_reporter.reportercode
+LEFT JOIN vld_comext_partner ON raw_comext_monthly_201707.partnercode = vld_comext_partner.partnercode
+WHERE  raw_comext_monthly_201707.productcode = 44
+```
+
+
+The same using an alias
+```{sql sqlwithalias, connection=con}
+SELECT *
+FROM   raw_comext_monthly_201707 as m
+LEFT JOIN vld_comext_product ON m.productcode = vld_comext_product.productcode
+LEFT JOIN vld_comext_reporter ON m.reportercode = vld_comext_reporter.reportercode
+LEFT JOIN vld_comext_partner ON m.partnercode = vld_comext_partner.partnercode
+WHERE  m.productcode = 44
+```
+
+# Issues
 ### 20170816 cleancodes function debugging before the change of productcodes to a character variable
 ```{r eval=FALSE}
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
@@ -304,113 +411,29 @@ cntxt
 It appears there are 3 quotes in the middle of the description. 
 Which seems to be traded as one long character by the function that transfer product codes.
 
-
-# Add information 
-## Merge with dplyr::left_join
+### 20170828 again many codes in one description
+See product code 47073090
+Again the issue seems to be related to an unever number of quotation marks.
+But I have alread changed the `read.delim` parameter in `writetxtcodes2db`
 ```{r}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-# tables
-product <- tbl(con, "vld_comext_product")
-reporter <- tbl(con, "vld_comext_reporter")
-partner <- tbl(con, "vld_comext_partner")
-monthly <- tbl(con, "raw_comext_monthly_201707")
+cntxt <- readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>% 
+    grep("47073090", ., value=TRUE)
 
+cntxt
 
-# if needed put back the data again
-if(FALSE){
-    # Run this in a separate R session, the transfer will take several minutes
-    library(tradeharvester)
-    setwd("~/R/tradeharvester")
-    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-    transfer7zfolder2db(con,
-                        rawdatacomextfolder = "data-raw/comext/201707/data",
-                        productcodestart = c(44, 94),
-                        tablename = "raw_comext_monthly_201707",
-                        tabletemplate = "raw_comext_monthly")
-    RMySQL::dbDisconnect(con)
-}
-
-
-# Get only raw data for one product code
-wp <- monthly %>% 
-    filter(productcode == 44L) %>% collect()
-# Get raw data with product and country information for one product code
-query <- monthly %>% 
-    filter(productcode == 44L) %>% 
-    # join    
-    left_join(product, by = "productcode") %>% 
-    left_join(reporter, by = "reportercode") %>% 
-    left_join(partner, by = "partnercode")
-# Show the SQL query
-query %>% explain()
-# Get data from the database
-dtf <- query %>% collect()
-dtf %>% head %>% kable()
-
-RMySQL::dbDisconnect(con)
-
+cn <- read.delim("../tradeharvester/data-raw/comext/201707/text/english/CN.txt",
+                 header = FALSE,
+                 quote = "", # disable quotation
+                 stringsAsFactors = FALSE)
+cn[cn$V1==47073090,]$V4
+# The next one
+cn[cn$V1==470790,]$V4
+cn[cn$V1==47079010,]$V4
+# Looks OK, how about in the database?
 ```
 
 
-### Use the function addproreppar2tbl
-```{r}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-monthly <- tbl(con, "raw_comext_monthly_201707")
-m44 <-monthly %>%
-    filter(productcode == 44) %>%
-    addproreppar2tbl(con, .) %>%
-    collect()
-m44 %>% head(20) %>%  kable()
-unique(m44[c("productcode","productdescription")])
-```
 
-
-## Merge with SQL LEFT JOIN 
-```{sql sqlfromdplyr, connection=con}
-SELECT *
-  FROM (SELECT `TBL_LEFT`.`reportercode` AS `reportercode`, `TBL_LEFT`.`partnercode` AS `partnercode`, `TBL_LEFT`.`productcode` AS `productcode`, `TBL_LEFT`.`flowcode` AS `flowcode`, `TBL_LEFT`.`statregime` AS `statregime`, `TBL_LEFT`.`period` AS `period`, `TBL_LEFT`.`tradevalue` AS `tradevalue`, `TBL_LEFT`.`weight` AS `weight`, `TBL_LEFT`.`quantity` AS `quantity`, `TBL_LEFT`.`productdescription` AS `productdescription`, `TBL_RIGHT`.`reporter` AS `reporter`
-  FROM (SELECT `TBL_LEFT`.`reportercode` AS `reportercode`, `TBL_LEFT`.`partnercode` AS `partnercode`, `TBL_LEFT`.`productcode` AS `productcode`, `TBL_LEFT`.`flowcode` AS `flowcode`, `TBL_LEFT`.`statregime` AS `statregime`, `TBL_LEFT`.`period` AS `period`, `TBL_LEFT`.`tradevalue` AS `tradevalue`, `TBL_LEFT`.`weight` AS `weight`, `TBL_LEFT`.`quantity` AS `quantity`, `TBL_RIGHT`.`productdescription` AS `productdescription`
-  FROM (SELECT * FROM `raw_comext_monthly_201707` WHERE (`productcode` = 44)) `TBL_LEFT`
-  LEFT JOIN `vld_comext_product` AS `TBL_RIGHT`
-       ON (`TBL_LEFT`.`productcode` = `TBL_RIGHT`.`productcode`)) `TBL_LEFT`
-  LEFT JOIN `vld_comext_reporter` AS `TBL_RIGHT`  
-       ON (`TBL_LEFT`.`reportercode` = `TBL_RIGHT`.`reportercode`)) `TBL_LEFT`
-  LEFT JOIN `vld_comext_partner` AS `TBL_RIGHT`
-       ON (`TBL_LEFT`.`partnercode` = `TBL_RIGHT`.`partnercode`)
-```
-Is it possible to reduce the size of this chunk?
-
-Stackoverflow [Multiple left join and where clause](https://stackoverflow.com/a/14261094/2641825)
-    
-## Join 2 tables
-```{sql eval=FALSE}
-SELECT *
-FROM   raw_comext_monthly_201707
-JOIN   vld_comext_product ON  raw_comext_monthly_201707.productcode = vld_comext_product.productcode
-WHERE  raw_comext_monthly_201707.productcode = 44
-```
-
-
-### Join 4 tables: monthly data, product, reporter, partner 
-```{sql eval=FALSE}
-SELECT *
-FROM   raw_comext_monthly_201707
-LEFT JOIN vld_comext_product ON  raw_comext_monthly_201707.productcode = vld_comext_product.productcode
-LEFT JOIN vld_comext_reporter ON raw_comext_monthly_201707.reportercode = vld_comext_reporter.reportercode
-LEFT JOIN vld_comext_partner ON raw_comext_monthly_201707.partnercode = vld_comext_partner.partnercode
-WHERE  raw_comext_monthly_201707.productcode = 44
-```
-
-
-The same using an alias
-```{sql sqlwithalias, connection=con}
-SELECT *
-FROM   raw_comext_monthly_201707 as m
-LEFT JOIN vld_comext_product ON m.productcode = vld_comext_product.productcode
-LEFT JOIN vld_comext_reporter ON m.reportercode = vld_comext_reporter.reportercode
-LEFT JOIN vld_comext_partner ON m.partnercode = vld_comext_partner.partnercode
-WHERE  m.productcode = 44
-```
 
 
 # Conclusions
