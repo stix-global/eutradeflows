@@ -39,9 +39,9 @@ mysqldump tradeflows raw_comext_monthly_201708 | 7zr a -siraw_comext_monthly_201
 mysqldump tradeflows raw_comext_monthly_2016S1 | 7zr a -si raw_comext_monthly_2016S1.sql.7z
 
 # Dump validated codes
-mysqldump tradeflows val_comext_product | 7zr a -si val_comext_product.sql.7z
-mysqldump tradeflows val_comext_reporter | 7zr a -si val_comext_reporter.sql.7z
-mysqldump tradeflows val_comext_partner | 7zr a -si val_comext_partner.sql.7z
+mysqldump tradeflows vld_comext_product | 7zr a -si vld_comext_product.sql.7z
+mysqldump tradeflows vld_comext_reporter | 7zr a -si vld_comext_reporter.sql.7z
+mysqldump tradeflows vld_comext_partner | 7zr a -si vld_comext_partner.sql.7z
 ```
 
 Create an R function that dumps a database table to a given folder location.

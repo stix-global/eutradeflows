@@ -103,6 +103,7 @@ No there are 8 rows in which this is not the case.
 # cleancodes
 ## cleanallcomextcodes function
 ```{r}
+# See chunks above to add raw products to the database if they are missing
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
 try(cleanallcomextcodes(con))
 RMySQL::dbDisconnect(con)
@@ -415,6 +416,10 @@ Which seems to be traded as one long character by the function that transfer pro
 See product code 47073090
 Again the issue seems to be related to an unever number of quotation marks.
 But I have alread changed the `read.delim` parameter in `writetxtcodes2db`
+The issue due to the fact that I was using 
+the old table name `val_comext_product` 
+instead of the new name `vld_comext_product`.
+
 ```{r}
 cntxt <- readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>% 
     grep("47073090", ., value=TRUE)
@@ -430,9 +435,21 @@ cn[cn$V1==47073090,]$V4
 cn[cn$V1==470790,]$V4
 cn[cn$V1==47079010,]$V4
 # Looks OK, how about in the database?
+
+# Raw table
+rawcn4707 <- tbl(con, "raw_comext_product") %>% 
+    collect() %>% 
+    filter(grepl("4707", productcode)) 
+# rawcn4707 %>% kable() 
+rawcn4707$productdescription[rawcn4707$productcode==47073090]
+
+# Validated table
+valcn4707 <- tbl(con, "vld_comext_product") %>% 
+    collect() %>% 
+    filter(grepl("4707", productcode)) 
+# valcn4707 %>% kable() 
+valcn4707$productdescription[valcn4707$productcode==47073090]
 ```
-
-
 
 
 
