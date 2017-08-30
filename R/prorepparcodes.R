@@ -59,22 +59,24 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
     
     
     # load all codes and keep only most recent codes
-    dtf <- tbl(RMySQLcon, tableread) %>%
-        collect() %>%
+    rawcode <- tbl(RMySQLcon, tableread) %>%
+        collect() 
+    vldcode <- rawcode %>%
         group_by(!!codevariable) %>%
         filter(datestart == max(datestart)) %>%
         select(outputfields)
-    # The number of distinct rows for all columns should be equal to
-    # the number of distinct codes
-    stopifnot(identical(nrow(unique(dtf)),
-                        nrow(distinct(dtf, !!codevariable))))
+    
+    # After cleaning, 
+    # the number of distinct rows for all columns should be equal to
+    # the number of distinct codes in the raw dataset
+    stopifnot(identical(nrow(unique(vldcode)),
+                        nrow(distinct(rawcode, !!codevariable))))
     # Remove duplicates
-    dtf <- unique(dtf)
+    vldcode <- unique(vldcode)
     # Write back to the database
-    RMySQL::dbWriteTable(RMySQLcon, tablewrite, dtf,
+    RMySQL::dbWriteTable(RMySQLcon, tablewrite, vldcode,
                          row.names = FALSE, append = TRUE)
 }
-
 
 
 #' @description \code{cleanallcomextcodes} extracts unique product
