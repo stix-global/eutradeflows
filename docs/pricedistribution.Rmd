@@ -1,9 +1,17 @@
 ---
-title: "Price distribution"
+title: "Count lines in the database"
 output:
+  pdf_document: 
+    fig_caption: yes
+    toc: yes
   html_document:
     toc: true
 ---
+```{r databasetableanalysed}
+# Comment out to pass tableanalysed as a parameter
+tableanalysed = 'raw_comext_monthly_201708' 
+```
+
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
 library(knitr)
@@ -14,8 +22,20 @@ library(reshape2)
 library(tidyr)
 ``` 
 
+Connect to the database.
+```{r dbConnect}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
 
-# Tonnage price
+# Lines per pro
+```{r}
 
-# Volumetric price
+```
+
+
+
+Disconnect from the database.
+```{r dbDisconnect}
+RMySQL::dbDisconnect(con)
+```
 

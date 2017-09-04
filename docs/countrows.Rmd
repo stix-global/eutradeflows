@@ -1,0 +1,192 @@
+---
+output:
+  pdf_document: 
+    fig_caption: yes
+    toc: yes
+  html_document: default
+---
+```{r databasetableanalysed, echo=FALSE}
+# Comment out to pass tableanalysed as a parameter in the parent environment
+tableanalysed = 'raw_comext_monthly_201708' 
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
+---
+title: "Count rows in the database table `r tableanalysed`"
+---
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+library(knitr)
+opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
+opts_chunk$set(echo = FALSE)
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(ggplot2)
+``` 
+
+
+# Introduction
+```{r echo = FALSE}
+tan <- tbl(con, tableanalysed) %>% 
+    summarise(n = n()) %>% 
+    collect() %$% n
+
+```
+
+The database table `r tableanalysed` contains `r format(tan, big.mark = "'")` rows. 
+These rows represent trade flows between 
+`r dbndistinct(con, tableanalysed, reportercode)` reporter countries 
+and `r dbndistinct(con, tableanalysed, partnercode)` partner countries,
+for `r dbndistinct(con, tableanalysed, productcode)` products
+over a period of `r dbndistinct(con, tableanalysed, period)` months.
+
+\pagebreak
+
+# Number of rows per product
+We analyse product codes in 3 separate categories: 
+
+ * 2 digit product codes 
+ * Special product codes containing characters 
+ * 8 digit product codes in 2 ways:
+    * Number of rows shown first summarised at the 4 digit level
+    * then detailed for each product code at the 8 digit level 
+ 
+```{r}
+tapro <- tbl(con, tableanalysed) %>% 
+    count(productcode) %>% 
+    collect()
+
+tapro2 <- tapro %>% 
+    filter(nchar(productcode) == 2)
+
+taprospecial <- tapro %>%
+    filter(grepl("[[:alpha:]]", productcode))
+
+tapro8 <- tapro %>% 
+    filter(nchar(productcode) == 8 & 
+               !grepl("[[:alpha:]]", productcode)) %>% 
+    mutate(prod2 = substr(productcode, 1,2),
+           prod4 = substr(productcode, 1,4))
+
+# Check if 3 table combined contain the same number of rows as the original
+stopifnot(nrow(tapro) == nrow(tapro2) + nrow(taprospecial) + nrow(tapro8))
+
+tapro2 %>% 
+    kable(format.args = list(big.mark = "'"),
+          col.names = c("Product Code 2 Digits |", "Number of Rows"))
+
+taprospecial %>% 
+    kable(format.args = list(big.mark = "'"),
+          col.names = c("Special Product Code |", "Number of Rows"))
+```
+
+\pagebreak
+```{r}
+options(knitr.kable.NA = '')
+tapro8 %>% 
+    group_by(prod2, prod4) %>% 
+    summarise(n = sum(n)) %>% 
+    mutate(prod02 = substr(prod4,3,4)) %>% 
+    gather(key, value, -prod2,-prod02) %>% 
+    mutate(key = factor(key, levels= c("prod4","n"))) %>% 
+    reshape2::dcast(prod02 ~ prod2 + key) %>% 
+    # tidyr::unite(prod4n, prod4, n) %>% 
+    # spread(prod2, prod4n, fill = "") %>% 
+    mutate_at(vars(ends_with("n")), as.numeric) %>% 
+    select(-prod02) %>%
+    kable(format.args = list(decimal.mark = ",", big.mark = "'"),
+          col.names = c("44", "nrow",
+                        "45", "nrow",
+                        "47", "nrow", 
+                        "48", "nrow",
+                        "94", "nrow"))
+```
+
+
+
+```{r results='asis'}
+taprounited <- tapro8 %>% 
+    arrange(desc(n)) %>% 
+    unite(prod8n, productcode, n) %>% 
+    group_by(prod2) %>% 
+    summarise(prod8n = paste(prod8n, collapse = ", ")) 
+
+for (prod2 in taprounited$prod2) {
+    cat("\n\n## Number of rows for sub-products of product ",
+        prod2, "\n\n")
+    cat(taprounited$prod8n[taprounited$prod2 == prod2])
+    cat("\n\n")
+}
+```
+
+
+# Number of rows per period
+```{r}
+tbl(con, tableanalysed) %>% 
+    count(period) %>% collect() %>% 
+    mutate(period = as.character(period)) %>% 
+    ggplot(aes(x = period, y = n/1e3)) +
+    geom_point() +
+    ylim(c(0,NA)) +
+    ylab("Number of rows in thousand") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+```{r}
+perpro <- tbl(con, tableanalysed) %>% 
+    count(period, productcode) %>% 
+    collect() %>%
+    ungroup() %>% 
+    mutate(period = as.character(period))
+
+perpro2 <- perpro %>%
+    filter(nchar(productcode) == 2) %>% 
+    mutate(productcode = as.numeric(productcode)) %>% 
+    left_join(tradeharvester::products2harvest, by="productcode") %>% 
+    unite(product, productcode, productdescription, sep = " ")
+
+perprospecial <- perpro %>%
+    filter(grepl("[[:alpha:]]", productcode))
+
+perpro8 <- perpro %>% 
+    filter(nchar(productcode) == 8 & 
+               !grepl("[[:alpha:]]", productcode)) %>% 
+    mutate(prod2 = substr(productcode, 1,2),
+           prod4 = substr(productcode, 1,4))
+stopifnot(identical(nrow(perpro),
+                    nrow(perpro2) + nrow(perprospecial) + nrow(perpro8)))
+```
+
+
+```{r fig.height=10, fig.cap="Number of rows for 2 digit produt codes"}
+ggplot(perpro2, aes(x = period, y = n)) +
+    geom_point() +
+    facet_wrap(~product, ncol = 2) +
+    ylim(c(0,NA)) +
+    ylab("Number of rows") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+```{r fig.height=10, fig.cap="Number of rows for special product codes"}
+ggplot(perprospecial, aes(x = period, y = n)) +
+    geom_point() +
+    facet_wrap(~productcode) +
+    ylim(c(0,NA)) +
+    ylab("Number of rows") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+# Number of rows per reporter
+```{r}
+
+```
+
+
+
+```{r dbDisconnect}
+RMySQL::dbDisconnect(con)
+```
+

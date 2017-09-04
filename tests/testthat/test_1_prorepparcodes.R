@@ -123,12 +123,15 @@ test_that("an error is raised if most recent codes are not exact duplicates", {
 # In case of test failures, you can comment these line out
 # to investigate what was present in the dummy database tables.
 if (RMySQL::mysqlHasDefault()){
-    # Collect the list of drop statements
+    # Collect a list of drop statements
     tables2delete <- grep("DROP TABLE IF EXISTS",readLines(dummysql),value=TRUE)
     con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
     # Send drop statements one by one to the database engine
-    res <- sapply(tables2delete, function(dropstatement){RMySQL::dbSendQuery(con, dropstatement)})
-    # clear all results, to avoid the warning "Closing open result sets"
+    res <- sapply(tables2delete, 
+                  function(dropstatement){
+                      RMySQL::dbSendQuery(con, dropstatement)
+                  })
+    # Clear all results, to avoid the warning "Closing open result sets"
     sapply(res, RMySQL::dbClearResult)
     # RMySQL::dbRemoveTable(con, "raw_dummy_code2") # another way to remove a table
     RMySQL::dbDisconnect(con)

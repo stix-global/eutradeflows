@@ -135,3 +135,27 @@ addproreppar2tbl <- function(RMySQLcon, maintbl){
         left_join(tbl(RMySQLcon, "vld_comext_partner"),
                   by = "partnercode")
 }
+
+
+#' Count the number of distinct rows in a database table for a given variable
+#' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
+#' @param tablename character name of a database table 
+#' @param variable character name of a variable in that database table
+#' @param 
+#' @return numeric value
+#' @examples 
+#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+#' on.exit(RMySQL::dbDisconnect(con))
+#' # Transfer the iris data frame to the database
+#' RMySQL::dbWriteTable(con, "iris_in_db", iris, row.names = FALSE, overwrite = TRUE)
+#' # Count the number of species
+#' dbndistinct(con, "iris_in_db", Species)
+#' @export
+dbndistinct <- function(RMySQLcon, tablename, variable){
+    variable <- enquo(variable)
+    dtf <- tbl(RMySQLcon, tablename) %>% 
+        distinct(!!variable) %>% 
+        summarise(n = n()) %>% 
+        collect() 
+    return(dtf$n)
+}

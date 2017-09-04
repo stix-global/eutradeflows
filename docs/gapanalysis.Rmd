@@ -8,12 +8,15 @@ output:
   html_document:
     toc: true
 ---
+```{r databasetableanalysed}
+# Comment out to pass tableanalysed as a parameter
+tableanalysed = 'raw_comext_monthly_201708' 
+```
+
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
 # Render this long document in a separate bash console with the command:
 # cd ~/R/eutradeflows && Rscript -e "tableanalysed = 'raw_comext_monthly_201708'; rmarkdown::render('docs/gapanalysis.Rmd')"
-# Comment out to pass tableanalysed as a parameter
-tableanalysed = 'raw_comext_monthly_201708' 
 
 library(knitr)
 opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
@@ -45,7 +48,7 @@ Each flow between a reporter and a partner country contains 3 informations: trad
 All 3 informations given by the Comext trade database can have gaps.
 Gaps are measured below in terms of number of database rows for which a given value is equal to zero.
 There are far fewer gaps in trade value compared to weight and quantity.
-```{sql comparegaps, connection = con}
+```{sql comparegaps, connection = con, tab.cap="Gaps in the 3 variables present in Comext"}
 select * from 
 (select count(*) as 'gaps in trade value' from raw_comext_monthly_201708 where tradevalue = 0 ) as x, 
 (select count(*) as 'gaps in weight' from raw_comext_monthly_201708 where weight = 0) as y, 
