@@ -34,6 +34,7 @@ cd _server_path_/sqldump
 
 # Recent data
 mysqldump tradeflows raw_comext_monthly_201708 | 7zr a -siraw_comext_monthly_201708.sql raw_comext_monthly_201708.sql.7z
+mysqldump tradeflows raw_comext_monthly_201709 | 7zr a -siraw_comext_monthly_201709.sql raw_comext_monthly_201709.sql.7z
 
 # Monthly archive
 mysqldump tradeflows raw_comext_monthly_2016S1 | 7zr a -si raw_comext_monthly_2016S1.sql.7z
