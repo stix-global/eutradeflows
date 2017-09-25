@@ -141,7 +141,6 @@ addproreppar2tbl <- function(RMySQLcon, maintbl){
 #' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
 #' @param tablename character name of a database table 
 #' @param variable character name of a variable in that database table
-#' @param 
 #' @return numeric value
 #' @examples 
 #' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
@@ -159,3 +158,5 @@ dbndistinct <- function(RMySQLcon, tablename, variable){
         collect() 
     return(dtf$n)
 }
+
+

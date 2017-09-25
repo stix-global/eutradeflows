@@ -1,0 +1,47 @@
+---
+title: "pricecvextraction"
+author: "Paul Rougieux"
+date: "20 September 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r dbconnect}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
+
+
+See also `tradeflows/docs/development/cleaning/Comext.Rmd`.
+
+# Extract prices and write them back to the database
+
+[SO question](https://stackoverflow.com/questions/2480713/mysql-averaging-with-nulls)
+Mentions 
+[further reading on aggregation and NULL values in SQL](http://www.databasejournal.com/features/mssql/article.php/3399931/Working-With-Columns-That-Contain-Null-Values.htm)
+
+According to this StackOverFlow question
+[Quartiles in SQL query](https://stackoverflow.com/questions/31209608/quartiles-in-sql-query), 
+it' possibe to calculate quartiles with mysql but it sounds complicated.
+I'll stick to loading each product in R and calculating prices, 
+upper and lower bounds on prices separately.
+
+```{r}
+
+
+```
+
+
+# Extract conversion factors
+
+
+
+```{r dbDisconnect}
+RMySQL::dbDisconnect(con)
+```
+
+

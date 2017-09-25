@@ -4,15 +4,10 @@ output:
     fig_caption: yes
     toc: yes
   html_document: default
+title: Develop cleaning algorithm
 ---
-```{r databasetableanalysed, echo=FALSE}
-# Comment out to pass tableanalysed as a parameter in the parent environment
-tableanalysed = 'raw_comext_monthly_201708' 
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
-```
----
-title: "Clean the database table `r tableanalysed`"
----
+
+
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
 library(knitr)
@@ -26,18 +21,28 @@ library(ggplot2)
 ``` 
 
 
-See /tradeflows/docs/development/cleaning/Comext.Rmd
+See  also `/tradeflows/docs/development/cleaning/Comext.Rmd`.
 In that document, tradeflows functions (originally written for Comtrade) 
 are tested on the Comext data.
 
+```{r databasetableanalysed, echo=FALSE}
+# Comment out to pass tableanalysed as a parameter in the parent environment
+recenttable <- 'raw_comext_monthly_201708' 
+archivetable <- 'raw_comext_monthly_2016S1'
+productanalysed <- 44072960
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
 
 # Introduction
-```{r echo = FALSE}
-library(tradeflows)
-wp <- tbl(con, tableanalysed) %>% 
-    filter(productcode == 44)
 
-clean(wp)
+Steps of the cleaning process
+
+ * Calculate prices and conversion factors, storred in a table called
+ vld_comext_pricecv
+ * 
+
+```{r echo = FALSE}
+
 
 ```
     
