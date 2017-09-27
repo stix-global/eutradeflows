@@ -43,7 +43,12 @@ raw_dummy_reporter <- data.frame(reportercode = c(5L, 6L, 5L),
                                  datestart = c("2001-01-01", "2002-01-01","2002-01-01"),
                                  dateend = c("2001-12-31", "2500-01-01","2500-01-01"),
                                  stringsAsFactors = FALSE)
-
+vld_dummy_unit <- data.frame(productcode = c(1, 2, 2, 3),
+                             unitcode    = c("A", "A", "B", "A"),
+                             periodstart = c("200001", "201001", 
+                                             "200001", "200001"),
+                             periodend   = c("200912", "250012",
+                                             "250012", "250012"))
 
 context("Test database writable")
 test_that("dummy data can be written to the database and read back", {
@@ -116,6 +121,13 @@ test_that("an error is raised if most recent codes are not exact duplicates", {
     RMySQL::dbWriteTable(con, "raw_dummy_code", raw_dummy_code_deffect, row.names = FALSE, overwrite = TRUE)
     expect_error(cleancode(con, tableread = "raw_dummy_code", tablewrite = "vld_dummy_code", codevariable = code),
                  regexp = "identical")
+})
+
+
+context("addunit")
+test_that("Product codes are matched with the correct unit before and after a change", {
+    # dtf <- 
+    
 })
 
 
