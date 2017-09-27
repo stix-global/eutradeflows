@@ -16,6 +16,31 @@ CREATE TABLE `vld_comext_product` (
 
 
 --
+-- Table structure for table `vld_comext_unit`
+--
+DROP TABLE IF EXISTS `vld_comext_unit`;
+CREATE TABLE `vld_comext_unit` (
+  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `periodstart` int DEFAULT NULL,
+  `periodend` int DEFAULT NULL,
+  KEY `productcode` (`productcode`),
+  KEY `unitcode` (`unitcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+--
+-- Table structure for table `vld_comext_unit_description`
+--
+DROP TABLE IF EXISTS `vld_comext_unit_description`;
+CREATE TABLE `vld_comext_unit_description` (
+  `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `unitdescription` text COLLATE utf8_unicode_ci,
+  UNIQUE KEY `unitcode` (`unitcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+--
 -- Table structure for table `vld_comext_reporter`
 --
 DROP TABLE IF EXISTS `vld_comext_reporter`;
@@ -37,7 +62,6 @@ CREATE TABLE `vld_comext_partner` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
-
 --
 -- Table structure for table `vld_comext_price`
 --     yearly global prices in euros per quantity unit (generaly m3)
@@ -56,6 +80,7 @@ CREATE TABLE `vld_comext_price` (
   KEY `flowcode` (`flowcode`),
   KEY `period` (`period`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 
 --
 -- Table structure for table `vld_comext_pricew`
@@ -79,7 +104,6 @@ CREATE TABLE `vld_comext_pricew` (
   KEY `flowcode` (`flowcode`),
   KEY `period` (`period`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
 
 
 --

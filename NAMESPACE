@@ -3,6 +3,7 @@
 export(addproreppar2tbl)
 export(cleanallcomextcodes)
 export(cleancode)
+export(cleanunits)
 export(createdbstructure)
 export(dbndistinct)
 export(dumptable)

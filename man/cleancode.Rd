@@ -3,9 +3,13 @@
 \name{cleancode}
 \alias{cleanallcomextcodes}
 \alias{cleancode}
+\alias{cleanunits}
 \title{Extract a list of unique, most recent product, reporter and partner codes from Comext}
 \usage{
 cleancode(RMySQLcon, tableread, tablewrite, codevariable)
+
+cleanunits(RMySQLcon, tableread = "raw_comext_unit",
+  tablewrite = "vld_comext_unit")
 
 cleanallcomextcodes(RMySQLcon)
 }

@@ -113,7 +113,7 @@ RMySQL::dbDisconnect(con)
 ## cleanallcomextcodes on the server
 ```{r eval=FALSE}
 # first update the package
-devtools::install_github("stix-global/eutradeflows")
+# devtools::install_github("stix-global/eutradeflows")
 library(tradeflows)
 # Update the database structures for raw and validated data
 createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
@@ -167,6 +167,51 @@ sqltable$nrow
 
 RMySQL::dbDisconnect(con)
 
+```
+
+## Clean units
+Since units are changing over time, 
+it is not possible to get a single unit per product.
+This means that a unit is attached to a product and a period.
+
+```{r}
+unit <- tbl(con, "raw_comext_unit") %>% collect()
+
+# Is the startdate always in January?
+unitdates <- unit %>% 
+    transmute(unitcode, 
+              mdstart = substr(datestart, 5, 10),
+              mdend   = substr(dateend, 5, 10)) %>% 
+    distinct()
+# All possible start and end months
+unitdates %>% distinct(mdstart, mdend) 
+# The only weird product starting in July
+unitdates %>% filter(mdstart == "-07-01" | mdend == "-06-30")
+
+# Change start and end dates to a period in month
+unit2 <- unit %>%
+    mutate(periodstart = gsub("-", "", substr(datestart,1,7)),
+           periodend   = gsub("-", "", substr(dateend,1,7))) %>% 
+    select(-datestart, -dateend)
+
+# Keep start and end dates only if there is a chage in unit
+## Get unique combination of product codes and units
+unitdistinct <- unit %>% distinct(productcode, unitcode)
+
+# A look at the various starting and ending period
+unit2 %>% distinct(periodstart) %>% arrange(periodstart)
+unit2 %>% distinct(periodend) %>% arrange(periodend)
+
+
+# When merging units with the trade flows table, 
+# we will take the unit which has a 
+# periodstart <= period <= periodend
+# Its possible to compare period strings
+"201206" <= c("201201", "201207", "201206") 
+periods <- c("201201", "201207", "201206", "201412") 
+"201206" <= periods & periods <= "201412"
+# As well as integer version
+201206 <= c(201201, 201207, 201206)    
 ```
 
 

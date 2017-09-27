@@ -11,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # Dump
-
 ## Load a dump
 The following commands can be used to load mysql dump files:
 ```{bash eval=FALSE}

@@ -46,17 +46,16 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
     # but first check if the table is empty
     # and if it is not empty, ask to recreate the database
     # structure with empty tables.
+    # Check if the output table is empty
     res <- RMySQL::dbSendQuery(RMySQLcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
     sqltable <- RMySQL::dbFetch(res)
     RMySQL::dbClearResult(res)
-    # Check if the output table is empty
     if(sqltable$nrow > 0){
         stop("Table ", tablewrite, " is not empty.",
              "You can recreate an empty table structure with:\n",
              sprintf("createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
                      RMySQL::dbGetInfo(RMySQLcon)$dbname))
     }
-    
     
     # load all codes and keep only most recent codes
     rawcode <- tbl(RMySQLcon, tableread) %>%
@@ -79,6 +78,38 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
 }
 
 
+#' @rdname cleancode
+#' @export
+cleanunits <- function(RMySQLcon, 
+                       tableread = "raw_comext_unit",
+                       tablewrite = "vld_comext_unit"){
+    # Check if the output table is empty
+    res <- RMySQL::dbSendQuery(RMySQLcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
+    sqltable <- RMySQL::dbFetch(res)
+    RMySQL::dbClearResult(res)
+    if(sqltable$nrow > 0){
+        stop("Table ", tablewrite, " is not empty.",
+             "You can recreate an empty table structure with:\n",
+             sprintf("createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
+                     RMySQL::dbGetInfo(RMySQLcon)$dbname))
+    }
+    
+    # Load raw units 
+    rawunits <- tbl(RMySQLcon, tableread) %>%
+        collect() 
+    
+    # Change start and end dates to a period in month
+    vldunits <- rawunits %>% 
+        mutate(periodstart = gsub("-", "", substr(datestart,1,7)),
+               periodend   = gsub("-", "", substr(dateend,1,7))) %>% 
+        select(-datestart, -dateend)
+    
+    # Write back to the database
+    RMySQL::dbWriteTable(RMySQLcon, tablewrite, vldunits,
+                         row.names = FALSE, append = TRUE)
+}
+
+
 #' @description \code{cleanallcomextcodes} extracts unique product
 #' and country codes from the Comext raw data so that they are ready for use
 #' as unique keys.
@@ -94,6 +125,9 @@ cleanallcomextcodes <- function(RMySQLcon){
     cleancode(RMySQLcon, "raw_comext_product", "vld_comext_product", productcode)
     cleancode(RMySQLcon, "raw_comext_reporter", "vld_comext_reporter", reportercode)
     cleancode(RMySQLcon, "raw_comext_partner", "vld_comext_partner", partnercode)
+    cleancode(RMySQLcon, "raw_comext_unit_description", 
+              "vld_comext_unit_description", unitcode)
+    cleanunits(RMySQLcon)
     
     # Diagnostics
     # Display row count information

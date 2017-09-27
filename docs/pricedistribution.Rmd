@@ -1,15 +1,15 @@
 ---
-title: "Count lines in the database"
+title: "Price distribution"
 output:
   pdf_document: 
     fig_caption: yes
     toc: yes
-  html_document:
-    toc: true
+    toc_depth: 4
 ---
-```{r databasetableanalysed}
-# Comment out to pass tableanalysed as a parameter
-tableanalysed = 'raw_comext_monthly_201708' 
+
+```{r generate_this_document, eval=FALSE}
+# Generate this document from a R command line
+rmarkdown::render("~/R/eutradeflows/docs/pricedistribution.Rmd")
 ```
 
 
@@ -20,6 +20,7 @@ library(tradeflows)
 library(dplyr)
 library(reshape2)
 library(tidyr)
+library(ggplot2)
 ``` 
 
 Connect to the database.
@@ -27,15 +28,150 @@ Connect to the database.
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```
 
-# Lines per pro
-```{r}
 
+# Compare yearly and monthly price distributions for sub products of 4407
+```{r}
+products <- tbl(con, "vld_comext_product") %>% 
+    filter(productcode %like% "4407%")  %>%
+    # explain() %>% 
+    collect()
+
+# Monthly archive 
+wpm <- tbl(con, "raw_comext_monthly_2016S1") %>% 
+    filter(productcode %in% products$productcode) %>% 
+    collect()
+
+# Yearly archive
+wpy <- tbl(con, "raw_comext_yearly_2016S2") %>% 
+    filter(productcode %in% products$productcode) %>% 
+    collect()
+
+# Add prices
+wpm <- wpm %>% 
+    tradeflows::addconversionfactorandprice()
+wpy <- wpy %>% 
+    tradeflows::addconversionfactorandprice()
+
+# Bind the monthly and yearly dataframes together
+# Specify monthly and yearly timeframe
+wpm$timeframe <- "monthly"
+wpy$timeframe <- "yearly"
+wp <- rbind(wpm, wpy) %>% 
+    mutate(year = substr(period, 1, 4))
+```
+
+## Descriptive statistics (min, max, quartiles)
+Descriptive statistics of tradevalue, quantity and weight 
+for monthly and yearly data:
+```{r}
+summary(wpm[c("tradevalue", "quantity", "weight")])
+summary(wpy[c("tradevalue", "quantity", "weight")])
+```
+Descriptive statistics of prices and convertion factor
+for monthly and yearly data:
+```{r}
+summary(wpm[c("price", "pricew", "conversion")])
+summary(wpy[c("price", "pricew", "conversion")])
+```
+
+\pagebreak
+
+## Price distributions
+
+```{r fig.cap="Price hostogram for 0 < price < 10"}
+# Interleaved histograms
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_histogram(binwidth=.1, position="dodge") +
+    xlim(c(0,10))
+
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_histogram(binwidth=.01, position="dodge") +
+    xlim(c(0,1))
 ```
 
 
 
-Disconnect from the database.
+### Density plots with semi-transparent fill
+
+```{r}
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,10))
+
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,1))
+```
+
+
+
+### log(price) distribution monthly and yearly
+```{r}
+ggplot(wpm, aes(x = log(price))) + 
+    geom_histogram(binwidth = 0.1) 
+
+ggplot(wp, aes(x = log(price), fill = timeframe)) +
+    geom_density(alpha=.3) +
+    xlim(c(-10,5))
+```
+
+
+### Price distribution by product
+Monthly distribution  by product, 6 digit level
+```{r}
+wp$productcode6d <- substr(wp$productcode, 1,6)
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,1)) +
+    facet_wrap(~productcode6d, scales = "free_y")
+```
+Monthly distribution  by product, 8 digit level
+Plot generated externally
+Note: some products only have yearly data, no monthly data.
+Is this due to missing quantity information? 
+Or are the monthly flows missing completely for these products?
+```{r eval=FALSE}
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,1)) +
+    facet_wrap(~productcode, scales = "free_y")
+```
+
+Yearly distribution by product
+
+```{r}
+# Monthly distribution by year by product
+# Yearly distribution by year by product
+```
+
+### Price distribution by year
+
+
+plot generated externaly
+```{r}
+wp$productcode6d <- substr(wp$productcode, 1,6)
+ggplot(wp, aes(x=price, fill=timeframe)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,1)) +
+    facet_grid(year~productcode6d, scales = "free_y")
+```
+
+
+
+## Joy plots 
+
+```{r eval=FALSE}
+library(ggjoy)
+ggplot(wpm, aes(x = price)) +
+       geom_joy(scale = 2, alpha = .5, rel_min_height = 0.01) + 
+    xlim(c(0,5)) + theme_minimal() +
+    theme_joy() 
+```
+
+
+
+
+# Disconnect from the database.
 ```{r dbDisconnect}
 RMySQL::dbDisconnect(con)
 ```
-

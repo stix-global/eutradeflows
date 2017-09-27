@@ -34,6 +34,35 @@ CREATE TABLE `raw_comext_product` (
 
 
 --
+-- Table structure for table `raw_comext_unit`
+--
+DROP TABLE IF EXISTS `raw_comext_unit`;
+CREATE TABLE `raw_comext_unit` (
+  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `datestart` date DEFAULT NULL,
+  `dateend` date DEFAULT NULL,
+  KEY `productcode` (`productcode`),
+  KEY `unitcode` (`unitcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+--
+-- Table structure for table `raw_comext_unit_description`
+--
+DROP TABLE IF EXISTS `raw_comext_unit_description`;
+CREATE TABLE `raw_comext_unit_description` (
+  `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `datestart` date DEFAULT NULL,
+  `dateend` date DEFAULT NULL,
+  `unitdescription` text COLLATE utf8_unicode_ci,
+  `datestart2` date DEFAULT NULL,
+  `dateend2` date DEFAULT NULL,
+  KEY `unitcode` (`unitcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+--
 -- Table structure for table `raw_comext_reporter`
 --
 DROP TABLE IF EXISTS `raw_comext_reporter`;
