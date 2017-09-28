@@ -15,7 +15,14 @@ library(tidyr)
 ``` 
 
 
+# See also
+Documentation on how I loaded raw product codes into the database:
+~/R/tradeharvester/docs/productcodes.Rmd 
+
+
 # If codes are not present, transfer them
+
+
 ```{r eval=FALSE}
 if(FALSE){ # If codes are not present, transfer them
     # create emtpty database structure for raw codes
@@ -99,6 +106,7 @@ diffdates <- allproducts %>%
            dateend != dateend2)
 ```
 No there are 8 rows in which this is not the case.
+
 
 # cleancodes
 ## cleanallcomextcodes function

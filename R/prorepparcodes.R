@@ -80,9 +80,9 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
 
 #' @rdname cleancode
 #' @export
-cleanunits <- function(RMySQLcon, 
-                       tableread = "raw_comext_unit",
-                       tablewrite = "vld_comext_unit"){
+cleanunit <- function(RMySQLcon, 
+                      tableread = "raw_comext_unit",
+                      tablewrite = "vld_comext_unit"){
     # Check if the output table is empty
     res <- RMySQL::dbSendQuery(RMySQLcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
     sqltable <- RMySQL::dbFetch(res)
@@ -125,9 +125,10 @@ cleanallcomextcodes <- function(RMySQLcon){
     cleancode(RMySQLcon, "raw_comext_product", "vld_comext_product", productcode)
     cleancode(RMySQLcon, "raw_comext_reporter", "vld_comext_reporter", reportercode)
     cleancode(RMySQLcon, "raw_comext_partner", "vld_comext_partner", partnercode)
+    message("Cleaning unit codes...")
     cleancode(RMySQLcon, "raw_comext_unit_description", 
               "vld_comext_unit_description", unitcode)
-    cleanunits(RMySQLcon)
+    cleanunit(RMySQLcon)
     
     # Diagnostics
     # Display row count information
@@ -157,7 +158,6 @@ cleanallcomextcodes <- function(RMySQLcon){
 #'     addproreppar2tbl(con, .) %>%
 #'     collect()
 #' RMySQL::dbDisconnect(con)
-#'
 #' }
 #' @export
 addproreppar2tbl <- function(RMySQLcon, maintbl){
@@ -168,6 +168,33 @@ addproreppar2tbl <- function(RMySQLcon, maintbl){
                   by = "reportercode") %>%
         left_join(tbl(RMySQLcon, "vld_comext_partner"),
                   by = "partnercode")
+}
+
+
+#' @details addunit2tbl joints all unit codes, 
+#' then removes those which are out dated
+#' @rdname addproreppar2tbl
+#' @export
+addunit2tbl <- function(RMySQLcon, maintbl, 
+                        tableunit = "vld_comext_unit"){
+    maintbl2 <- maintbl %>% 
+        left_join(tbl(RMySQLcon, tableunit),
+                  by = "productcode") %>% 
+        filter((periodstart <= period & period <= periodend) | is.na(unitcode)) 
+    
+    # Check that the number of rows didn't change
+    d1 <- collect(count(maintbl))
+    d2 <- collect(count(maintbl2))
+    if(!identical(d1$n, d2$n)){
+        stop("more than one unit for a period")
+    }
+
+    # Check that the total tradevalue didn't change
+    tv1 <- maintbl %>% summarise(n = sum(tradevalue)) %>% collect()
+    tv2 <- maintbl2 %>% summarise(n = sum(tradevalue)) %>% collect()
+    stopifnot(identical(tv1$n, tv2$n))
+    
+    return(maintbl2)
 }
 
 

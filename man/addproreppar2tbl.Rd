@@ -2,9 +2,12 @@
 % Please edit documentation in R/prorepparcodes.R
 \name{addproreppar2tbl}
 \alias{addproreppar2tbl}
+\alias{addunit2tbl}
 \title{Add product reporter and partner to a tbl object}
 \usage{
 addproreppar2tbl(RMySQLcon, maintbl)
+
+addunit2tbl(RMySQLcon, maintbl, tableunit = "vld_comext_unit")
 }
 \arguments{
 \item{RMySQLcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
@@ -17,6 +20,10 @@ a tbl object left joined to the product, reporter and partner tables.
 \description{
 Add product reporter and partner to a tbl object
 }
+\details{
+addunit2tbl joints all unit codes, 
+then removes those which are out dated
+}
 \examples{
 \dontrun{
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
@@ -26,7 +33,6 @@ monthly \%>\%
     addproreppar2tbl(con, .) \%>\%
     collect()
 RMySQL::dbDisconnect(con)
-
 }
 }
 

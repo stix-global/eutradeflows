@@ -53,6 +53,29 @@ CREATE TABLE `raw_dummy_partner` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
+               
+--
+-- Table structure for table `raw_dummy_monthly`
+--
+DROP TABLE IF EXISTS `raw_dummy_monthly`;
+CREATE TABLE `raw_dummy_monthly` (
+  `reportercode` int DEFAULT NULL,
+  `partnercode` int DEFAULT NULL,
+  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `flowcode` int DEFAULT NULL,
+  `statregime` int DEFAULT NULL,
+  `period` int DEFAULT NULL,
+  `tradevalue` double DEFAULT NULL,
+  `weight` double DEFAULT NULL,
+  `quantity` int DEFAULT NULL,
+  KEY `reportercode` (`reportercode`),
+  KEY `partnercode` (`partnercode`),
+  KEY `productcode` (`productcode`),
+  KEY `flowcode` (`flowcode`),
+  KEY `period` (`period`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
 --
 -- Table structure for table `vld_dummy_code`
 --
@@ -98,4 +121,17 @@ CREATE TABLE `vld_dummy_partner` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
+
+--
+-- Table structure for table `vld_dummy_unit`
+--
+DROP TABLE IF EXISTS `vld_dummy_unit`;
+CREATE TABLE `vld_dummy_unit` (
+  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `periodstart` int DEFAULT NULL,
+  `periodend` int DEFAULT NULL,
+  KEY `productcode` (`productcode`),
+  KEY `unitcode` (`unitcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
