@@ -8,5 +8,7 @@ To install this R package from github:
 
     devtools::install_github("stix-global/eutradeflows")
     
-
+# Help
+See package vignettes under inst/doc or in the help index
+by entering `?eutradeflows` at the R prompt.
 

@@ -149,8 +149,8 @@ test_that("Product codes are matched with the correct unit before and after a ch
         collect()
     expect_equal(dtf2$unitcode, c("A", "A", "A", "B", "B", "A", NA))
 
-        
-    # Return an error if the number of flows grows durint the addunit process
+
+    # Return an error if the number of flows grows during the addunit process
     # There shouldn't be more than one unit at a time for a given product
     # in other words, units are unique through time
     # Add same unit data again

@@ -1,0 +1,27 @@
+---
+title: "Validate Comext data, using the eutradeflows package"
+author: "Paul Rougieux"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Validate Comext data, using the eutradeflows package}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+output:
+  knitr:::html_vignette:
+    toc: yes
+---
+```{r buildvignette, eval=FALSE, echo=FALSE}
+# To build this vignette run 
+devtools::build_vignettes()
+# Then rebuild the package CTRL+SHIFT+B so that the vignette is 
+# integrated to the package documentation
+```
+
+# Load raw comext data and text files into the database
+
+
+
+# Prepare product, unit, reporter, partner codes
+
+
+# Clean data

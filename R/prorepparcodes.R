@@ -193,7 +193,6 @@ addunit2tbl <- function(RMySQLcon, maintbl,
     tv1 <- maintbl %>% summarise(n = sum(tradevalue)) %>% collect()
     tv2 <- maintbl2 %>% summarise(n = sum(tradevalue)) %>% collect()
     stopifnot(identical(tv1$n, tv2$n))
-    
     return(maintbl2)
 }
 

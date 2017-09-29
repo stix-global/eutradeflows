@@ -122,3 +122,29 @@ CREATE TABLE `vld_comext_cv` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
+--
+-- Table structure for table `vld_comext_monthly_template`
+--
+DROP TABLE IF EXISTS `vld_comext_monthly_template`;
+CREATE TABLE `vld_comext_monthly_template` (
+  `reportercode` int DEFAULT NULL,
+  `partnercode` int DEFAULT NULL,
+  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `flowcode` int DEFAULT NULL,
+  `statregime` int DEFAULT NULL,
+  `period` int DEFAULT NULL,
+  `flag` int DEFAULT NULL,
+  `tradevalue` double DEFAULT NULL,
+  `weight` double DEFAULT NULL,
+  `quantity` double DEFAULT NULL,
+  `quantityraw` double DEFAULT NULL,
+  `quantity_cf` double DEFAULT NULL,
+  `quantity_up` double DEFAULT NULL,
+  KEY `reportercode` (`reportercode`),
+  KEY `partnercode` (`partnercode`),
+  KEY `productcode` (`productcode`),
+  KEY `flowcode` (`flowcode`),
+  KEY `period` (`period`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+

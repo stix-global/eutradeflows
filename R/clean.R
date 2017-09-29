@@ -10,10 +10,8 @@
 #' "
 #' @param dtf data frame of monthly data for one product
 cleancomextmonthly <- function(dtf){
+    message("moved to the tradeflows package")
    
-    # Checks
-    # Check if the period is sufficiently long, at least 5 years 
-    
     
     dtf %>%  
         tradeflows::addconversionfactorandprice() 
@@ -21,8 +19,6 @@ cleancomextmonthly <- function(dtf){
     ### Prepare conversion factors and prices
     price <- tradeflows::extractprices(dtf, grouping = c("flow", "year", "unit"))
     conversionfactor <- tradeflows::extractconversionfactors(dtf)
-    
-    
     
 }
 

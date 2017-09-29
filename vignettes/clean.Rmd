@@ -1,0 +1,64 @@
+---
+title: "Validate Comext data, using the eutradeflows package"
+author: "Paul Rougieux"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Validate Comext data, using the eutradeflows package}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+output:
+  knitr:::html_vignette:
+    toc: yes
+---
+```{r buildvignette, eval=FALSE, echo=FALSE}
+# To build this vignette run 
+devtools::build_vignettes()
+# Then rebuild the package CTRL+SHIFT+B so that the vignette is 
+# integrated to the package documentation
+```
+
+```{r setup, warning=FALSE, message=FALSE}
+library(knitr)
+# Do not evaluate code chunks below, only display code
+opts_chunk$set(eval=FALSE) 
+library(dplyr)
+```
+
+
+## Create the database structure
+```{r}
+# create emtpty database structure for raw codes
+createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
+# create empty database structure for validated codes
+createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
+```
+
+
+## Connect to the database
+```{r dbConnect}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
+
+
+## Load raw comext data and text files into the database
+```{r}
+# transfer raw codes
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+
+```
+
+
+## Prepare product, unit, reporter, partner codes
+```{r}
+cleanallcomextcodes(con)
+```
+
+
+## Clean trade flows data
+
+
+## Disconnect from the database
+```{r dbDisconnect}
+RMySQL::dbDisconnect(con)
+```
+
