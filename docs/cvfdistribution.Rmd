@@ -1,0 +1,155 @@
+---
+title: "Conversion factor distribution"
+output:
+  pdf_document: 
+    fig_caption: yes
+    toc: yes
+    toc_depth: 4
+---
+
+```{r generate_this_document, eval=FALSE}
+# Generate this document from a R command line
+rmarkdown::render("~/R/eutradeflows/docs/cvfdistribution.Rmd")
+#
+```
+
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+library(knitr)
+opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
+opts_chunk$set(fig.width = 10)
+library(tradeflows)
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+``` 
+
+Connect to the database.
+```{r dbConnect}
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
+
+
+# Compare yearly and monthly conversion factor for sub products of 4407
+```{r}
+products <- tbl(con, "vld_comext_product") %>% 
+    filter(productcode %like% "4407%")  %>%
+    # explain() %>% 
+    collect()
+
+# Monthly archive 
+wpm <- tbl(con, "raw_comext_monthly_2016S1") %>% 
+    filter(productcode %in% products$productcode) %>% 
+    # Add quantity units
+    addunit2tbl(con, maintbl = ., tableunit = "vld_comext_unit")  %>%
+    collect()
+
+# Yearly archive
+wpy <- tbl(con, "raw_comext_yearly_2016S2") %>% 
+    filter(productcode %in% products$productcode) %>% 
+    # Add quantity units
+    addunit2tbl(con, maintbl = ., tableunit = "vld_comext_unit")  %>%
+    collect()
+
+# Add prices
+wpm <- wpm %>% 
+    tradeflows::addconversionfactorandprice()
+wpy <- wpy %>% 
+    tradeflows::addconversionfactorandprice()
+
+# Bind the monthly and yearly dataframes together
+# Specify monthly and yearly timeframe
+wpm$timeframe <- "monthly"
+wpy$timeframe <- "yearly"
+wp <- rbind(wpm, wpy) %>% 
+    mutate(year = substr(period, 1, 4))
+
+# 
+cvf <- wpm %>% 
+    mutate(year = substr(period, 1, 4)) %>% 
+    tradeflows::extractconversionfactors(dtf, 
+                                         grouping = c("productcode", "flowcode",
+                                                      "year", "unit"))
+```
+
+## Descriptive statistics (min, max, quartiles)
+Number of rows and total trade value per products at the 4 and 8 digit level
+More details in the countrows.pdf and productcodes.pdf documents.
+```{r}
+```
+
+
+Descriptive statistics of tradevalue, quantity and weight 
+for monthly and yearly data:
+```{r}
+summary(wpm[c("tradevalue", "quantity", "weight")])
+summary(wpy[c("tradevalue", "quantity", "weight")])
+```
+Descriptive statistics of prices and convertion factor
+for monthly and yearly data:
+```{r}
+summary(wpm[c("price", "pricew", "conversion")])
+summary(wpy[c("price", "pricew", "conversion")])
+```
+
+\pagebreak
+
+## Correlation between weight and quantity for the various products
+
+```{r}
+ggplot(wp, aes(x = quantity, y = weight, color = timeframe)) + 
+    geom_point()
+```
+
+
+### Separate plots at the 6 digit level
+The axis scales of each sub-plot are different. 
+The slope of the dotted black line is alayws the same at 0.6, 
+corresponding the the median conversion factor. 
+The slope of the 
+
+```{r}
+wp$productcode6d <- substr(wp$productcode, 1,6)
+
+ggplot(wp, aes(x = quantity, y = weight, color = timeframe)) + 
+    geom_point() +
+    geom_abline(intercept = 0, slope = 0.6) + # median conversion factor
+    facet_wrap(~productcode6d, scales = "free")
+```
+
+### Only sub products of 440710
+```{r}
+wp %>% 
+    filter(productcode6d == 440710) %>% 
+    ggplot(aes(x = quantity, y = weight, color = timeframe)) + 
+    geom_point() +
+    facet_wrap(~productcode, scale = "free")+
+    geom_abline(intercept = 0, slope = 0.6) # median conversion factor
+```
+
+### Only sub products of 440729
+```{r}
+wp %>% 
+    filter(productcode6d == 440729) %>% 
+    ggplot(aes(x = quantity, y = weight, color = timeframe)) + 
+    geom_point() +
+    geom_abline(intercept = 0, slope = 0.6) + # median conversion factor
+    geom_abline(data = intercept = 0, slope = 0.6)
+    facet_wrap(~productcode, scale = "free")
+
+```
+
+
+
+#### Att the 8 digit level
+Large plot available outside this document. 
+```{r eval=FALSE}
+
+```
+
+
+# Disconnect from the database.
+```{r dbDisconnect}
+RMySQL::dbDisconnect(con)
+```

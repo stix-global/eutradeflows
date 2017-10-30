@@ -9,15 +9,22 @@ output:
     toc: true
 ---
 ```{r databasetableanalysed}
+
+message("A lot of the code below has to be rewritten because
+        missing data is not zero anymore. 
+        Missing data is now correctly encoded 
+        as NULL in the database 
+        and imported as NA values in R.")
+
 # Comment out to pass tableanalysed as a parameter
-tableanalysed = 'raw_comext_monthly_201708' 
+tableanalysed = 'raw_comext_monthly_201709' 
+
+# Render this long document in a separate bash console with the command:
+# cd ~/R/eutradeflows && Rscript -e "tableanalysed = 'raw_comext_monthly_201709'; rmarkdown::render('docs/gapanalysis.Rmd')"
 ```
 
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
-# Render this long document in a separate bash console with the command:
-# cd ~/R/eutradeflows && Rscript -e "tableanalysed = 'raw_comext_monthly_201708'; rmarkdown::render('docs/gapanalysis.Rmd')"
-
 library(knitr)
 opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
 library(eutradeflows)
@@ -50,10 +57,10 @@ Gaps are measured below in terms of number of database rows for which a given va
 There are far fewer gaps in trade value compared to weight and quantity.
 ```{sql comparegaps, connection = con, tab.cap="Gaps in the 3 variables present in Comext"}
 select * from 
-(select count(*) as 'gaps in trade value' from raw_comext_monthly_201708 where tradevalue = 0 ) as x, 
-(select count(*) as 'gaps in weight' from raw_comext_monthly_201708 where weight = 0) as y, 
-(select count(*) as 'gaps in quantity' from raw_comext_monthly_201708 where quantity = 0) as z, 
-(select count(*) as 'total number of rows' from raw_comext_monthly_201708) as t;
+(select count(*) as 'gaps in trade value' from raw_comext_monthly_201709 where tradevalue = 0 ) as x, 
+(select count(*) as 'gaps in weight' from raw_comext_monthly_201709 where weight = 0) as y, 
+(select count(*) as 'gaps in quantity' from raw_comext_monthly_201709 where quantity = 0) as z, 
+(select count(*) as 'total number of rows' from raw_comext_monthly_201709) as t;
 ```
 
 
@@ -61,30 +68,30 @@ select * from
 Descriptive queries on the database table raw_comext_monthly.
 Number of rows in the table:
 ```{sql rowsintable, connection=con}
-select count(*) from raw_comext_monthly_201708;
+select count(*) from raw_comext_monthly_201709;
 ```
 
 Number of products
 ```{sql countproduct, connection=con}
-select count(distinct(productcode)) from raw_comext_monthly_201708;
+select count(distinct(productcode)) from raw_comext_monthly_201709;
 ```
 
 Number of reporter and partner countries
 ```{sql countreporter, connection=con}
 select count(distinct(reportercode)) as 'number of reporters',
        count(distinct(partnercode))  as 'number of partners' 
-from raw_comext_monthly_201708;
+from raw_comext_monthly_201709;
 ```
 
 First and last month
 ```{sql minperiod, connection=con}
-select min(period), max(period) from raw_comext_monthly_201708;
+select min(period), max(period) from raw_comext_monthly_201709;
 ```
 
 
 # Gaps in trade value
 Number of database rows for which the trade value is equal to 0. 
-```{r gapsintradevalue}
+```{r gapsintradevalue, eval=FALSE}
 gtv <- tbl(con, tableanalysed) %>% 
     filter(tradevalue == 0) %>% 
     group_by(productcode, reportercode, period) %>% 
@@ -153,7 +160,7 @@ in the trade value, but in 2017, this has been mostly fixed.
 
 Number of lines for which the weight is equal to zero.
 
-```{r gapsinweight}
+```{r gapsinweight, eval=FALSE}
 gw <- tbl(con, tableanalysed) %>% 
     filter(weight == 0) %>% 
     group_by(productcode, reportercode, period) %>% 
@@ -215,12 +222,86 @@ ggplot(gw_product, aes(reporter, p4)) +
 
 # Gaps in volume data
 
+# Combine gaps
+## Gaps in weight *or* volume data
+```{r}
+# Number of rows which have missing weight and quantity
+dtf <- tbl(con, tableanalysed) %>% 
+    group_by(productcode, reportercode, flowcode) %>% 
+    mutate(weightna = is.na(weight),
+           weight0 = weight==0,
+           quantityna = is.na(quantity),
+           quantity0 = quantity == 0) %>% 
+    summarise(nrow = n(), # total number of rows
+              weightna = sum(weightna),
+              weight0 = sum(weight0),
+              quantityna = sum(quantityna),
+              quantity0 = sum(quantity0)) %>% 
+    collect() %>% 
+    # keep only products at the 8 digit level
+    filter(nchar(productcode) == 8)
+
+# Missing data by great product code
+dtf %>% 
+    mutate(productcode2d = substr(productcode, 1,2)) %>% 
+    group_by(productcode2d) %>% 
+    summarise(nrow = sum(nrow),
+            weightna = sum(weightna),
+            weight0 = sum(weight0, na.rm=TRUE),
+            quantityna = sum(quantityna),
+            quantity0 = sum(quantity0, na.rm = TRUE))
+dtf %>% 
+    mutate(productcode2d = substr(productcode, 1,2)) %>% 
+    group_by(productcode2d) %>% 
+    summarise(weightna_percent = round(sum(weightna) 
+                                       /sum(nrow) * 100,1),
+              quantityna_percent = round(sum(quantityna) /
+                                             sum(nrow)*100,1)) %>% 
+    kable()
+
+# Missing data by reporter for product code 44
+dtf %>% 
+    filter(substr(productcode, 1,2) == "44") %>% 
+    group_by(reportercode) %>% 
+    summarise(weightna_percent = round(sum(weightna) 
+                                       /sum(nrow) * 100,1),
+              quantityna_percent = round(sum(quantityna) /
+                                             sum(nrow)*100,1)) %>% 
+    kable()
+```
+
+## Gaps in weight where quantity data is there
+```{r}
+dtf <- tbl(con, tableanalysed) %>% 
+    # filter(is.na(weight) & !is.na(quantity)) %>% 
+    group_by(productcode, reportercode, flowcode) %>% 
+    mutate(weightna = is.na(weight),
+           quantityna = is.na(quantity),
+           weightnaquantitynona = is.na(weight) & !is.na(quantity)) %>% 
+    summarise(nrow = n(), # total number of rows
+              weightna = sum(weightna),
+              quantityna = sum(quantityna),
+              weightnaquantitynona = sum(weightnaquantitynona)
+              ) %>% 
+    collect() %>% 
+    # keep only products at the 8 digit level
+    filter(nchar(productcode) == 8)
+
+dtf %>% 
+    mutate(productcode2d = substr(productcode, 1,2)) %>% 
+    group_by(productcode2d) %>% 
+    summarise(weightnaquantitynona_percent = round(sum(weightnaquantitynona) 
+                                       /sum(nrow) * 100,1)) %>% 
+    kable()
+```
+
+
 
 # Issues
-## 20170825 Issue with the encoding of empty values mysql NULL, R NA
+## 20170925 Issue with the encoding of empty values mysql NULL, R NA
 How are empty values encoded in the text file?
 ```{bash eval=FALSE}
-cp ~/R/tradeharvester/data-raw/comext/201708/data/nc201501.7z /tmp/comext
+cp ~/R/tradeharvester/data-raw/comext/201709/data/nc201501.7z /tmp/comext
 cd /tmp/comext/
 7zr e nc201501.7z 
 # Extract all productcode starting with 44

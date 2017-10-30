@@ -10,12 +10,15 @@ output:
   knitr:::html_vignette:
     toc: yes
 ---
+
+
 ```{r buildvignette, eval=FALSE, echo=FALSE}
 # To build this vignette run 
 devtools::build_vignettes()
 # Then rebuild the package CTRL+SHIFT+B so that the vignette is 
 # integrated to the package documentation
 ```
+
 
 ```{r setup, warning=FALSE, message=FALSE}
 library(knitr)
@@ -44,7 +47,6 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```{r}
 # transfer raw codes
 tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
-
 ```
 
 

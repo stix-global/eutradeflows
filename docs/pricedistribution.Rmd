@@ -10,15 +10,26 @@ output:
 ```{r generate_this_document, eval=FALSE}
 # Generate this document from a R command line
 rmarkdown::render("~/R/eutradeflows/docs/pricedistribution.Rmd")
+#
+# Issues ####
+message("Issues:")
+message("Add price bounds to the plots")
+message("Generate density plots which include the price weighted by trade value,
+        instead of by number of flows, according to
+        https://stackoverflow.com/a/12625991/2641825
+        it's possible to pass a `weights` aesthetic to geom_density()
+        Acording to 
+        https://stats.stackexchange.com/a/22245/68318
+        The vector of weights should sum to one for the density to be a true density.")
 ```
 
 
 ```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
 library(knitr)
 opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
+opts_chunk$set(fig.width = 10, message=FALSE, warning=FALSE)
 library(tradeflows)
 library(dplyr)
-library(reshape2)
 library(tidyr)
 library(ggplot2)
 ``` 
@@ -28,6 +39,23 @@ Connect to the database.
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```
 
+# Introduction
+
+This document displays price distribution for yearly and monthly Comext data.
+Various plots explore the variation of the price distribution among products and through time.
+The data is extracted from the database and stored into 2 data frames:
+
+ * wmp contain monthly archive data
+ * wpy contain yearly archive data
+ 
+The first plots, Figure 1 and 2 are histograms.
+For a given price range, the height of the bar represents the number of flows occuring at that price range. 
+
+Figure 3 and onwards are density plots. 
+For a given price range, the area under the curve represents the probability that a given flow has a price withing the range.
+Because most of the density is less than 1, 
+the curve has to rise higher than 1 in some points 
+in order to have a total area of 1 as required for all probability distributions.
 
 # Compare yearly and monthly price distributions for sub products of 4407
 ```{r}
@@ -40,6 +68,8 @@ products <- tbl(con, "vld_comext_product") %>%
 wpm <- tbl(con, "raw_comext_monthly_2016S1") %>% 
     filter(productcode %in% products$productcode) %>% 
     collect()
+
+# Monthly recent
 
 # Yearly archive
 wpy <- tbl(con, "raw_comext_yearly_2016S2") %>% 
@@ -61,6 +91,24 @@ wp <- rbind(wpm, wpy) %>%
 ```
 
 ## Descriptive statistics (min, max, quartiles)
+Number of rows and total trade value
+```{r}
+# Number of rows in millions
+nrow(wp)/1e6
+# Total trade value in million €
+sum(wp$tradevalue, na.rm=TRUE) /1e6
+# Time frame
+unique(wp$year)
+# Trade value per year in million €
+wp %>% group_by(year, flowcode, timeframe) %>% 
+    summarise(tradevalue = round(sum(tradevalue, na.rm=TRUE)/1e6)) %>% 
+    left_join(data_frame(flow = c("import", "export"), flowcode = 1:2)) %>% 
+    unite(time_flow, timeframe, flow) %>% 
+    ungroup() %>% select(-flowcode) %>% 
+    spread(time_flow, tradevalue)
+```
+
+
 Descriptive statistics of tradevalue, quantity and weight 
 for monthly and yearly data:
 ```{r}
@@ -78,7 +126,7 @@ summary(wpy[c("price", "pricew", "conversion")])
 
 ## Price distributions
 
-```{r fig.cap="Price hostogram for 0 < price < 10"}
+```{r fig.cap="Price histogram for 0 < price < 10"}
 # Interleaved histograms
 ggplot(wp, aes(x=price, fill=timeframe)) +
     geom_histogram(binwidth=.1, position="dodge") +
@@ -91,22 +139,37 @@ ggplot(wp, aes(x=price, fill=timeframe)) +
 
 
 
-### Density plots with semi-transparent fill
+### Density plots of the price variable
 
-```{r}
+```{r fig.cap="Density plot of the price variable"}
 ggplot(wp, aes(x=price, fill=timeframe)) +
     geom_density(alpha=.3) +
     xlim(c(0,10))
 
+# Same plot scaled between 0 and 1
 ggplot(wp, aes(x=price, fill=timeframe)) +
     geom_density(alpha=.3) +
     xlim(c(0,1))
 ```
 
+### Density plot of the price variable weighted by the tradevalue
+
+```{r fig.cap="Density plot of the price variable weighted by the tradevalue"}
+ggplot(filter(wp, !is.na(tradevalue)),
+       aes(x=price, fill=timeframe, weight = tradevalue/sum(tradevalue))) +
+    geom_density(alpha=.3) +
+    scale_x_continuous(breaks = c(0.5,0:10), limits = c(0,10))
+
+# Same plot scaled between 0 and 1
+ggplot(filter(wp, !is.na(tradevalue)),
+       aes(x=price, fill=timeframe, weight = tradevalue/sum(tradevalue))) +
+    geom_density(alpha=.3) +
+    scale_x_continuous(breaks = 0:10/10, limits = c(0,1))
+```
 
 
 ### log(price) distribution monthly and yearly
-```{r}
+```{r fig.cap="log(price) distribution monthly and yearly"}
 ggplot(wpm, aes(x = log(price))) + 
     geom_histogram(binwidth = 0.1) 
 
@@ -117,15 +180,30 @@ ggplot(wp, aes(x = log(price), fill = timeframe)) +
 
 
 ### Price distribution by product
-Monthly distribution  by product, 6 digit level
-```{r}
+```{r fig.cap="Price distribution by product, at the 6 digit level"}
 wp$productcode6d <- substr(wp$productcode, 1,6)
 ggplot(wp, aes(x=price, fill=timeframe)) +
     geom_density(alpha=.3) +
     xlim(c(0,1)) +
     facet_wrap(~productcode6d, scales = "free_y")
 ```
-Monthly distribution  by product, 8 digit level
+
+Same plot weighted by the trade value
+```{r fig.cap="Monthly distribution  by product, 6 digit level, weighted by trade value"}
+wp %>% 
+    filter(!is.na(tradevalue)) %>% 
+    group_by(productcode6d) %>% 
+    mutate(sumtradevalue = sum(tradevalue)) %>%
+    # summarise(sum(tradevalue)/unique(sumtradevalue)) # are they all 1?
+    ggplot(aes(x=price, fill=timeframe, weight = tradevalue/sumtradevalue)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,1)) +
+    facet_wrap(~productcode6d, scales = "free_y")
+```
+
+
+
+#### Monthly distribution  by product, 8 digit level
 Plot generated externally
 Note: some products only have yearly data, no monthly data.
 Is this due to missing quantity information? 
@@ -147,8 +225,8 @@ Yearly distribution by product
 ### Price distribution by year
 
 
-plot generated externaly
-```{r}
+Large plot generated externaly
+```{r eval=FALSE}
 wp$productcode6d <- substr(wp$productcode, 1,6)
 ggplot(wp, aes(x=price, fill=timeframe)) +
     geom_density(alpha=.3) +
@@ -158,20 +236,88 @@ ggplot(wp, aes(x=price, fill=timeframe)) +
 
 
 
-## Joy plots 
+## Ridge plots 
 
-```{r eval=FALSE}
-library(ggjoy)
-ggplot(wpm, aes(x = price)) +
-       geom_joy(scale = 2, alpha = .5, rel_min_height = 0.01) + 
-    xlim(c(0,5)) + theme_minimal() +
-    theme_joy() 
+```{r fig.cap= "Price distribution per year, all products", eval=TRUE}
+library(ggridges)
+# Create a factor of years
+wpm$year <- wpm$period %/% 100
+wpm$year <- factor(wpm$year, levels = rev(unique(wpm$year)))
+ggplot(wpm, aes(x = price, y = year)) +
+       geom_density_ridges(scale = 1, alpha = .5) +
+    xlim(c(0,1)) +
+    theme_ridges()
+```
+
+Add price bounds to this plot. 
+
+```{r fig.cap="Price distribution by product at the 6 digit level", fig.height=13}
+# Add product code at the 6 digit level
+wpm$productcode6d <- substr(wpm$productcode, 1, 6)
+ggplot(wpm, aes(x = price, y = year)) +
+       geom_density_ridges(scale = 1, alpha = .5) +
+    xlim(c(0,1)) +
+    theme_ridges() +
+    facet_wrap(~productcode6d)
+```
+
+Products under 440799 only
+
+```{r fig.cap="Price distribution at the 8 digit level, for sub-products of 440799", fig.height=13}
+wpm %>% 
+    filter(productcode6d == "440799") %>% 
+    ggplot(aes(x = price, y = year)) +
+       geom_density_ridges(scale = 1, alpha = .5) +
+    xlim(c(0,1)) +
+    theme_ridges() +
+    facet_wrap(~productcode)
+```
+
+\pagebreak
+
+
+# Price per weight
+
+```{r fig.cap="Price per unit of weight", fig.height=13}
+ggplot(wpm, aes(x = pricew, y = year)) +
+       geom_density_ridges(scale = 1, alpha = .5,
+                           rel_min_height = 0.01) + # Cut trailing tail
+    xlim(c(0,10)) +
+    theme_ridges() +
+    facet_wrap(~productcode6d)
 ```
 
 
+Show red bounds using the 5th percentile and 95the percentile
+and blue bounds, using half the first quartile and twice the third quartile
+
+```{r}
+b <- quantile(wpm$pricew,c(.25,.75), na.rm = TRUE) 
+b
+b * c(0.5, 2)
+quantile(wpm$pricew,c(.05,.95), na.rm = TRUE)
+
+# Group by products
+wpm %>% 
+    filter(!is.na(pricew)) %>% 
+    group_by(productcode) %>% 
+    summarise(q5  = quantile(pricew, 0.05, names = FALSE),
+              q25 = quantile(pricew, 0.25, names = FALSE),
+              q75 = quantile(pricew, 0.75, names = FALSE),
+              q95 = quantile(pricew, 0.95, names = FALSE)) %>% 
+    kable()
+```
+
+```{r}
+# With base R,
+# see https://stackoverflow.com/questions/43373568/dplyr-to-iterate-over-all-columns-for-quantile
+# sapply(wp[!is.na(wp$pricew),],
+#        function(x) quantile(x, c(0.25, 0.5, 0.75)))%>% t
+# But this doesn't take care of the grouping
+```
 
 
-# Disconnect from the database.
+Disconnect from the database.
 ```{r dbDisconnect}
 RMySQL::dbDisconnect(con)
 ```

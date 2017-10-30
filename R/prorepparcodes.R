@@ -186,7 +186,8 @@ addunit2tbl <- function(RMySQLcon, maintbl,
     d1 <- collect(count(maintbl))
     d2 <- collect(count(maintbl2))
     if(!identical(d1$n, d2$n)){
-        stop("more than one unit for a period")
+        stop("more than one unit for a period. The input table has",
+             d1, "rows, the table with units has ", d2, "rows.")
     }
 
     # Check that the total tradevalue didn't change

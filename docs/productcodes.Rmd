@@ -15,6 +15,8 @@ library(tidyr)
 ``` 
 
 
+
+
 # See also
 Documentation on how I loaded raw product codes into the database:
 ~/R/tradeharvester/docs/productcodes.Rmd 
@@ -503,6 +505,46 @@ valcn4707 <- tbl(con, "vld_comext_product") %>%
 # valcn4707 %>% kable() 
 valcn4707$productdescription[valcn4707$productcode==47073090]
 ```
+
+
+# Explore product codes
+```{r}
+# In the tradeflows database, where most of the real data is located
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows") 
+
+
+# Get a vector of products available in the database
+# Products in the recent data
+dtfr <- tbl(con, "raw_comext_monthly_201709") %>% 
+    distinct(productcode) %>% collect() %>% 
+    # Remove 2 digit level products, keep only 8 digit level
+    filter(nchar(productcode)>2)
+
+# Count the number of products under each 2 digit product code
+dtfr %>% 
+    mutate(productcode2d = substr(productcode,1,2)) %>% 
+    count(productcode2d)
+
+# Count the number of products under each 4 digit product code
+dtfr %>% 
+    mutate(productcode2d = substr(productcode,1,4)) %>% 
+    count(productcode2d) %>% 
+    arrange(desc(n))
+# There are 71 product codes at the 4 digit level.
+
+# The 4 digit code containing most products is 4407.
+# Under 4407 there are 73 product codes at the 8 digit level.
+
+# Count the number of products under each 6 digit product code
+dtfr %>% 
+    mutate(productcode2d = substr(productcode,1,6)) %>% 
+    count(productcode2d) %>% 
+    arrange(desc(n))
+# There are 304 product codes at the 4 digit level.
+
+RMySQL::dbDisconnect(con)
+```
+
 
 
 
