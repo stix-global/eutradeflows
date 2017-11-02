@@ -8,4 +8,7 @@
 \description{
 eutradeflows: A validation algorithm for forest products trade data from Comext
 }
+\author{
+\strong{Maintainer}: Paul Rougieux \email{paul.rougieux@gmail.com}
 
+}

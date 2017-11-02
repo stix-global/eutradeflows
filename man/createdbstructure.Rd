@@ -34,4 +34,3 @@ createdbstructure(sqlfile = "raw_comext.sql", dbname = "test")
 # Load a database structure designed to contain validated data
 createdbstructure(sqlfile = "vld_comext.sql", dbname = "test")
 }
-

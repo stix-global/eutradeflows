@@ -16,4 +16,3 @@ loadtabledump(databasename, dumpfile)
 Load a dump file into the database
 This function uses shell utilities to load a sql dump into the database.
 }
-

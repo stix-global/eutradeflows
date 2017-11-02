@@ -35,4 +35,3 @@ monthly \%>\%
 RMySQL::dbDisconnect(con)
 }
 }
-

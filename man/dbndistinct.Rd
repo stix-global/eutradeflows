@@ -27,4 +27,3 @@ RMySQL::dbWriteTable(con, "iris_in_db", iris, row.names = FALSE, overwrite = TRU
 # Count the number of species
 dbndistinct(con, "iris_in_db", Species)
 }
-
