@@ -9,17 +9,27 @@ output:
 library(knitr)
 opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
 library(tradeflows)
+library(eutradeflows)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-``` 
-
-```{r dbConnect}
+# Connect to the database
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```
 
 
-# CSV explort example with UK data
+# Introduction
+## Formatting data for users
+Monthly data from the last 3 years are needed, 
+people don’t like to work with flat files. 
+
+Data format: 
+    Declarant, partner, product codes, flow, with time columns
+
+In the long term there should be a simple interface to search the SQL database.
+
+
+# CSV explort example 
 ## UK import from Indonesia
 ```{r}
 tbl(con, "vld_comext_reporter") %>% collect() %>% 
@@ -72,7 +82,7 @@ wpukind %>% group_by(productcode) %>%
 ggplot(wpukind44, 
        aes(x = as.factor(period), y = tradevalue)) +
     geom_point() + ylab("Trade value in 1000€")
-lubridate::ym(c("201001"))
+lubridate::ymd(c("201001"))
 ```
 
 
@@ -81,29 +91,200 @@ lubridate::ym(c("201001"))
 
 ```
 
+
 # Spread data along the period
 In short: 
 statregime should be included, otherwise there are duplications of the 
 trade flows.
+Monthly data from the last 3 years are needed, 
+Data format: 
+    Declarant, partner, product codes, flow, with time columns
+
+
+## Export csv based on raw data for a test
 ```{r}
 productanalysed <- "44071091"
-# Get recent montly data for one product
+# Load recent montly raw data for one product
 dtfr <- tbl(con, "raw_comext_monthly_201709") %>%
     filter(productcode == productanalysed) %>%
     # Add quantity units
     eutradeflows::addunit2tbl(con, maintbl = .,
                               tableunit = "vld_comext_unit")  %>%
+    # Add productdescription, reporter and partner
+    addproreppar2tbl(con,.) %>% 
     collect()
 
+dtfr %>% 
+    select(productcode, reportercode, partnercode, flowcode, unitcode,
+           period, quantity,
+           productdescription, reporter, partner, statregime) %>%
+    group_by(period) %>%
+    # Create a unique id (optional)
+    # unite(id, reportercode, partnercode, productcode, flowcode, statregime,
+          # remove = FALSE) %>% 
+    spread(period, quantity) %>% 
+    # Move description to the back
+    select(-productdescription, productdescription) %>% 
+    write.csv("/tmp/comext/raw.csv", row.names = FALSE)
+```
 
-# Spread the data as-is returns an error
+
+## Develop the function that will export validated data to csv
+```{r}
+productanalysed <- "44071190" #"44071091"
+periodstart <- (as.numeric(format(Sys.time(), "%Y")) - 3) * 100
+tableread <- "vld_comext_monthly"
+    
+# Load recent montly raw data for one product
+dtf <- tbl(con, tableread) %>%
+    filter(productcode == productanalysed &
+               period > periodstart) %>%
+    # Add productdescription, reporter and partner
+    addproreppar2tbl(con,.) %>% 
+    collect() %>% 
+    # Add flow information, import export, 
+    # cannot be done in addproreppar2tbl because the little data frame
+    # is not present in the database 
+    left_join(data_frame(flow = c("import", "export"), flowcode = 1:2),
+              by = "flowcode")  %>% 
+    mutate(quantity = round(quantity),
+           # Cut long partner description
+           partner = substr(partner, 0, 40),
+           # Replace empty partner by the partner code
+           partner = ifelse(is.na(partner), partnercode, partner),
+           # Rename Germany so that it's consistent with partner name
+           reporter = if_else(grepl("Fr Germany",reporter),
+                              "Germany", reporter)) 
+
+csvfile <- "/tmp/comext/vld.csv"
+
+# Spread quantity data along the period and write to a csv file
+dtf %>%
+    # Keep only these columns
+    select(productcode, flow, statregime, flag, reporter, partner,
+           reportercode, partnercode, flowcode, unitcode,
+           period, quantity,
+           productdescription) %>%
+    # Collapse flags present in the given line together
+    group_by(productcode, flowcode, reportercode, partnercode, statregime) %>% 
+    mutate(flag = paste(unique(flag), collapse = ", ")) %>% 
+    spread(period, quantity) %>% 
+    # Move description and code to the last columns
+    select(-productdescription, -reportercode, -partnercode, -flowcode, -unitcode,
+           productdescription, reportercode, partnercode, flowcode, unitcode) %>% 
+    arrange(productcode, flowcode, reporter, partner) %>% 
+    write.csv(csvfile, row.names = FALSE, na="")
+```
+
+
+## Use the write2csv_spread function
+```{r}
+swdpine <- loadflows(con, productanalysed = "44071190", periodstart = 201700, 
+                     tableread = "vld_comext_monthly") 
+# Write the wide format
+write2csv_spread(swdpine, "/tmp/comext/swdpine_spread.csv")
+readLines("/tmp/comext/swdpine_spread.csv", 5)
+# Write the long format
+write2csv_long(swdpine, "/tmp/comext/swdpine_long.csv")
+readLines("/tmp/comext/swdpine_long.csv", 5)
+```
+
+# Prepare aggregates and all products for codes at the higher level
+
+## 6 digit level
+### All products under a given 6 digit level product
+```{r}
+productanalysed <- 440712
+periodstart <- (as.numeric(format(Sys.time(), "%Y")) - 3) * 100
+tableread <- "vld_comext_monthly"
+
+# Edit the pattern
+productanalysed <- paste0(productanalysed, "%")
+dtf <- tbl(con, tableread) %>%
+    filter(productcode %like% productanalysed &
+               period > periodstart) %>% 
+    addproreppar2tbl(con,.) %>% 
+    collect() 
+```
+
+Use the function
+```{r}
+
+```
+
+
+### Aggregates at the 6 digit level
+```{r}
+productanalysed <- 440712
+periodstart <- 201600
+tableread <- "vld_comext_monthly"
+
+# Edit the pattern
+productpattern <- paste0(productanalysed, "%")
+dtf <- tbl(con, tableread) %>%
+    filter(productcode %like% productpattern &
+               period > periodstart) %>% 
+    group_by(period, reportercode, partnercode, flowcode, unit, statregime) %>% 
+    summarise_at(vars(tradevalue, weight, starts_with("quantity")), 
+                 sum) %>%
+    # Cannot use addproreppar2tbl() because of the error below
+    # addproreppar2tbl(con, .) %>% 
+    # Error: `by` can't contain join column `productcode` which is missing from LHS
+    left_join(tbl(con, "vld_comext_reporter"),
+              by = "reportercode") %>%
+    left_join(tbl(con, "vld_comext_partner"),
+              by = "partnercode") %>%
+    collect() %>% 
+    mutate(productcode = as.character(productanalysed)) %>% 
+    left_join(collect(tbl(con, "vld_comext_product")),
+              by = "productcode") 
+```
+
+
+Write aggregates to a csv file
+
+
+Use the function
+```{r}
+
+```
+
+
+## 4 digit level
+### All products at the 4 digit level
+```{r}
+
+```
+
+### Aggregates at the 4 digit level
+```{r}
+# 4407
+```
+
+
+## Aggregates at the 2 digit level
+```{r}
+# 44
+
+```
+
+
+# Issues
+## Issues when statregime is not included
+```{r}
+productanalysed <- "44071091"
+dtfr <- tbl(con, "raw_comext_monthly_201709") %>%
+    filter(productcode == productanalysed) %>%
+    collect()
+
+# Spread the data as-is (droping the statregime column) returns an error 
 if(FALSE){
     dtfr %>% 
         select(ends_with("code"), period, quantity) %>% 
         spread(period, quantity)
 }
 # Error: Duplicate identifiers for rows (907, 908), (933, 934), (723, 724), (744, 745),
-# There are indeed duplicated rows
+# There are indeed duplicated rows, except for the statregime which is different
 dtfr[907:908,]
 
 # Creating an additional index as explained in StackOverflow answers
@@ -114,19 +295,8 @@ dtfr %>%
     group_by(period) %>%
     mutate(id = 1:n()) %>%
     spread(period, quantity)
-# Leads to a lot of empty slots
-# In fact I needed to add the statregime column
-
-# Create an index uniting the following columns:
-#     reportercode, partnercode, productcode, flowcode, statregime
-# Check replications of that index and an idrep column marking index replication
-dtfr %>% 
-    select(ends_with("code"), period, quantity, statregime) %>% 
-    group_by(period) %>%
-    unite(id, reportercode, partnercode, productcode, flowcode, statregime,
-          remove = FALSE) %>% 
-    # mutate(idrep = cumsum(duplicated(id))) %>% 
-    spread(period, quantity)
+# Leads to a lot of row duplication and a lot of empty column values
+# In fact I needed to keep the statregime column as a variable before the spread
 ```
 
 

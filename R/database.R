@@ -26,7 +26,8 @@ createdbstructure <- function(sqlfile,
     [client]
     user = usename
     password = password"
-    if (messageonly){ # Only print a message
+    if (messageonly){ # Only print a message explaining 
+                      # how to load the database structure outside R, in the shell.
         message("This message gives 2 options to load the database structure.\n\n",
                 "(1) If a user called 'R' is created in MySQL, you can run this from a shell command line: \n",
                 sprintf("$ cat '%s' | mysql -u R -p %s", sqlfile, dbname),

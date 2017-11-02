@@ -113,8 +113,6 @@ CREATE TABLE `vld_comext_monthly_template` (
   `weight` double DEFAULT NULL,
   `quantity` double DEFAULT NULL,
   `quantityraw` double DEFAULT NULL,
-  `quantity_cf` double DEFAULT NULL,
-  `quantity_up` double DEFAULT NULL,
   KEY `reportercode` (`reportercode`),
   KEY `partnercode` (`partnercode`),
   KEY `productcode` (`productcode`),

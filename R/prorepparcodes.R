@@ -180,7 +180,9 @@ addunit2tbl <- function(RMySQLcon, maintbl,
     maintbl2 <- maintbl %>% 
         left_join(tbl(RMySQLcon, tableunit),
                   by = "productcode") %>% 
-        filter((periodstart <= period & period <= periodend) | is.na(unitcode)) 
+        filter((periodstart <= period & period <= periodend) | is.na(unitcode)) %>% 
+        # Remove unnecessary columns
+        select(-periodstart, -periodend)
     
     # Check that the number of rows didn't change
     d1 <- collect(count(maintbl))
@@ -194,6 +196,7 @@ addunit2tbl <- function(RMySQLcon, maintbl,
     tv1 <- maintbl %>% summarise(n = sum(tradevalue)) %>% collect()
     tv2 <- maintbl2 %>% summarise(n = sum(tradevalue)) %>% collect()
     stopifnot(identical(tv1$n, tv2$n))
+    
     return(maintbl2)
 }
 
