@@ -4,13 +4,29 @@
 loadflows <- function(RMySQLcon, productanalysed,
                       periodstart = (as.numeric(format(Sys.time(), "%Y")) - 3) * 100, 
                       tableread = "vld_comext_monthly"){
-    # Load recent montly raw data for one product
+    productpattern <- paste0(productanalysed, "%")
     dtf <- tbl(RMySQLcon, tableread) %>%
-        filter(productcode == productanalysed &
-                   period > periodstart) %>%
-        # Add productdescription, reporter and partner
-        addproreppar2tbl(con, .) %>% 
-        collect() %>% 
+        filter(productcode %like% productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect() 
+    return(dtf)
+}
+
+
+loadaggflows <- function(){
+    
+}
+
+
+#' @rdname write2csv_spread
+#' @details \code{formatflows} edits information so that the exported data
+#' is more pleasant to use. 
+#' For example missing partner is replaced by the partnercode 
+#' Long descriptions are truncated.
+#' @export
+formatflows <- function(dtf){
+    dtf %>% 
         # Flow information (specifying import, export), 
         # cannot be added in addproreppar2tbl() 
         # because the little data frame created below
@@ -26,8 +42,9 @@ loadflows <- function(RMySQLcon, productanalysed,
             # Rename Germany so that it's consistent with partner name
             reporter = if_else(grepl("Fr Germany",reporter),
                                "Germany", reporter)) 
-    return(dtf)
+    
 }
+
 
 #' Spread quantity data along the period and write to a csv file
 #' Write a data frame containing trade flows to a csv file
