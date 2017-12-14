@@ -28,6 +28,14 @@ Data format:
 
 In the long term there should be a simple interface to search the SQL database.
 
+## File naming convention
+
+* 8dq_wide
+* 8dw_wide
+* 8d_long
+* 6dq_wide
+* 6d_long
+
 
 # CSV explort example 
 ## UK import from Indonesia
@@ -177,10 +185,11 @@ dtf %>%
 ```
 
 
-## Use the write2csv_spread function
-```{r}
+## Use the write2csv_spread and write2csv_long functions on one product
+```{r write2csvs_spread_8d}
 swdpine <- loadflows(con, productanalysed = "44071190", periodstart = 201700, 
-                     tableread = "vld_comext_monthly") 
+                     tableread = "vld_comext_monthly") %>% 
+    formatflows()
 # Write the wide format
 write2csv_spread(swdpine, "/tmp/comext/swdpine_spread.csv")
 readLines("/tmp/comext/swdpine_spread.csv", 5)
@@ -189,14 +198,29 @@ write2csv_long(swdpine, "/tmp/comext/swdpine_long.csv")
 readLines("/tmp/comext/swdpine_long.csv", 5)
 
 ```
-# Use it on many products
+
+
+# Use the write2csv functions on many products
 ```{r}
 tableread <- "vld_comext_monthly"
 vld <- tbl(con, tableread) %>%
     distinct(productcode) %>% collect()
 lapply(vld$productcode,
-       function(p) loadflows(con, p) %>% write2csv_spread(paste0("/tmp/",p,".csv")))
+       function(p) loadflows(con, p) %>% formatflows() %>% write2csv_spread(paste0("/tmp/",p,".csv")))
 
+message("If there is no quantity, do not export the file")
+message("Add cleanallcomextcodes(con) to the cleancomext function")
+
+# On the server (make this into a function)
+if(FALSE){
+    # 
+    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+    tableread <- "vld_comext_monthly"
+    vld <- tbl(con, tableread) %>%
+        distinct(productcode) %>% collect()
+    lapply(vld$productcode,
+           function(p) loadflows(con, p) %>% formatflows() %>%  write2csv_spread(paste0("/mnt/sdb/data-raw/csv/8d/",p,".csv")))
+}
 ```
 
 # Prepare aggregates and all products for codes at the higher level

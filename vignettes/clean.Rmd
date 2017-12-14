@@ -38,9 +38,9 @@ Recreating the empty database structure:
 
 ```{r}
 # create emtpty database structure for raw codes
-createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
+eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
 # create empty database structure for validated codes
-createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
+eutradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
 ```
 
 
@@ -54,6 +54,9 @@ con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
 ```{r}
 # transfer raw codes
 tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+
+# transfer raw codes on the server
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201710/text/english/")
 ```
 
 ## Clean raw data

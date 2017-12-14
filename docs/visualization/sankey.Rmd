@@ -1,0 +1,202 @@
+---
+title: "Sankey Flow Diagram"
+author: "Paul Rougieux"
+date: "8 December 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(networkD3)
+library(dplyr)
+# library(tidyverse)
+```
+
+
+# Notes
+
+## Future work
+This sankey diagram can be integrated in a 
+It could preload data for all years and have a slider for year. 
+If the data is not too large, the slider could 
+
+[SHiny network example](https://github.com/christophergandrud/networkD3-shiny-example/blob/master/app.R)
+
+Adding a [slider input with a play button](http://shiny.rstudio.com/reference/shiny/latest/sliderInput.html)
+
+## See also
+
+* original development of the Sankey diagram in the 
+Statistical learning RStudio project folder.
+* It's possible to use the Sankey diagram in a shiny interface. 
+
+
+
+## Errors
+Reporter and partner should have different codes.
+
+Error:
+It looks like Source/Target is not zero-indexed.
+This is required in JavaScript and so your plot may not render.
+The problem is that countries in the nodes data frame are
+only indexed by position (javascript tables are zero-indexed)
+there is no code variable in the nodes table
+
+
+# Gerating sankey diagram for one product
+```{r}
+library(eutradeflows)
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+# Raw Eurostat Comext data
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode ==  44072199 & 
+               flowcode == 1 & 
+               period == "201702") %>% 
+    # head(200) %>% 
+    collect()
+
+reporter <- tbl(con, "vld_comext_reporter") %>% collect()
+partner <- tbl(con, "vld_comext_partner") %>% collect() 
+
+wood2 <- wood %>%
+    # Remove partner 1010 and reporter 0
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    preparesankeynodes(reporter, partner, debugname = TRUE)
+
+wood2 %>% plotsankey(value = "tradevalue", units = "K€")
+wood2 %>% plotsankey(value = "quantity", units = "M3")
+
+```
+
+
+
+
+
+
+# Sankey diagram for aggregated products
+```{r}
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '4407%' & 
+               flowcode == 1 & 
+               period == "201705") %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+summary(wood$tradevalue)
+
+# Largest sawnwood tradeflows
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(tradevalue > 2000) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+
+
+```
+
+
+
+
+## January - August 2017 Sawnwood trade between VPA countries and Europe
+
+Cameroon, Central African Republic, Ghana, Indonesia, Liberia, Republic of the Congo
+ 
+  Negotiating
+Côte d'Ivoire, Democratic Republic of the Congo, Gabon, Guyana, Honduras, Laos, Malaysia, Thailand, Vietnam
+Contact
+
+
+```{r}
+vpaimplementing <- c(302,306,276,700,268,318)
+vpanegotiating <- c(272,322,314,488,424,684,701,680,690)
+vpa <- c(vpaimplementing, vpanegotiating)
+
+
+
+# Sawnwood tradeflows with VPA countries
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '4407%' & 
+               flowcode == 1 & 
+               period >= 201701) %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+summary(wood$tradevalue)
+
+
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(partnercode %in% vpa) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+```
+
+
+## Plywood trade between VPA countries and the EU
+```{r}
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '4412%' & 
+               flowcode == 1 & 
+               period >= 201701) %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+summary(wood$tradevalue)
+
+
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(partnercode %in% vpa) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+```
+
+
+
+## Furniture trade between VPA countries and the EU
+940330	Furniture; wooden, for office use
+940340	Furniture; wooden, for kitchen use
+940350	Furniture; wooden, for bedroom use
+940360	Furniture; wooden, other than for office, kitchen or bedroom u
+
+```{r}
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '94033%' | 
+               productcode %like%  '94034%' |
+               productcode %like%  '94035%' |
+               productcode %like%  '94036%') %>% 
+    filter(flowcode == 1 & period >= 201701) %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+summary(wood$tradevalue)
+
+
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(partnercode %in% vpa) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+```
+
+
+
+
+# Sankey diagram for many products
+
+# Loop per month
+```{r}
+
+```
+
+
+# Loop per product for the sum(2017) data
+```{r}
+
+```
+

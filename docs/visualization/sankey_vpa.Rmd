@@ -1,0 +1,101 @@
+---
+title: "Sankey Flow Diagram"
+author: "Paul Rougieux"
+date: "8 December 2017"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+# knitr::opts_chunk$set(fig.width = 15, fig.height = 9)
+library(networkD3)
+library(dplyr)
+library(eutradeflows)
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+reporter <- tbl(con, "vld_comext_reporter") %>% collect()
+partner <- tbl(con, "vld_comext_partner") %>% collect() 
+vpaimplementing <- c(302,306,276,700,268,318)
+vpanegotiating <- c(272,322,314,488,424,684,701,680,690)
+vpa <- c(vpaimplementing, vpanegotiating)
+```
+
+
+
+
+## Sawnwood trade between VPA countries and the EU - January to August 2017 
+Products under 4407
+```{r}
+# Sawnwood tradeflows with VPA countries
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '4407%' & 
+               flowcode == 1 & 
+               period >= 201701) %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(partnercode %in% vpa) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+```
+
+
+## Plywood trade between VPA countries and the EU - January to August 2017 
+Products under 4412
+```{r}
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '4412%' & 
+               flowcode == 1 & 
+               period >= 201701) %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(partnercode %in% vpa) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+```
+
+
+
+## Furniture trade between VPA countries and the EU - January to August 2017 
+Products under the following intems:
+
+* 940330	Furniture; wooden, for office use
+* 940340	Furniture; wooden, for kitchen use
+* 940350	Furniture; wooden, for bedroom use
+* 940360	Furniture; wooden, other than for office, kitchen or bedroom u
+
+```{r}
+wood <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '94033%' | 
+               productcode %like%  '94034%' |
+               productcode %like%  '94035%' |
+               productcode %like%  '94036%') %>% 
+    filter(flowcode == 1 & period >= 201701) %>% 
+    group_by(reportercode, partnercode) %>% 
+    summarise(tradevalue = sum(tradevalue)) %>% 
+    collect()
+
+wood %>% 
+    filter(partnercode != 1010 & partnercode != 1011 & 
+               reportercode !=0) %>% 
+    filter(partnercode %in% vpa) %>%
+    preparesankeynodes(reporter, partner) %>% 
+    plotsankey()
+```
+
+
+# Further work planned
+
+* Sankey diagram for many products
+* Loop per month
+* Loop per product for the sum(2017) 
