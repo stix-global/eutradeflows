@@ -24,4 +24,5 @@ ADD . /R/eutradeflows
 RUN R CMD build eutradeflows
 
 # Install dependencies 
-RUN R -e 'devtools::install_github("EuropeanForestInstitute/tradeflows")'
+# RUN Rscript -e "install.packages('devtools')"
+# RUN R -e 'devtools::install_github("EuropeanForestInstitute/tradeflows")'
