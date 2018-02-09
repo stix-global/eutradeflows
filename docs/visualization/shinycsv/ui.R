@@ -24,6 +24,8 @@ fluidPage(
             # Input: Specification of the reporter country
             selectizeInput("reporter", "Choose reporting countries:", 
                            choices = NULL, multiple=TRUE),
+            radioButtons("tableformat", "Table Format:",
+                         choices = c("long", "wide")),
             radioButtons("filetype", "File type:",
                          choices = c("csv", "tsv")),
             downloadButton('downloadData', 'Download'),

@@ -1,0 +1,59 @@
+---
+title: "Price distribution"
+output:
+  pdf_document: 
+    fig_caption: yes
+    toc: yes
+    toc_depth: 4
+---
+
+```{r generate_this_document, eval=FALSE}
+# Generate this document from a R command line
+rmarkdown::render("~/R/eutradeflows/docs/pricedistribution.Rmd")
+#
+# Issues ####
+message("Issues:")
+message("Add price bounds to the plots")
+message("Generate density plots which include the price weighted by trade value,
+        instead of by number of flows, according to
+        https://stackoverflow.com/a/12625991/2641825
+        it's possible to pass a `weights` aesthetic to geom_density()
+        Acording to 
+        https://stats.stackexchange.com/a/22245/68318
+        The vector of weights should sum to one for the density to be a true density.")
+```
+
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+library(knitr)
+opts_knit$set(root.dir="..") # file paths are relative to the root of the project directory
+opts_chunk$set(fig.width = 10, message=FALSE, warning=FALSE)
+library(tradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Connect to the database.
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
+
+
+## Import price distribution sawnwood
+```{r}
+swd <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %like%  '4407%' & 
+               flowcode == 1 & 
+               period == "201702") %>% 
+    collect() 
+swd <- swd %>% 
+    mutate(price = tradevalue / quantity)
+```
+
+
+```{r}
+ggplot(swd, aes(x=price)) +
+    geom_density(alpha=.3) +
+    xlim(c(0,1)) +
+    facet_wrap(~productcode, scales = "free_y")
+```
+

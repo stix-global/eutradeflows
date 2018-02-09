@@ -1,13 +1,40 @@
 library(dplyr)
+library(tidyr)
 library(eutradeflows)
 
+# Run the application with 
+# shiny::runApp('/home/R/eutradeflows/docs/visualization/shinycsv')
+# In Docker, load the application 
 # Hack to disconnect open connections
 # RMySQL::dbDisconnect(RMySQL::dbListConnections(RMySQL::MySQL())[[1]])
 
-
 rowstodisplay <- 100
+dbdocker = FALSE
 
-# Only import values
+# Create a database connection
+# Depending on the dbdocker parameter, it will create a connection 
+# to a docker container or a local connection.
+#' @param dbdocker logical specifying if the database connection is to be made with a docker container or not
+dbconnecttradeflows <- function(dbdocker){
+    if(dbdocker){
+        # Return a connection to a database in a docker container.
+        # Parameter are taken from environement variables in the container, 
+        # see function documentation.
+        return(eutradeflows::dbconnectdocker())
+    } else {  
+        # Return a connection to local database.
+        return(RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows"))
+    }
+}
+
+
+#' Load a data frame of trade flows 
+#' @examples 
+#' if(interactive){
+#' swd <- loadvldcomextmonhtly(con, "4407%", 201701, 201709)
+#' plywood <- loadvldcomextmonhtly(con, "4412%", 201701, 201709)
+#' furniturekitchen <- loadvldcomextmonhtly(con, "940340%", 201701, 201709)
+#' }
 loadvldcomextmonhtly <- function(con, productcode_, 
                                  periodmin, periodmax,
                                  flowcode_ = 1){
@@ -23,9 +50,26 @@ loadvldcomextmonhtly <- function(con, productcode_,
                tradevalue, weight, quantity, quantityraw,
                productcode, everything())
 }
-# swd <- loadvldcomextmonhtly(con, "4407%")
-# plywood <- loadvldcomextmonhtly(con, "4412%")
-# furniturekitchen <- loadvldcomextmonhtly(con, "940340%")
+
+
+# Transpose a data frame of trade flows
+if(FALSE){
+    swd <- loadvldcomextmonhtly(con, "4407%", 201701, 201709)    
+    # Gather along period and all codes columns 
+    # spread the 
+    swd2 <- swd %>% 
+        select(-quantityraw) %>% # Remove quantityraw
+        # Gather along all columns except quantity, tradevalue and weight
+        gather(variable, value, quantity, tradevalue, weight) %>% 
+        # Rupert: start with value: tradevalue, weight, quantity
+        # v, mt, 
+        # v, mt, q
+        left_join(data_frame(variable = c("tradevalue", "quantity", "weight"),
+                             variable2 = c("v","q","w")), by="variable") %>% 
+        unite(varperiod, variable2, period, sep="") %>% 
+        spread()
+}
+
 
 function(input, output, session) {
     # Load a large data set from the database, based on date and productcode
@@ -36,7 +80,7 @@ function(input, output, session) {
                "Plywood" = "4412%",
                "Kitchen Furniture" = "940340%")
         # Load data from the database
-        con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+        con <- dbconnecttradeflows(dbdocker = dbdocker)
         on.exit(RMySQL::dbDisconnect(con))
         loadvldcomextmonhtly(con, inputproductcode, 
                              periodmin = format(input$range[1], "%Y%m"),

@@ -76,6 +76,12 @@ lapply(vldtables,
 
 ## Clean trade flows data
 
+```{r}
+# This uses the tradeflows package
+
+```
+
+
 
 ## Disconnect from the database
 ```{r dbDisconnect}
