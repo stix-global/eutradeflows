@@ -12,8 +12,10 @@ RUN apt-get update && apt-get install -y \
 
 # Packages
 RUN Rscript -e "install.packages('dplyr')"
+RUN Rscript -e "install.packages('tidyr')"
 RUN Rscript -e "install.packages('dbplyr')"
 RUN Rscript -e "install.packages('RMySQL')"
+RUN Rscript -e "install.packages('DT')" # Display javascript tables
 
 # Set the working directory to /R
 WORKDIR /R

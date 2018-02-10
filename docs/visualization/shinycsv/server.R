@@ -51,26 +51,6 @@ loadvldcomextmonhtly <- function(con, productcode_,
                productcode, everything())
 }
 
-
-# Transpose a data frame of trade flows
-if(FALSE){
-    swd <- loadvldcomextmonhtly(con, "4407%", 201701, 201709)    
-    # Gather along period and all codes columns 
-    # spread the 
-    swd2 <- swd %>% 
-        select(-quantityraw) %>% # Remove quantityraw
-        # Gather along all columns except quantity, tradevalue and weight
-        gather(variable, value, quantity, tradevalue, weight) %>% 
-        # Rupert: start with value: tradevalue, weight, quantity
-        # v, mt, 
-        # v, mt, q
-        left_join(data_frame(variable = c("tradevalue", "quantity", "weight"),
-                             variable2 = c("v","q","w")), by="variable") %>% 
-        unite(varperiod, variable2, period, sep="") %>% 
-        spread()
-}
-
-
 function(input, output, session) {
     # Load a large data set from the database, based on date and productcode
     datasetInput <- reactive({
@@ -146,4 +126,28 @@ function(input, output, session) {
                         row.names = FALSE)
         }
     )
+}
+
+
+# Transpose a data frame of trade flows
+if(FALSE){
+    swd <- loadvldcomextmonhtly(con, "4407%", 201701, 201709)    
+    # Gather along period and all codes columns 
+    # spread the 
+    swd2 <- swd %>% 
+        select(-quantityraw) %>% # Remove quantityraw
+        # Gather along all columns except quantity, tradevalue and weight
+        gather(variable, value, quantity, tradevalue, weight) %>% 
+        # Rupert: start with value: tradevalue, weight, quantity
+        # v, mt, 
+        # v, mt, q
+        left_join(data_frame(variable = c("tradevalue", "quantity", "weight"),
+                             variable2 = c("v","q","w")), by="variable") %>% 
+        unite(varperiod, variable2, period, sep="") %>% 
+        spread()
+}
+
+# Debug on the server
+if(FALSE){
+    swd <- loadvldcomextmonhtly(con2, "4407%", 201701, 201709)    
 }
