@@ -23,6 +23,10 @@ ADD . /R/eutradeflows
 
 RUN R CMD build eutradeflows
 
+# R CMD build generates a file name from the description file
+# Remember to update file name here below after a version update
+RUN R -e 'install.packages("eutradeflows_0.0.1.tar.gz")'
+
 # Install dependencies 
 # RUN Rscript -e "install.packages('devtools')"
 # RUN R -e 'devtools::install_github("EuropeanForestInstitute/tradeflows")'
