@@ -1,7 +1,6 @@
 library(dplyr)
 library(tidyr)
 library(eutradeflows)
-library(dygraphs)
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
@@ -16,8 +15,8 @@ ui <- fluidPage(
     titlePanel("File download from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
     sidebarLayout(
         sidebarPanel(
-            helpText("Debug information"),
-            textOutput("debug"),
+            helpText("Information on the current selection"),
+            textOutput("info"),
             
             # Input: Specification of the product
             selectInput("productgroupimm", "Choose a product group:", 
@@ -28,21 +27,26 @@ ui <- fluidPage(
                         choices = unique(eutradeflows::classificationimm$productimm)#,
                         # selected = "Chips"
                         ),
+            radioButtons("flowcode", "Flow direction:", inline = TRUE,
+                         choiceNames = c("Import", "Export"),
+                         choiceValues = c(1, 2)),
             
             # Input: Specification of the date range
             sliderInput("range", "Date range:",
                         min = as.Date('2000-01-01'), max = as.Date('2017-09-01'),
                         value = c(as.Date('2017-01-01'),as.Date('2017-09-01')),
                         timeFormat = "%Y%m"),
+            
             helpText("Change country to filter the table in your browser:"),
-            helpText("Number of rows filtered in your browser:"),
             textOutput("rowsfilteredtable"),
             
             # Input: Specification of the reporter country
             selectizeInput("reporter", "Choose reporting country:", 
-                           choices = NULL, multiple=FALSE),
+                           choices = "All EU", selected="All EU",
+                           multiple=FALSE),
             selectizeInput("partner", "Choose partner country:", 
-                           choices = NULL, multiple=FALSE),
+                           choices = "All", selected="All",
+                           multiple=FALSE),
             radioButtons("tableformat", "Table Format:",
                          choices = c("long", "wide")),
             radioButtons("filetype", "File type:",
@@ -56,7 +60,6 @@ ui <- fluidPage(
         )
     )
 )
-
 
 
 rowstodisplay <- 100
@@ -89,7 +92,7 @@ dbconnecttradeflows <- function(dbdocker){
 #' }
 loadvldcomextmonhtly <- function(con, productcode_, 
                                  periodmin, periodmax,
-                                 flowcode_ = 1){
+                                 flowcode_){
     remote <- tbl(con, "vld_comext_monthly") %>% 
         filter(productcode %in% productcode_ & 
                    flowcode == flowcode_ & 
@@ -137,46 +140,64 @@ server <- function(input, output, session) {
         # Convert to character because SQL is slower if 
         # search is performed on character index, while using a numeric value
         productselected <- as.character(productselected$productcode)
-        loadvldcomextmonhtly(con, productselected,
+        loadvldcomextmonhtly(con, 
+                             productcode_ = productselected,
                              periodmin = format(input$range[1], "%Y%m"),
-                             periodmax = format(input$range[2], "%Y%m"))
+                             periodmax = format(input$range[2], "%Y%m"),
+                             flowcode_ = input$flowcode)
     })
     
     
     # Filter the database based on other variables country etc...
     datasetfiltered <- reactive({
         dtf <- datasetInput() %>%
-            filter(reporter %in% input$reporter & partner %in% input$partner) %>%
-            mutate(date = lubridate::parse_date_time(period, "ym"))
+            filter(reporter %in% input$reporter & partner %in% input$partner) 
+        # Aggregate when all is selected
+        if(input$reporter == "All EU"){
+            dtf <- datasetInput() %>% 
+                filter(partner %in% input$partner) %>% 
+                group_by(partner) %>% 
+                summarise_at(vars(tradevalue, weight, starts_with("quantity")), 
+                             sum) 
+        }
         return(dtf)
     })
         
-    output$debug <- renderText({ 
+    output$info <- renderText({ 
         productimmselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)
         paste(nrow(datasetInput()), "rows fetched from the database.",
-              "product group imm:", input$productgroupimm,
-              "product imm:", input$productimm,
-              "product codes 8 digit:",
-              paste(productimmselected$productcode, collapse=", "))
-    })
-    output$rowsfilteredtable <- renderText({ 
-        paste(nrow(datasetfiltered()), "rows")
+              "Product group imm:", input$productgroupimm,
+              ". Product imm:", input$productimm,
+              ". Product codes 8 digit:",
+              paste(productimmselected$productcode, collapse=", "),
+              "Flow direction: ", input$flowcode)
     })
     
-    # Update list of reporting countries based on the data
+    output$rowsfilteredtable <- renderText({ 
+        sprintf("%s rows filtered from the dataset",
+                nrow(datasetfiltered()))
+    })
+    
+    # Update list of reporting countries based on the data fetched from the database
     observe({
         reporterx <- unique(datasetInput()$reporter)
+        reporterx <- reporterx[order(reporterx)]
+        reporterx <- c("All EU", reporterx[!is.na(reporterx)])
+        previousselection <- input$reporter 
         updateSelectizeInput(session, "reporter",
-                             label = "Choose reporting countries:",
-                             choices = reporterx)
+                             choices = reporterx,
+                             selected = previousselection)
     })
 
+    # Update list of partner countries based on the data fetched from the database
     observe({
         partnerx <- unique(datasetInput()$partner)
+        partnerx <- c( "All", partnerx[!is.na(partnerx)])
+        previousselection <- input$partner
         updateSelectizeInput(session, "partner",
-                             label = "Choose partner countries:",
-                             choices = partnerx)
+                             choices = partnerx,
+                             selected = previousselection)
     })
     
     observe({
@@ -184,8 +205,6 @@ server <- function(input, output, session) {
             filter(productgroupimm == input$productgroupimm) %>%
             distinct(productimm)
         productimm <- imm$productimm
-        message("\n\n\n This group was selected", input$productgroupimm,
-                "These products were selected:", productimm)
         updateSelectizeInput(session, "productimm",
                              choices = productimm,
                              selected = productimm[1])
@@ -204,7 +223,8 @@ server <- function(input, output, session) {
         # This function returns a string which tells the client
         # browser what name to use when saving the file.
         filename = function() {
-            paste(input$productcode, input$filetype, sep = ".")
+            return("name_not_displayed_in_file_save_dialog.csv")
+            # paste(input$productimm, input$filetype, sep = ".")
         },
         
         # This function should write data to a file given to it by
