@@ -546,6 +546,52 @@ RMySQL::dbDisconnect(con)
 ```
 
 
+# Product codes IMM
+See data-raw/produc_classifications.R to see where the IMM product classification is loaded.
+`eutradeflows::classificationimm` is part of the package.
+
+Based on the number of product per group below, I'll make two drop down lists. 
+One with productgroupimm and one with the productimm. 
+The list containing productimm will be populated from the first one.
+
+How many product codes per imm product group?
+```{r}
+classificationimm %>% group_by(productgroupimm) %>% 
+    tally() %>% arrange(desc(n))
+```
+
+How many productimm per imm product group?
+```{r}
+classificationimm %>% 
+    distinct(productgroupimm, productimm) %>% 
+    group_by(productgroupimm) %>% tally()
+
+```
+
+
+```{r}
+# Checking if products under a productimm name share the same product code at the 4 digit level
+cimm <- classificationimm %>% group_by(productimm) %>% 
+    mutate(pc4 = substr(productcode,0,4)) %>% 
+    summarise(n = n(),
+              pc4 = paste(unique(pc4),collapse=", ")) %>% arrange(desc(n)) 
+
+# How many productimm under 2 digit product code and productgroupimm?
+classificationimm %>% 
+    mutate(pc2 = substr(productcode,0,2)) %>% 
+    distinct(pc2, productimm, productgroupimm) %>% 
+    group_by(productgroupimm) %>% 
+    summarise(n=n(),
+              pc2 = paste(unique(pc2), collapse=", ")) %>%
+    arrange(productgroupimm)
+```
+
+
+Are product codes unique in that table?
+```{r}
+classificationimm %>% nrow()
+classificationimm %>% distinct(productcode) %>% nrow()
+```
 
 
 # Conclusions

@@ -7,8 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
 
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
 
 # Dump
 ## Load a dump
@@ -55,3 +56,38 @@ each table in a separate .sql.7z file.
 
 Create an R function that dumps all tables containing a given pattern in 
 their names, such as "monthly" or "yearly".
+
+
+
+# Query optimisation
+
+## Productcode only
+```{r}
+productpattern <- 44079998 
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode %like% productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
+```
+
+## Product pattern
+```{r}
+productpattern <- "440799%"
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode %like% productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
+```
+
+
+## Cost of the addproreppar function
+```{r}
+
+```
+

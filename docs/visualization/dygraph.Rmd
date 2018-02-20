@@ -1,0 +1,154 @@
+---
+title: "dygraph"
+author: "Paul Rougieux"
+date: "14 February 2018"
+output: 
+ html_document:
+    fig_width: 10
+    fig_height: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dygraphs)
+library(dplyr)
+library(eutradeflows)
+```
+
+
+# Load data for IMM product "Sawn: tropical hardwood"
+
+```{r}
+productimm_ <- "Sawn: tropical hardwood"
+productselected <- classificationimm %>% filter(productimm %in% productimm_)
+# Convert to character because SQL is slower if 
+# search is performed on character index, while using a numeric value
+productselected <- as.character(productselected$productcode)
+tableread <- "vld_comext_monthly"
+periodstart <- 200000
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+# swd <- eutradeflows::loadflows(con, 440799, periodstart = 200000)
+swd <- tbl(con, tableread) %>%
+    filter(productcode %in% productselected &
+               period > periodstart) %>% 
+    addproreppar2tbl(con,.) %>% 
+    collect() 
+message("Remove trailing white space in country name. Note: this should be fixed in the cleaning procedure")
+# Base on https://stackoverflow.com/a/2261349
+swd <- swd %>% 
+    mutate(reporter = gsub("^\\s+|\\s+$","",reporter),
+           partner = gsub("^\\s+|\\s+$","",partner))
+# write.csv(filter(swd, reporter=="Utd. Kingdom"), "/tmp/swd.csv")
+```
+There are `r nrow(swd)` rows in the dataset.
+
+```{r eval=FALSE, include=FALSE}
+# Other query
+if(FALSE){
+    dtf <- tbl(con, "vld_comext_monthly") %>% 
+        filter(productcode %in% c("44079927", "44079990", "44079991",
+                                  "44079996", "44079998")  & flowcode == 1 ) %>% 
+        addproreppar2tbl(con, .) %>% 
+        collect() 
+productselected <- as.character(productselected$productcode)
+tbl(con, tableread) %>%
+    filter(productcode %in% productselected &
+               period > periodstart) %>% 
+    addproreppar2tbl(con,.) %>% 
+    explain()
+}
+
+```
+
+
+
+
+# Synchronised plots displaying value, quantity and weight 
+Uses the [dygraph package](https://rstudio.github.io/dygraphs/index.html).
+To zoom, select directly on the plot or move the sliders of the selectin window. 
+Double click to zoom out.
+
+The following actions are performed before plotting:
+Filter data to keep only imports from Indonesia into the UK.
+Aggregate Trade value, quantity and volume (separate data at the 8 digit level is available in the database).
+Transform the data frame into a time series "xts" object.
+```{r}
+# This will be part of the datasetfiltered() reactive function
+swd1 <- swd %>% 
+    filter(reporter == "Utd. Kingdom" & partner== "Cameroon" & flowcode==1) %>% 
+    group_by(reportercode, partnercode, flowcode, unitcode, period) %>% 
+    summarise_at(c("tradevalue", "quantity","weight"), sum, na.rm = TRUE) %>% 
+    ungroup() %>% 
+    mutate(date = lubridate::parse_date_time(period, "ym")) %>% 
+    select(date, tradevalue, quantity, weight) %>%
+    data.frame()
+# Convert to a time series
+swd1xts <- xts::xts(swd1[,-1], order.by=swd1[,1])
+
+dateWindow <- c("2012-01-01", "2018-01-01")
+dygraph(swd1xts[,"quantity"], main = "Quantity", ylab = "M3", group="tf") %>% 
+    dyRangeSelector(dateWindow=dateWindow) %>% 
+    dyRoller(rollPeriod=12)
+
+dygraph(swd1xts[,"tradevalue"], main = "Trade Value", ylab = "1000 €", group="tf") %>% 
+    dyRangeSelector(dateWindow=dateWindow) %>% 
+    dyRoller(rollPeriod=12)
+
+dygraph(swd1xts[,"weight"], main = "Weight", ylab = "T", group="tf") %>% 
+    dyRangeSelector(dateWindow=dateWindow) %>% 
+    dyRoller(rollPeriod=12)
+
+```
+
+
+Products included under the IMM name "`r productimm_`"
+```{r}
+swd %>% 
+    filter(reporter == "Utd. Kingdom" & partner== "Cameroon" & flowcode==1) %>% 
+    ungroup() %>%  distinct(productcode, productdescription) %>% 
+    knitr::kable()
+```
+
+
+
+
+# Chips
+
+```{r}
+productimm_ <- "Chips"
+productselected <- classificationimm %>% filter(productimm %in% productimm_)
+# Convert to character because SQL is slower if 
+# search is performed on character index, while using a numeric value
+productselected <- as.character(productselected$productcode)
+tableread <- "vld_comext_monthly"
+periodstart <- 200000
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+# swd <- eutradeflows::loadflows(con, 440799, periodstart = 200000)
+swd <- tbl(con, tableread) %>%
+    filter(productcode %in% productselected &
+               period > periodstart) %>% 
+    addproreppar2tbl(con,.) %>% 
+    collect() 
+message("Remove trailing white space in country name. Note: this should be fixed in the cleaning procedure")
+# Base on https://stackoverflow.com/a/2261349
+swd <- swd %>% 
+    mutate(reporter = gsub("^\\s+|\\s+$","",reporter),
+           partner = gsub("^\\s+|\\s+$","",partner))
+# write.csv(filter(swd, reporter=="Utd. Kingdom"), "/tmp/swd.csv")
+
+```
+
+
+```{r eval=FALSE, include=FALSE}
+# Quantity plot only
+swd1 <- swd %>% 
+    filter(reporter == "Utd. Kingdom" & partner== "Finland     " & flowcode==1) %>% 
+    mutate(date = lubridate::parse_date_time(period, "ym")) %>% 
+    select(date, quantity) %>% 
+    data.frame()
+# Convert to a time series
+swd1xts <- xts::xts(swd1[,-1], order.by=swd1[,1])
+
+dygraph(swd1xts, main = "Forest products", ylab = "volume") %>% 
+    dyRangeSelector()
+```
