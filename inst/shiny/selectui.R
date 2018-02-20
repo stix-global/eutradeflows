@@ -16,15 +16,18 @@ ui <- fluidPage(
     titlePanel("File download from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
     sidebarLayout(
         sidebarPanel(
-            helpText("Change product or date range to fetch data from the database.",
-                     "Number of rows loaded from the database:"),
-            textOutput("rowsinputtable"),
+            helpText("Debug information"),
+            textOutput("debug"),
             
             # Input: Specification of the product
             selectInput("productgroupimm", "Choose a product group:", 
-                        choices = eutradeflows::classificationimm$productgroupimm),
+                        choices = unique(eutradeflows::classificationimm$productgroupimm),
+                         selected = "Wood"
+                        ),
             selectInput("productimm", "Choose a product :", 
-                        choices = eutradeflows::classificationimm$productimm),
+                        choices = unique(eutradeflows::classificationimm$productimm)#,
+                        # selected = "Chips"
+                        ),
             
             # Input: Specification of the date range
             sliderInput("range", "Date range:",
@@ -87,19 +90,20 @@ dbconnecttradeflows <- function(dbdocker){
 loadvldcomextmonhtly <- function(con, productcode_, 
                                  periodmin, periodmax,
                                  flowcode_ = 1){
-    tbl(con, "vld_comext_monthly") %>% 
+    remote <- tbl(con, "vld_comext_monthly") %>% 
         filter(productcode %in% productcode_ & 
                    flowcode == flowcode_ & 
                    period >= periodmin & period<=periodmax) %>% 
-        addproreppar2tbl(con, .) %>% 
-        collect() #%>% 
-        # # These operations should be performed in the cleaning procedure
-        # # Remove quotation marks from the product description
-        # mutate(productdescription = gsub('"',' ', productdescription)) %>% 
-        # select(productdescription, reporter, partner, period, 
-        #        tradevalue, weight, quantity, quantityraw,
-        #        productcode, everything())
-        # Remove spaces from the country names
+        addproreppar2tbl(con, .) 
+    show_query(remote)
+    collect(remote)
+    # # These operations should be performed in the cleaning procedure
+    # # Remove quotation marks from the product description
+    # mutate(productdescription = gsub('"',' ', productdescription)) %>% 
+    # select(productdescription, reporter, partner, period, 
+    #        tradevalue, weight, quantity, quantityraw,
+    #        productcode, everything())
+    # Remove spaces from the country names
 }
 
 # Transpose a data frame of trade flows
@@ -118,7 +122,6 @@ if(FALSE){
         unite(varperiod, variable2, period, sep="") %>% 
         spread()
 }
-
 
 
 # This function should remain the last object in the server.R script
@@ -148,10 +151,13 @@ server <- function(input, output, session) {
         return(dtf)
     })
         
-    output$rowsinputtable <- renderText({ 
+    output$debug <- renderText({ 
         productimmselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)
-        paste(nrow(datasetInput()), "rows", input$productimm,
+        paste(nrow(datasetInput()), "rows fetched from the database.",
+              "product group imm:", input$productgroupimm,
+              "product imm:", input$productimm,
+              "product codes 8 digit:",
               paste(productimmselected$productcode, collapse=", "))
     })
     output$rowsfilteredtable <- renderText({ 
@@ -173,14 +179,18 @@ server <- function(input, output, session) {
                              choices = partnerx)
     })
     
-    # observe({
-        # imm <- eutradeflows::classificationimm$productgroupimm %>% 
-        #     filter(productgroup == input$productgroupimm)
-        # productimm <- imm$productimm
-        # updateSelectizeInput(session, "productimm",
-                             # choices = c("productimm","3"))
-    # })
-    
+    observe({
+        imm <- eutradeflows::classificationimm %>%
+            filter(productgroupimm == input$productgroupimm) %>%
+            distinct(productimm)
+        productimm <- imm$productimm
+        message("\n\n\n This group was selected", input$productgroupimm,
+                "These products were selected:", productimm)
+        updateSelectizeInput(session, "productimm",
+                             choices = productimm,
+                             selected = productimm[1])
+    })
+
     # separate product description from the main table
     output$productdescription <- renderTable(distinct(datasetfiltered(),
                                                       productcode,productdescription))
