@@ -11,56 +11,58 @@ library(eutradeflows)
 # swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
 # chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
 
-ui <- fluidPage(
-    titlePanel("File download from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
-    sidebarLayout(
-        sidebarPanel(
-            helpText("Information on the current selection"),
-            textOutput("info"),
-            
-            # Input: Specification of the product
-            selectInput("productgroupimm", "Choose a product group:", 
-                        choices = unique(eutradeflows::classificationimm$productgroupimm),
-                         selected = "Wood"
-                        ),
-            selectInput("productimm", "Choose a product :", 
-                        choices = unique(eutradeflows::classificationimm$productimm)#,
-                        # selected = "Chips"
-                        ),
-            radioButtons("flowcode", "Flow direction:", inline = TRUE,
-                         choiceNames = c("Import", "Export"),
-                         choiceValues = c(1, 2)),
-            
-            # Input: Specification of the date range
-            sliderInput("range", "Date range:",
-                        min = as.Date('2000-01-01'), max = as.Date('2017-09-01'),
-                        value = c(as.Date('2017-01-01'),as.Date('2017-09-01')),
-                        timeFormat = "%Y%m"),
-            
-            helpText("Change country to filter the table in your browser:"),
-            textOutput("rowsfilteredtable"),
-            
-            # Input: Specification of the reporter country
-            selectizeInput("reporter", "Choose reporting country:", 
-                           choices = "All EU", selected="All EU",
-                           multiple=FALSE),
-            selectizeInput("partner", "Choose partner country:", 
-                           choices = "All", selected="All",
-                           multiple=FALSE),
-            radioButtons("tableformat", "Table Format:",
-                         choices = c("long", "wide")),
-            radioButtons("filetype", "File type:",
-                         choices = c("csv", "tsv")),
-            downloadButton('downloadData', 'Download'),
-            width = 3
-        ),
-        mainPanel(
-            tableOutput("productdescription"),
-            tableOutput("table")
+ui <- function(request){
+    fluidPage(
+        titlePanel("File download from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
+        sidebarLayout(
+            sidebarPanel(
+                helpText("Information on the current selection"),
+                textOutput("info"),
+                
+                # Input: Specification of the product
+                selectInput("productgroupimm", "Choose a product group:", 
+                            choices = unique(eutradeflows::classificationimm$productgroupimm),
+                            selected = "Wood"
+                ),
+                selectInput("productimm", "Choose a product :", 
+                            choices = unique(eutradeflows::classificationimm$productimm)#,
+                            # selected = "Chips"
+                ),
+                radioButtons("flowcode", "Flow direction:", inline = TRUE,
+                             choiceNames = c("Import", "Export"),
+                             choiceValues = c(1, 2)),
+                
+                # Input: Specification of the date range
+                sliderInput("range", "Date range:",
+                            min = as.Date('2000-01-01'), max = as.Date('2017-09-01'),
+                            value = c(as.Date('2017-01-01'),as.Date('2017-09-01')),
+                            timeFormat = "%Y%m"),
+                
+                helpText("Change country to filter the table in your browser:"),
+                textOutput("rowsfilteredtable"),
+                
+                # Input: Specification of the reporter country
+                selectizeInput("reporter", "Choose reporting country:", 
+                               choices = "All EU", selected="All EU",
+                               multiple=FALSE),
+                selectizeInput("partner", "Choose partner country:", 
+                               choices = "All", selected="All",
+                               multiple=FALSE),
+                radioButtons("tableformat", "Table Format:",
+                             choices = c("long", "wide")),
+                radioButtons("filetype", "File type:",
+                             choices = c("csv", "tsv")),
+                downloadButton('downloadData', 'Download'),
+                bookmarkButton(),
+                width = 3
+            ),
+            mainPanel(
+                tableOutput("productdescription"),
+                tableOutput("table")
+            )
         )
     )
-)
-
+}    
 
 rowstodisplay <- 100
 dbdocker = FALSE
@@ -179,6 +181,24 @@ server <- function(input, output, session) {
                 nrow(datasetfiltered()))
     })
     
+    # update list of product imm based on the product group imm
+    observe({
+        imm <- eutradeflows::classificationimm %>%
+            filter(productgroupimm == input$productgroupimm) %>%
+            distinct(productimm)
+        productimm <- imm$productimm
+        # If the previous selection is present in the list, reuse the same selection
+        # otherwise take the first value
+        if(input$productimm %in% productimm){
+            productimmselected <- input$productimm
+        } else {
+            productimmselected <- productimm[1]
+        }
+        updateSelectizeInput(session, "productimm",
+                             choices = productimm,
+                             selected = productimmselected)
+    })
+    
     # Update list of reporting countries based on the data fetched from the database
     observe({
         reporterx <- unique(datasetInput()$reporter)
@@ -193,6 +213,7 @@ server <- function(input, output, session) {
     # Update list of partner countries based on the data fetched from the database
     observe({
         partnerx <- unique(datasetInput()$partner)
+        partnerx <- partnerx[order(partnerx)]
         partnerx <- c( "All", partnerx[!is.na(partnerx)])
         previousselection <- input$partner
         updateSelectizeInput(session, "partner",
@@ -200,15 +221,6 @@ server <- function(input, output, session) {
                              selected = previousselection)
     })
     
-    observe({
-        imm <- eutradeflows::classificationimm %>%
-            filter(productgroupimm == input$productgroupimm) %>%
-            distinct(productimm)
-        productimm <- imm$productimm
-        updateSelectizeInput(session, "productimm",
-                             choices = productimm,
-                             selected = productimm[1])
-    })
 
     # separate product description from the main table
     output$productdescription <- renderTable(distinct(datasetfiltered(),
@@ -240,7 +252,22 @@ server <- function(input, output, session) {
                         row.names = FALSE)
         }
     )
+    # https://shiny.rstudio.com/articles/advanced-bookmarking.html
+    # Save extra values in state$values when we bookmark
+    onBookmark(function(state){
+        state$values$reporter <- input$reporter
+    })
+    
+    # Read values from state$values when we restore
+    onRestore(function(state) {
+        updateSelectizeInput(session, "reporter",
+                             choices = state$values$reporter,
+                             selected = state$values$reporter)
+    })
+    # 
+    # Exclude the range input from bookmarking (because it's not working for the moment)
+    setBookmarkExclude("range")
 }
 
 # Complete app with UI and server components
-shinyApp(ui, server)
+shinyApp(ui, server, enableBookmarking = "url")
