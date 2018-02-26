@@ -14,6 +14,7 @@ library(dygraphs)
 
 ui <- function(request){
     fluidPage(
+        includeCSS("styles.css"),
         titlePanel("Time series from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
         sidebarLayout(
             sidebarPanel(
