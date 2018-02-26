@@ -8,53 +8,63 @@ library(dygraphs)
 # In Docker, load the application 
 # Hack to disconnect open connections
 # RMySQL::dbDisconnect(RMySQL::dbListConnections(RMySQL::MySQL())[[1]])
-# Debug on the server
+# Load data to debug on the server
 # swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
 # chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
 
-
-ui <- fluidPage(
-    titlePanel("File download from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
-    sidebarLayout(
-        sidebarPanel(
-            helpText("Change product or date range to fetch data from the database.",
-                     "Number of rows loaded from the database:"),
-            textOutput("rowsinputtable"),
-            
-            # Input: Specification of the product
-            selectInput("productgroupimm", "Choose a product group:", 
-                        choices = eutradeflows::classificationimm$productgroupimm),
-            selectInput("productimm", "Choose a product :", 
-                        choices = eutradeflows::classificationimm$productimm),
-            
-            # Input: Specification of the date range
-            sliderInput("range", "Date range:",
-                        min = as.Date('2000-01-01'), max = as.Date('2017-09-01'),
-                        value = c(as.Date('2017-01-01'),as.Date('2017-09-01')),
-                        timeFormat = "%Y%m"),
-            helpText("Change country to filter the table in your browser:"),
-            helpText("Number of rows filtered in your browser:"),
-            textOutput("rowsfilteredtable"),
-            
-            # Input: Specification of the reporter country
-            selectizeInput("reporter", "Choose reporting country:", 
-                           choices = NULL, multiple=FALSE),
-            selectizeInput("partner", "Choose partner country:", 
-                           choices = NULL, multiple=FALSE),
-            radioButtons("tableformat", "Table Format:",
-                         choices = c("long", "wide")),
-            radioButtons("filetype", "File type:",
-                         choices = c("csv", "tsv")),
-            downloadButton('downloadData', 'Download'),
-            width = 3
-        ),
-        mainPanel(
-            dygraphOutput("dygraph")
+ui <- function(request){
+    fluidPage(
+        titlePanel("Time series from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
+        sidebarLayout(
+            sidebarPanel(
+                helpText("Information on the current selection"),
+                textOutput("info"),
+                
+                # Input: Specification of the product
+                selectInput("productgroupimm", "Choose a product group:", 
+                            choices = unique(eutradeflows::classificationimm$productgroupimm),
+                            selected = "Wood"
+                ),
+                selectInput("productimm", "Choose a product :", 
+                            choices = unique(eutradeflows::classificationimm$productimm)#,
+                            # selected = "Chips"
+                ),
+                radioButtons("flowcode", "Flow direction:", inline = TRUE,
+                             choiceNames = c("Import", "Export"),
+                             choiceValues = c(1, 2)),
+                
+                # Input: Specification of the date range
+                sliderInput("range", "Date range:",
+                            min = as.Date('2000-01-01'), max = as.Date('2017-09-01'),
+                            value = c(as.Date('2017-01-01'),as.Date('2017-09-01')),
+                            timeFormat = "%Y%m"),
+                
+                helpText("Change country to filter the table in your browser:"),
+                textOutput("rowsfilteredtable"),
+                
+                # Input: Specification of the reporter country
+                selectizeInput("reporter", "Choose reporting country:", 
+                               choices = "All EU", selected="All EU",
+                               multiple=FALSE),
+                selectizeInput("partner", "Choose partner country:", 
+                               choices = "All", selected="All",
+                               multiple=FALSE),
+                radioButtons("tableformat", "Table Format:",
+                             choices = c("long", "wide")),
+                radioButtons("filetype", "File type:",
+                             choices = c("csv", "tsv")),
+                downloadButton('downloadData', 'Download'),
+                bookmarkButton(),
+                width = 3
+            ),
+            mainPanel(
+                dygraphOutput("dygraphquantity"),
+                dygraphOutput("dygraphtradevalue"),
+                dygraphOutput("dygraphweight")
+            )
         )
     )
-)
-
-
+}    
 
 rowstodisplay <- 100
 dbdocker = FALSE
@@ -81,31 +91,31 @@ dbconnecttradeflows <- function(dbdocker){
 #' Load a data frame of trade flows 
 #' @examples 
 #' if(interactive){
-#' swd <- loadvldcomextmonhtly(con, "4407%", 201701, 201709)
-#' plywood <- loadvldcomextmonhtly(con, "4412%", 201701, 201709)
-#' furniturekitchen <- loadvldcomextmonhtly(con, "940340%", 201701, 201709)
+#' # Use full code
+#' swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
+#' chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
 #' }
 loadvldcomextmonhtly <- function(con, productcode_, 
                                  periodmin, periodmax,
-                                 flowcode_ = 1){
-    tbl(con, "vld_comext_monthly") %>% 
+                                 flowcode_){
+    remote <- tbl(con, "vld_comext_monthly") %>% 
         filter(productcode %in% productcode_ & 
                    flowcode == flowcode_ & 
                    period >= periodmin & period<=periodmax) %>% 
-        addproreppar2tbl(con, .) %>% 
-        collect() #%>% 
-        # # These operations should be performed in the cleaning procedure
-        # # Remove quotation marks from the product description
-        # mutate(productdescription = gsub('"',' ', productdescription)) %>% 
-        # select(productdescription, reporter, partner, period, 
-        #        tradevalue, weight, quantity, quantityraw,
-        #        productcode, everything())
-        # Remove spaces from the country names
+        addproreppar2tbl(con, .) 
+    show_query(remote)
+    collect(remote)
+    # # These operations should be performed in the cleaning procedure
+    # # Remove quotation marks from the product description
+    # mutate(productdescription = gsub('"',' ', productdescription)) %>% 
+    # select(productdescription, reporter, partner, period, 
+    #        tradevalue, weight, quantity, quantityraw,
+    #        productcode, everything())
+    # Remove spaces from the country names
 }
 
 # Transpose a data frame of trade flows
 if(FALSE){
-    swd <- loadvldcomextmonhtly(con,"codes as characters" , 201701, 201709)    
     # Gather along period and all codes columns 
     # spread the 
     swd2 <- swd %>% 
@@ -122,7 +132,6 @@ if(FALSE){
 }
 
 
-
 # This function should remain the last object in the server.R script
 server <- function(input, output, session) {
     # Load a large data set from the database, based on date and productcode
@@ -136,9 +145,11 @@ server <- function(input, output, session) {
         # Convert to character because SQL is slower if 
         # search is performed on character index, while using a numeric value
         productselected <- as.character(productselected$productcode)
-        loadvldcomextmonhtly(con, productselected,
+        loadvldcomextmonhtly(con, 
+                             productcode_ = productselected,
                              periodmin = format(input$range[1], "%Y%m"),
-                             periodmax = format(input$range[2], "%Y%m"))
+                             periodmax = format(input$range[2], "%Y%m"),
+                             flowcode_ = input$flowcode)
     })
     
     
@@ -155,45 +166,81 @@ server <- function(input, output, session) {
         return(dtfxts)
     })
         
-    output$rowsinputtable <- renderText({ 
+    output$info <- renderText({ 
         productimmselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)
-        paste(nrow(datasetInput()), "rows", input$productimm,
-              paste(productimmselected$productcode, collapse=", "))
-    })
-    output$rowsfilteredtable <- renderText({ 
-        paste(nrow(datasetfiltered()), "rows")
+        paste(nrow(datasetInput()), "rows fetched from the database.",
+              "Product group imm:", input$productgroupimm,
+              ". Product imm:", input$productimm,
+              ". Product codes 8 digit:",
+              paste(productimmselected$productcode, collapse=", "),
+              "Flow direction: ", input$flowcode)
     })
     
-    # Update list of reporting countries based on the data
+    output$rowsfilteredtable <- renderText({ 
+        sprintf("%s rows filtered from the dataset",
+                nrow(datasetfiltered()))
+    })
+    
+    # update list of product imm based on the product group imm
+    observe({
+        imm <- eutradeflows::classificationimm %>%
+            filter(productgroupimm == input$productgroupimm) %>%
+            distinct(productimm)
+        productimm <- imm$productimm
+        # If the previous selection is present in the list, reuse the same selection
+        # otherwise take the first value
+        if(input$productimm %in% productimm){
+            productimmselected <- input$productimm
+        } else {
+            productimmselected <- productimm[1]
+        }
+        updateSelectizeInput(session, "productimm",
+                             choices = productimm,
+                             selected = productimmselected)
+    })
+    
+    # Update list of reporting countries based on the data fetched from the database
     observe({
         reporterx <- unique(datasetInput()$reporter)
+        reporterx <- reporterx[order(reporterx)]
+        reporterx <- c("All EU", reporterx[!is.na(reporterx)])
+        previousselection <- input$reporter 
         updateSelectizeInput(session, "reporter",
-                             label = "Choose reporting countries:",
-                             choices = reporterx)
+                             choices = reporterx,
+                             selected = previousselection)
     })
 
+    # Update list of partner countries based on the data fetched from the database
     observe({
         partnerx <- unique(datasetInput()$partner)
+        partnerx <- partnerx[order(partnerx)]
+        partnerx <- c( "All", partnerx[!is.na(partnerx)])
+        previousselection <- input$partner
         updateSelectizeInput(session, "partner",
-                             label = "Choose partner countries:",
-                             choices = partnerx)
+                             choices = partnerx,
+                             selected = previousselection)
+    })
+
+    output$dygraphquantity <- renderDygraph({
+        dygraph(datasetfiltered()[,"quantity"], main = "Quantity", ylab = "M3", group="tf") %>% 
+            dyRangeSelector(dateWindow=dateWindow) %>% 
+            dyRoller(rollPeriod=12)
     })
     
-        
-    output$dygraph <- renderDygraph({
-        dygraph(datasetfiltered()[,"quantity"],
-                main = "Quantity", ylab = "1000 M3", group="tf") %>% 
-            dyRangeSelector(dateWindow=dateWindow)
-        
-        # dygraph(swd1xts[,"tradevalue"], main = "Trade Value", ylab = "1000 €", group="tf") %>% 
-        #     dyRangeSelector(dateWindow=dateWindow)
-        # 
-        # dygraph(swd1xts[,"weight"], main = "Weight", ylab = "t", group="tf") %>% 
-        #     dyRangeSelector(dateWindow=dateWindow)
-        
+    output$dygraphtradevalue <- renderDygraph({
+        dygraph(datasetfiltered()[,"tradevalue"], main = "Trade Value", ylab = "1000 €", group="tf") %>% 
+            dyRangeSelector(dateWindow=dateWindow) %>% 
+            dyRoller(rollPeriod=12)
     })
     
+    output$dygraphweight <- renderDygraph({
+        dygraph(datasetfiltered()[,"weight"], main = "Weight", ylab = "T", group="tf") %>% 
+            dyRangeSelector(dateWindow=dateWindow) %>% 
+            dyRoller(rollPeriod=12)
+    })
+    
+
     # downloadHandler() takes two arguments, both functions.
     # The content function is passed a filename as an argument, and
     #   it should write out data to that filename.
@@ -202,7 +249,8 @@ server <- function(input, output, session) {
         # This function returns a string which tells the client
         # browser what name to use when saving the file.
         filename = function() {
-            paste(input$productcode, input$filetype, sep = ".")
+            return("name_not_displayed_in_file_save_dialog.csv")
+            # paste(input$productimm, input$filetype, sep = ".")
         },
         
         # This function should write data to a file given to it by
@@ -218,7 +266,22 @@ server <- function(input, output, session) {
                         row.names = FALSE)
         }
     )
+    # https://shiny.rstudio.com/articles/advanced-bookmarking.html
+    # Save extra values in state$values when we bookmark
+    onBookmark(function(state){
+        state$values$reporter <- input$reporter
+    })
+    
+    # Read values from state$values when we restore
+    onRestore(function(state) {
+        updateSelectizeInput(session, "reporter",
+                             choices = state$values$reporter,
+                             selected = state$values$reporter)
+    })
+    # 
+    # Exclude the range input from bookmarking (because it's not working for the moment)
+    setBookmarkExclude("range")
 }
 
-
-shinyApp(ui, server)
+# Complete app with UI and server components
+shinyApp(ui, server, enableBookmarking = "url")
