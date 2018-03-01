@@ -76,12 +76,16 @@ lapply(vldtables,
 
 ## Clean trade flows data
 
+Cleaning is implemented in the `tradeflows` package see the help of the function 
+`tradeflows::cleancomext()`.
 ```{r}
-# This uses the tradeflows package
-
+tradeflows::cleancomext()
 ```
 
-
+The cleaning procedure is run each night by a cron job:
+```
+0 5 * * * paul Rscript -e "library(tradeflows); cleancomext('tradeflows')" >> ~/log/clean$(date +"\%Y\%m\%d").log 2>&1
+```
 
 ## Disconnect from the database
 ```{r dbDisconnect}

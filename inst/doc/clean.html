@@ -12,12 +12,50 @@
 
 <meta name="author" content="Paul Rougieux" />
 
-<meta name="date" content="2017-09-29" />
+<meta name="date" content="2018-03-01" />
 
 <title>Validate Comext data, using the eutradeflows package</title>
 
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 
 
@@ -32,25 +70,76 @@
 
 <h1 class="title toc-ignore">Validate Comext data, using the eutradeflows package</h1>
 <h4 class="author"><em>Paul Rougieux</em></h4>
-<h4 class="date"><em>2017-09-29</em></h4>
+<h4 class="date"><em>2018-03-01</em></h4>
 
 
 <div id="TOC">
 <ul>
+<li><a href="#create-the-database-structure">Create the database structure</a></li>
+<li><a href="#connect-to-the-database">Connect to the database</a></li>
 <li><a href="#load-raw-comext-data-and-text-files-into-the-database">Load raw comext data and text files into the database</a></li>
+<li><a href="#clean-raw-data">Clean raw data</a><ul>
 <li><a href="#prepare-product-unit-reporter-partner-codes">Prepare product, unit, reporter, partner codes</a></li>
-<li><a href="#clean-data">Clean data</a></li>
+</ul></li>
+<li><a href="#clean-trade-flows-data">Clean trade flows data</a></li>
+<li><a href="#disconnect-from-the-database">Disconnect from the database</a></li>
 </ul>
 </div>
 
-<div id="load-raw-comext-data-and-text-files-into-the-database" class="section level1">
-<h1>Load raw comext data and text files into the database</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(knitr)
+<span class="co"># Do not evaluate code chunks below, only display code</span>
+opts_chunk$<span class="kw">set</span>(<span class="dt">eval=</span><span class="ot">FALSE</span>) 
+<span class="kw">library</span>(dplyr)</code></pre></div>
+<div id="create-the-database-structure" class="section level2">
+<h2>Create the database structure</h2>
+<p>Recreating the empty database structure:</p>
+<ul>
+<li>will not erase the main raw and validated data. Because only templates are created.</li>
+<li>it will erase all complementary raw tables raw_comext_partner, raw_comext_product, raw_comext_reporter, raw_comext_unit, raw_comext_unit_description</li>
+<li>and it will erase all complementary validated tables vld_comext_partner, vld_comext_price, vld_comext_priceconversion , vld_comext_pricew , vld_comext_product, vld_comext_reporter, vld_comext_unit, vld_comext_unit_description</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create emtpty database structure for raw codes</span>
+eutradeflows::<span class="kw">createdbstructure</span>(<span class="dt">sqlfile =</span> <span class="st">'raw_comext.sql'</span>, <span class="dt">dbname =</span> <span class="st">'tradeflows'</span>)
+<span class="co"># create empty database structure for validated codes</span>
+eutradeflows::<span class="kw">createdbstructure</span>(<span class="dt">sqlfile =</span> <span class="st">'vld_comext.sql'</span>, <span class="dt">dbname =</span> <span class="st">'tradeflows'</span>)</code></pre></div>
 </div>
-<div id="prepare-product-unit-reporter-partner-codes" class="section level1">
-<h1>Prepare product, unit, reporter, partner codes</h1>
+<div id="connect-to-the-database" class="section level2">
+<h2>Connect to the database</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">con &lt;-<span class="st"> </span>RMySQL::<span class="kw">dbConnect</span>(RMySQL::<span class="kw">MySQL</span>(), <span class="dt">dbname =</span> <span class="st">&quot;tradeflows&quot;</span>)</code></pre></div>
 </div>
-<div id="clean-data" class="section level1">
-<h1>Clean data</h1>
+<div id="load-raw-comext-data-and-text-files-into-the-database" class="section level2">
+<h2>Load raw comext data and text files into the database</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># transfer raw codes</span>
+tradeharvester::<span class="kw">transfertxtcodesfolder2db</span>(con, <span class="dt">rawdatacomextfolder =</span> <span class="st">&quot;~/R/tradeharvester/data-raw/comext/201707/text/english/&quot;</span>)
+
+<span class="co"># transfer raw codes on the server</span>
+tradeharvester::<span class="kw">transfertxtcodesfolder2db</span>(con, <span class="dt">rawdatacomextfolder =</span> <span class="st">&quot;/mnt/sdb/data-raw/comext/201710/text/english/&quot;</span>)</code></pre></div>
+</div>
+<div id="clean-raw-data" class="section level2">
+<h2>Clean raw data</h2>
+<div id="prepare-product-unit-reporter-partner-codes" class="section level3">
+<h3>Prepare product, unit, reporter, partner codes</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cleanallcomextcodes</span>(con)
+
+<span class="co"># Check the content of codes</span>
+<span class="co"># Display the first 6 lines of all validated `vld̀  tables </span>
+vldtables &lt;-<span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;vld&quot;</span>, RMySQL::<span class="kw">dbListTables</span>(con), <span class="dt">value =</span> <span class="ot">TRUE</span>)
+<span class="kw">lapply</span>(vldtables, 
+       function(x){
+           <span class="kw">tbl</span>(con, x) %&gt;%<span class="st"> </span><span class="kw">head</span>() %&gt;%<span class="st"> </span><span class="kw">collect</span>() %&gt;%<span class="st"> </span><span class="kw">kable</span>(<span class="dt">caption =</span> x)
+       })</code></pre></div>
+</div>
+</div>
+<div id="clean-trade-flows-data" class="section level2">
+<h2>Clean trade flows data</h2>
+<p>Cleaning is implemented in the <code>tradeflows</code> package see the help of the function <code>tradeflows::cleancomext()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tradeflows::<span class="kw">cleancomext</span>()</code></pre></div>
+<p>The cleaning procedure is run each night by a cron job:</p>
+<pre><code>0 5 * * * paul Rscript -e &quot;library(tradeflows); cleancomext('tradeflows')&quot; &gt;&gt; ~/log/clean$(date +&quot;\%Y\%m\%d&quot;).log 2&gt;&amp;1</code></pre>
+</div>
+<div id="disconnect-from-the-database" class="section level2">
+<h2>Disconnect from the database</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">RMySQL::<span class="kw">dbDisconnect</span>(con)</code></pre></div>
 </div>
 
 <script type="text/javascript">
