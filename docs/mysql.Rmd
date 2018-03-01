@@ -2,10 +2,17 @@
 title: "MySQL Commands"
 author: "Paul Rougieux"
 date: "25 August 2017"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
+library(dplyr)
+library(eutradeflows)
+# To compile this document, run the following at an R prompt:
+# rmarkdown::render("~/R/eutradeflows/docs/mysql.Rmd")
+
 knitr::opts_chunk$set(echo = TRUE)
 
 con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
@@ -59,9 +66,10 @@ their names, such as "monthly" or "yearly".
 
 
 
-# Query optimisation
+# Comparing query time between %like%, == and %in%
 
-## Productcode only
+
+## Productcode as a numeric vector %like%
 ```{r}
 productpattern <- 44079998 
 tableread <- "vld_comext_monthly"
@@ -73,7 +81,73 @@ system.time(dtf <- tbl(con, tableread) %>%
         collect())
 ```
 
-## Product pattern
+## Productcode as a character vector %like%
+```{r}
+productpattern <- "44079998"
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode %like% productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
+```
+
+
+## Productcode as a character vector ==
+```{r}
+productpattern <- "44079998"
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode == productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
+```
+
+## Productcode as a character vector %in%
+```{r}
+productpattern <- "44079998"
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode %in% productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
+```
+
+
+# Cost of the addproreppar() function
+The addproreppar() function add product description, reporter and partner to the querried data.
+The 
+### Productcode as a character vector %in% (several products) without codes
+The explain shows "ALL" meaning that it will use a full table scan.
+```{r}
+swdcodes <- classificationimm$productcode[classificationimm$productimm=="Sawn: softwood"]
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+remotequery <-  tbl(con, tableread) %>%
+        filter(productcode %in% swdcodes & period > periodstart)
+explain(remotequery)
+system.time(dtf <- collect(remotequery))
+```
+
+### Productcode as a character vector %in% (several products) add prorepparcodes
+```{r}
+swdcodes <- classificationimm$productcode[classificationimm$productimm=="Sawn: softwood"]
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode %in% swdcodes &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
+```
+
+### Product pattern %like% "pattern%" without product description, reporter and partner
 ```{r}
 productpattern <- "440799%"
 tableread <- "vld_comext_monthly"
@@ -86,8 +160,16 @@ system.time(dtf <- tbl(con, tableread) %>%
 ```
 
 
-## Cost of the addproreppar function
+### Product pattern %like% "pattern%" with product description, reporter and partner
 ```{r}
-
+productpattern <- "440799%"
+tableread <- "vld_comext_monthly"
+periodstart <- 201500
+system.time(dtf <- tbl(con, tableread) %>%
+        filter(productcode %like% productpattern &
+                   period > periodstart) %>% 
+        addproreppar2tbl(con,.) %>% 
+        collect())
 ```
+
 
