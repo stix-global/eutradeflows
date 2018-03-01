@@ -18,50 +18,44 @@ ui <- function(request){
         titlePanel("Time series from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
         sidebarLayout(
             sidebarPanel(
-                helpText("Information on the current selection"),
-                textOutput("info"),
-                
-                # Input: Specification of the product
                 selectInput("productgroupimm", "Choose a product group:", 
                             choices = unique(eutradeflows::classificationimm$productgroupimm),
-                            selected = "Wood"
-                ),
+                            selected = "Wood"),
                 selectInput("productimm", "Choose a product :", 
-                            choices = unique(eutradeflows::classificationimm$productimm)#,
-                            # selected = "Chips"
-                ),
+                            choices = unique(eutradeflows::classificationimm$productimm),
+                            selected = "Sawn: tropical hardwood"),
                 radioButtons("flowcode", "Flow direction:", inline = TRUE,
                              choiceNames = c("Import", "Export"),
                              choiceValues = c(1, 2)),
-                
-                # Input: Specification of the date range
                 sliderInput("range", "Date range:",
                             min = as.Date('2000-01-01'), max = as.Date('2017-09-01'),
                             value = c(as.Date('2017-01-01'),as.Date('2017-09-01')),
                             timeFormat = "%Y%m"),
-                
-                helpText("Change country to filter the table in your browser:"),
-                textOutput("rowsfilteredtable"),
-                
-                # Input: Specification of the reporter country
-                selectizeInput("reporter", "Choose reporting country:", 
-                               choices = "All EU", selected="All EU",
-                               multiple=FALSE),
-                selectizeInput("partner", "Choose partner country:", 
-                               choices = "All", selected="All",
-                               multiple=FALSE),
+                selectInput("reporter", "Choose reporting country:", 
+                            choices = c("All EU", "Utd. Kingdom"),
+                            selected = "Utd. Kingdom",
+                            multiple = FALSE),
+                selectInput("partner", "Choose partner country:", 
+                            choices = c("All", "Cameroon"), 
+                            selected = "Cameroon",
+                            multiple=FALSE),
                 radioButtons("tableformat", "Table Format:",
                              choices = c("long", "wide")),
                 radioButtons("filetype", "File type:",
                              choices = c("csv", "tsv")),
                 downloadButton('downloadData', 'Download'),
                 bookmarkButton(),
+                helpText("Information on the current selection"),
+                textOutput("info"),
+                textOutput("rowsfilteredtable"),
                 width = 3
             ),
             mainPanel(
                 dygraphOutput("dygraphquantity"),
                 dygraphOutput("dygraphtradevalue"),
-                dygraphOutput("dygraphweight")
+                dygraphOutput("dygraphweight"),
+                tableOutput("productdescription"),
+                tableOutput("table")
             )
         )
     )
@@ -69,8 +63,7 @@ ui <- function(request){
 
 rowstodisplay <- 100
 dbdocker = FALSE
-dateWindow <- c("2012-01-01", "2018-01-01") # used by dygraph::dyRangeSelector
-
+dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
 
 # Create a database connection
 # Depending on the dbdocker parameter, it will create a connection 
@@ -158,7 +151,13 @@ server <- function(input, output, session) {
     datasetfiltered <- reactive({
         dtf <- datasetInput() %>%
             # Aggregates could be added to the input data or calculated here?
-            filter(reporter %in% input$reporter & partner %in% input$partner) %>%
+            filter(reporter %in% input$reporter & partner %in% input$partner)
+        return(dtf)
+    })
+    
+    # The filtered dataset converted to a time series object for plotting
+    datasetxts <- reactive({
+        dtf <- datasetfiltered() %>%
             mutate(date = lubridate::parse_date_time(period, "ym")) %>%
             select(date, tradevalue, quantity, weight) %>%
             data.frame()
@@ -166,7 +165,7 @@ server <- function(input, output, session) {
         dtfxts <- xts::xts(dtf[,-1], order.by=dtf[,1])
         return(dtfxts)
     })
-        
+    
     output$info <- renderText({ 
         productimmselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)
@@ -224,22 +223,27 @@ server <- function(input, output, session) {
     })
 
     output$dygraphquantity <- renderDygraph({
-        dygraph(datasetfiltered()[,"quantity"], main = "Quantity", ylab = "M3", group="tf") %>% 
+        dygraph(datasetxts()[,"quantity"], main = "Quantity", ylab = "M3", group="tf") %>% 
             dyRangeSelector(dateWindow=dateWindow) %>% 
             dyRoller(rollPeriod=12)
     })
     
     output$dygraphtradevalue <- renderDygraph({
-        dygraph(datasetfiltered()[,"tradevalue"], main = "Trade Value", ylab = "1000 €", group="tf") %>% 
+        dygraph(datasetxts()[,"tradevalue"], main = "Trade Value", ylab = "1000 €", group="tf") %>% 
             dyRangeSelector(dateWindow=dateWindow) %>% 
             dyRoller(rollPeriod=12)
     })
     
     output$dygraphweight <- renderDygraph({
-        dygraph(datasetfiltered()[,"weight"], main = "Weight", ylab = "T", group="tf") %>% 
+        dygraph(datasetxts()[,"weight"], main = "Weight", ylab = "T", group="tf") %>% 
             dyRangeSelector(dateWindow=dateWindow) %>% 
             dyRoller(rollPeriod=12)
     })
+    
+    # Separate product description from the main table
+    output$productdescription <- renderTable(distinct(datasetfiltered(),
+                                                      productcode,productdescription))
+    output$table <- renderTable(select(datasetfiltered(), -productdescription)) 
     
 
     # downloadHandler() takes two arguments, both functions.
