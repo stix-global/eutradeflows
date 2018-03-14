@@ -2,6 +2,8 @@ library(dplyr)
 library(tidyr)
 library(eutradeflows)
 library(dygraphs)
+library(networkD3)
+
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
@@ -11,6 +13,11 @@ library(dygraphs)
 # Load data to debug on the server
 # swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
 # chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
+#
+# Country grouping
+# finding rows containing a value or values in any column
+# https://stackoverflow.com/questions/28233561/finding-rows-containing-a-value-or-values-in-any-column
+#
 
 ui <- function(request){
     fluidPage(
@@ -18,35 +25,23 @@ ui <- function(request){
         titlePanel("Time series from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
         sidebarLayout(
             sidebarPanel(
-                selectInput("productgroupimm", "Choose a product group:", 
+                selectInput("productgroupimm", "Product group:", 
                             choices = unique(eutradeflows::classificationimm$productgroupimm),
                             selected = "Wood"),
-                selectInput("productimm", "Choose a product :", 
+                selectInput("productimm", "Product :", 
                             choices = unique(eutradeflows::classificationimm$productimm),
                             selected = "Sawn: tropical hardwood"),
-                selectInput("productcode", "Choose an 8 digit product Code (Optional):", 
-                            choices = "All",
-                            selected = "All"),
                 radioButtons("flowcode", "Flow direction:", inline = TRUE,
                              choiceNames = c("Import", "Export"),
                              choiceValues = c(1, 2)),
+                actionButton("year2015", "2015"),
+                actionButton("year2016", "2016"),
+                actionButton("year2017", "2017"),
                 sliderInput("range", "Date range:",
                             min = as.Date('2000-01-01'), max = Sys.Date(),
                             value = c(as.Date('2012-01-01'), Sys.Date()),
                             timeFormat = "%Y%m"),
-                selectInput("reporter", "Choose reporting country:", 
-                            choices = c("All EU", "Utd. Kingdom"),
-                            selected = "Utd. Kingdom",
-                            multiple = FALSE),
-                selectInput("partner", "Choose partner country:", 
-                            choices = c("All", "Cameroon"), 
-                            selected = "Cameroon",
-                            multiple=FALSE),
-                radioButtons("tableformat", "Table Format:",
-                             choices = c("long", "wide")),
-                radioButtons("filetype", "File type:",
-                             choices = c("csv", "tsv")),
-                downloadButton('downloadData', 'Download'),
+                uiOutput("partnergroupselector"),
                 bookmarkButton(),
                 helpText("Information on the current selection"),
                 textOutput("info"),
@@ -54,9 +49,7 @@ ui <- function(request){
                 width = 3
             ),
             mainPanel(
-                dygraphOutput("dygraphquantity"),
-                dygraphOutput("dygraphtradevalue"),
-                dygraphOutput("dygraphweight"),
+                sankeyNetworkOutput("sankeytradevalue"),
                 tableOutput("productdescription"),
                 radioButtons("tableaggregationlevel",
                              "Show table of (flags only visible at the 8 digit level):",
@@ -136,6 +129,21 @@ if(FALSE){
 
 # This function should remain the last object in the server.R script
 server <- function(input, output, session) {
+    # Prepare country groups for selectinput
+    cgimm <- eutradeflows::countrygroupimm %>%
+        distinct(groupcategory, group) %>% 
+        arrange(group)
+    # Create a named list of vectors usable in shiny::selectinput().
+    # Such a named list of vectors is used in the selectinput() example section.
+    # It can be created with:
+    # split(cgimm$group, cgimm$groupcategory))
+    output$partnergroupselector <- renderUI({
+        selectInput("partnergroup", "Partner country group:",
+                    split(cgimm$group, cgimm$groupcategory),
+                    selected = "VPA-All")
+    })
+    
+    
     # Load a large data set from the database, based on date and productcode
     datasetInput <- reactive({
         # Fetch the appropriate data, depending on the value of input$productimm
@@ -159,19 +167,19 @@ server <- function(input, output, session) {
     # such as reporter and partner country etc...
     datasetfiltered <- reactive({
         validate(
-            need(input$reporter != "", "Please select a reporter country"),
-            need(input$partner != "", "Please select a partner country")
+            need(input$partnergroup != "", "Please select a reporter country group")
         )
+        cgimm <- eutradeflows::countrygroupimm
         dtf <- datasetInput() %>%
             # Aggregates could be added to the input data or calculated here?
-            filter(reporter %in% input$reporter & partner %in% input$partner)
+            filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup])
         return(dtf)
     })
     
     datasetaggregated <- reactive({
         dtf <- datasetfiltered() %>% 
             mutate(productimm = input$productimm) %>% 
-            group_by(productimm, reporter, partner, period, flowcode) %>% 
+            group_by(productimm, reporter, reportercode, partner, partnercode, flowcode) %>% 
             summarise(tradevalue = sum(tradevalue),
                       weight = sum(weight),
                       quantity = sum(quantity))
@@ -246,23 +254,17 @@ server <- function(input, output, session) {
                              choices = partnerx,
                              selected = previousselection)
     })
-
-    output$dygraphquantity <- renderDygraph({
-        dygraph(datasetxts()[,"quantity"], main = "Quantity", ylab = "M3", group="tf") %>% 
-            dyRangeSelector(dateWindow=dateWindow) %>% 
-            dyRoller(rollPeriod=12)
-    })
     
-    output$dygraphtradevalue <- renderDygraph({
-        dygraph(datasetxts()[,"tradevalue"], main = "Trade Value", ylab = "1000 €", group="tf") %>% 
-            dyRangeSelector(dateWindow=dateWindow) %>% 
-            dyRoller(rollPeriod=12)
-    })
-    
-    output$dygraphweight <- renderDygraph({
-        dygraph(datasetxts()[,"weight"], main = "Weight", ylab = "T", group="tf") %>% 
-            dyRangeSelector(dateWindow=dateWindow) %>% 
-            dyRoller(rollPeriod=12)
+    output$sankeytradevalue <- renderSankeyNetwork({
+        message("move this to a function that loads this once and for all")
+        con <- dbconnecttradeflows(dbdocker = dbdocker)
+        on.exit(RMySQL::dbDisconnect(con))
+        reporter <- tbl(con, "vld_comext_reporter") %>% collect()
+        partner <- tbl(con, "vld_comext_partner") %>% collect() 
+        
+        datasetaggregated() %>% 
+            preparesankeynodes(reporter, partner) %>% 
+            plotsankey()
     })
     
     # Separate product description from the main table
