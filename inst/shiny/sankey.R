@@ -273,7 +273,8 @@ server <- function(input, output, session) {
         cgimm <- eutradeflows::countrygroupimm
         dtf <- datasetInput() %>%
             select(reporter, partner) %>% 
-            filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup])
+            filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup]) %>% 
+            distinct()
         # old content to delete
         # partnerx <- unique(datasetInput()$partner)
         # partnerx <- partnerx[order(partnerx)]
