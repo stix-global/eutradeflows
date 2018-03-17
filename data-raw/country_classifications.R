@@ -1,4 +1,5 @@
 library(dplyr)
+library(tidyr)
 # Use of enquo() !! based on the "programming with dplyr" vignette
 # https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
 # codevariable <- enquo(codevariable)
@@ -15,7 +16,7 @@ countrygroupimm <- countrygroupimm %>%
            # Keep uppercase column names below 
            # since these column names will be reshaped to the groupcategory vector
            EU_Membership = EU,
-           VPA_Status = VPA_Status_2014,
+           VPA_Status = VPA_Status_2018,
            Continent = Continent,
            Continent_Detail = Continent_detail,
            Forest_Zone_Short = Forest_zone_short) %>%

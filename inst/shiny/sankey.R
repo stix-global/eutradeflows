@@ -4,6 +4,10 @@ library(eutradeflows)
 library(dygraphs)
 library(networkD3)
 
+rowstodisplay <- 100
+dbdocker = FALSE
+dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
+
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
@@ -22,7 +26,7 @@ library(networkD3)
 ui <- function(request){
     fluidPage(
         includeCSS("styles.css"),
-        titlePanel("Time series from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
+        titlePanel("Sankey Diagram from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
         sidebarLayout(
             sidebarPanel(
                 selectInput("productgroupimm", "Product group:", 
@@ -42,6 +46,12 @@ ui <- function(request){
                             value = c(as.Date('2012-01-01'), Sys.Date()),
                             timeFormat = "%Y%m"),
                 uiOutput("partnergroupselector"),
+                selectizeInput("partner", "Choose partner country:", 
+                               choices = "All", selected="All",
+                               multiple = TRUE),
+                selectizeInput("reporter", "Choose reporting country:", 
+                               choices = "All EU", selected="All EU",
+                               multiple = TRUE),
                 bookmarkButton(),
                 helpText("Information on the current selection"),
                 textOutput("info"),
@@ -49,7 +59,12 @@ ui <- function(request){
                 width = 3
             ),
             mainPanel(
+                h2("Trade Value"),
                 sankeyNetworkOutput("sankeytradevalue"),
+                h2("Quantity"),
+                sankeyNetworkOutput("sankeyquantity"),
+                h2("Weight"),
+                sankeyNetworkOutput("sankeyweight"),
                 tableOutput("productdescription"),
                 radioButtons("tableaggregationlevel",
                              "Show table of (flags only visible at the 8 digit level):",
@@ -62,9 +77,6 @@ ui <- function(request){
     )
 }    
 
-rowstodisplay <- 100
-dbdocker = FALSE
-dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
 
 # Create a database connection
 # Depending on the dbdocker parameter, it will create a connection 
@@ -143,6 +155,12 @@ server <- function(input, output, session) {
                     selected = "VPA-All")
     })
     
+    # Load country codes tables for later used by the sankey diagram function
+    con <- dbconnecttradeflows(dbdocker = dbdocker)
+    reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
+    partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
+    RMySQL::dbDisconnect(con)
+    
     
     # Load a large data set from the database, based on date and productcode
     datasetInput <- reactive({
@@ -172,7 +190,9 @@ server <- function(input, output, session) {
         cgimm <- eutradeflows::countrygroupimm
         dtf <- datasetInput() %>%
             # Aggregates could be added to the input data or calculated here?
-            filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup])
+            # filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup])
+            filter(partner %in% input$partner & 
+                       reporter %in% input$reporter)
         return(dtf)
     })
     
@@ -237,34 +257,57 @@ server <- function(input, output, session) {
     observe({
         reporterx <- unique(datasetInput()$reporter)
         reporterx <- reporterx[order(reporterx)]
-        reporterx <- c("All EU", reporterx[!is.na(reporterx)])
-        previousselection <- input$reporter 
+        reporterx <- reporterx[!is.na(reporterx)]
+        # previousselection <- input$reporter 
         updateSelectizeInput(session, "reporter",
                              choices = reporterx,
-                             selected = previousselection)
-    })
-
-    # Update list of partner countries based on the data fetched from the database
-    observe({
-        partnerx <- unique(datasetInput()$partner)
-        partnerx <- partnerx[order(partnerx)]
-        partnerx <- c( "All", partnerx[!is.na(partnerx)])
-        previousselection <- input$partner
-        updateSelectizeInput(session, "partner",
-                             choices = partnerx,
-                             selected = previousselection)
+                             selected = reporterx)
+        
     })
     
+    # Update list of partner countries based on the country group selected
+    observe({
+        validate(
+            need(input$partnergroup != "", "Please select a reporter country group")
+        )
+        cgimm <- eutradeflows::countrygroupimm
+        dtf <- datasetInput() %>%
+            select(reporter, partner) %>% 
+            filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup])
+        # old content to delete
+        # partnerx <- unique(datasetInput()$partner)
+        # partnerx <- partnerx[order(partnerx)]
+        # partnerx <- c( "All", partnerx[!is.na(partnerx)])
+        # previousselection <- input$partner
+        updateSelectizeInput(session, "partner",
+                             choices = dtf$partner,
+                             selected = dtf$partner)
+    })
+    
+    
     output$sankeytradevalue <- renderSankeyNetwork({
-        message("move this to a function that loads this once and for all")
-        con <- dbconnecttradeflows(dbdocker = dbdocker)
-        on.exit(RMySQL::dbDisconnect(con))
-        reporter <- tbl(con, "vld_comext_reporter") %>% collect()
-        partner <- tbl(con, "vld_comext_partner") %>% collect() 
-        
         datasetaggregated() %>% 
-            preparesankeynodes(reporter, partner) %>% 
-            plotsankey()
+            filter(partnercode != 1010 & partnercode != 1011 & 
+                       reportercode !=0) %>% 
+            preparesankeynodes(reportertable, partnertable) %>% 
+            plotsankey(value = "tradevalue", units = "K€")
+    })
+    
+    output$sankeyweight <- renderSankeyNetwork({
+        datasetaggregated() %>% 
+            filter(partnercode != 1010 & partnercode != 1011 & 
+                       reportercode !=0) %>% 
+            preparesankeynodes(reportertable, partnertable) %>% 
+            plotsankey(value = "weight", units = "t")
+    })
+    
+    output$sankeyquantity <- renderSankeyNetwork({
+        datasetaggregated() %>% 
+            filter(partnercode != 1010 & partnercode != 1011 & 
+                       reportercode !=0) %>% 
+            preparesankeynodes(reportertable, partnertable) %>% 
+            plotsankey(value = "quantity", 
+                       units = as.character(unique(select(datasetfiltered(),unitcode))))
     })
     
     # Separate product description from the main table
