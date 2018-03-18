@@ -1,0 +1,82 @@
+---
+title: "Missing_Data"
+author: "Paul Rougieux"
+date: "18 March 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+```
+
+
+# Missing data for Plywood in China
+Reporter code used for China
+```{r}
+chinacode <- tbl(con, "vld_comext_partner") %>% 
+    filter(partner == "China") %>% collect()
+# Could this be an issue?
+chinacode$partner
+# https://stackoverflow.com/questions/2261079/how-to-trim-leading-and-trailing-whitespace-in-r
+trimws(chinacode$partner)
+chinacode %>% 
+    knitr::kable()
+```
+
+Is China in country group imm?
+```{r}
+countrygroupimm %>% filter(partnercode == 720)
+```
+
+
+Product codes under plywood.
+```{r}
+plywood <- classificationimm %>% 
+    filter(grepl("Plywood", productimm))
+plywood$productcode
+
+# Only the softwood plywood
+plywoodsoft <- classificationimm %>% 
+    filter(productimm == "Plywood: softwood")
+```
+
+## Check Plywood China in the Raw data
+```{r}
+# Current name of the raw table
+rawplychina <- tbl(con, "raw_comext_monthly_201709") %>% 
+    filter(productcode %in% plywood$productcode & 
+               partnercode == 720) %>% 
+    addproreppar2tbl(con, .) %>% 
+    collect()
+
+# PLywood softwood only
+rawplysoftchina <- tbl(con, "raw_comext_monthly_201709") %>% 
+    filter(productcode %in% plywoodsoft$productcode & 
+               partnercode == 720) %>% 
+    addproreppar2tbl(con, .) %>% 
+    collect()
+
+```
+
+
+## Check Plywood China in the validated data
+```{r}
+vldplysoftchina <- tbl(con, "vld_comext_monthly") %>% 
+    filter(productcode %in% plywoodsoft$productcode & 
+               partnercode == 720) %>% 
+    addproreppar2tbl(con, .) %>% 
+    collect()
+
+```
+
+
+# Missing data for US Hardwood
+
+```{r}
+
+```
+
