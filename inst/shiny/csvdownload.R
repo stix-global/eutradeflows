@@ -3,6 +3,16 @@ library(tidyr)
 library(eutradeflows)
 library(dygraphs)
 
+rowstodisplay <- 100
+dbdocker = FALSE
+dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
+
+# Load country codes tables for later use by the drop down lists
+con <- dbconnecttradeflows(dbdocker = dbdocker)
+reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
+partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
+RMySQL::dbDisconnect(con)
+
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
 # In Docker, load the application 
@@ -32,11 +42,11 @@ ui <- function(request){
                             value = c(as.Date('2012-01-01'), Sys.Date()),
                             timeFormat = "%Y%m"),
                 selectizeInput("reporter", "Reporting country:", 
-                            choices = c("All EU", "Utd. Kingdom"),
+                            choices = reportertable$reporter,
                             selected = "Utd. Kingdom",
                             multiple = TRUE),
                 selectizeInput("partner", "Partner country:", 
-                            choices = c("All", "Cameroon"), 
+                            choices = partnertable$partner, 
                             selected = "Cameroon",
                             multiple = TRUE),
                 downloadButton('downloadData', 'Download'),
@@ -55,7 +65,8 @@ ui <- function(request){
                              choiceNames = c("IMM product aggregates (long)",
                                              "IMM product aggregates (wide)",
                                              "8 digit product codes (long)"),
-                             choiceValues = c("imml", "immw", "8dl")),
+                             choiceValues = c("imml", "immw", "8dl"),
+                             selected = "immw"),
                 downloadButton('download', 'Download this table'),
                 tableOutput("table"),
                 h2("Product Description"),
@@ -65,9 +76,6 @@ ui <- function(request){
     )
 }    
 
-rowstodisplay <- 100
-dbdocker = FALSE
-dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
 
 # Create a database connection
 # Depending on the dbdocker parameter, it will create a connection 
@@ -104,17 +112,17 @@ loadvldcomextmonhtly <- function(RMySQLcon,
                                  periodmin, 
                                  periodmax,
                                  flowcode_){
-    remote <- tbl(con, "vld_comext_monthly") %>% 
+    remote <- tbl(RMySQLcon, "vld_comext_monthly") %>% 
         filter(productcode %in% productcode_ & 
                    flowcode == flowcode_ & 
                    period >= periodmin & period<=periodmax) %>% 
-        addproreppar2tbl(con, .) 
+        addproreppar2tbl(RMySQLcon, .) 
     show_query(remote)
-    collect(remote) %>% 
+    collect(remote) 
         # # These operations should be performed in the cleaning procedure
         # Remove Trailing Whitespace in country names 
-        mutate(reporter = trimws(reporter),
-               partner = trimws(partner))
+        # mutate(reporter = trimws(reporter),
+        #        partner = trimws(partner))
     # # Remove quotation marks from the product description
     # mutate(productdescription = gsub('"',' ', productdescription)) %>% 
     # select(productdescription, reporter, partner, period, 
@@ -168,6 +176,7 @@ server <- function(input, output, session) {
                              periodmax = format(input$range[2], "%Y%m"),
                              flowcode_ = input$flowcode)
     })
+    
     
     
     # Filter the database based on other variables 
@@ -232,29 +241,29 @@ server <- function(input, output, session) {
                              selected = productimmselected)
     }, priority = 2) # 
     
-    # Update list of reporting countries based on the data fetched from the database
-    observe({
-        reporterx <- unique(datasetInput()$reporter)
-        reporterx <- reporterx[order(reporterx)]
-        # reporterx <- c("All EU", reporterx[!is.na(reporterx)])
-        reporterx <- reporterx[!is.na(reporterx)]
-        previousselection <- input$reporter 
-        updateSelectizeInput(session, "reporter",
-                             choices = reporterx,
-                             selected = previousselection)
-    })
-
-    # Update list of partner countries based on the data fetched from the database
-    observe({
-        partnerx <- unique(datasetInput()$partner)
-        partnerx <- partnerx[order(partnerx)]
-        # partnerx <- c( "All", partnerx[!is.na(partnerx)])
-        partnerx <- partnerx[!is.na(partnerx)]
-        previousselection <- input$partner
-        updateSelectizeInput(session, "partner",
-                             choices = partnerx,
-                             selected = previousselection)
-    })
+    # # Update list of reporting countries based on the data fetched from the database
+    # observe({
+    #     reporterx <- unique(datasetInput()$reporter)
+    #     reporterx <- reporterx[order(reporterx)]
+    #     # reporterx <- c("All EU", reporterx[!is.na(reporterx)])
+    #     reporterx <- reporterx[!is.na(reporterx)]
+    #     previousselection <- input$reporter 
+    #     updateSelectizeInput(session, "reporter",
+    #                          choices = reporterx,
+    #                          selected = previousselection)
+    # })
+    # 
+    # # Update list of partner countries based on the data fetched from the database
+    # observe({
+    #     partnerx <- unique(datasetInput()$partner)
+    #     partnerx <- partnerx[order(partnerx)]
+    #     # partnerx <- c( "All", partnerx[!is.na(partnerx)])
+    #     partnerx <- partnerx[!is.na(partnerx)]
+    #     previousselection <- input$partner
+    #     updateSelectizeInput(session, "partner",
+    #                          choices = partnerx,
+    #                          selected = previousselection)
+    # })
 
     # Separate product description from the main table
     output$productdescription <- renderTable(distinct(datasetfiltered(),
@@ -309,22 +318,22 @@ server <- function(input, output, session) {
     # https://shiny.rstudio.com/articles/advanced-bookmarking.html
     # Save extra values in state$values when we bookmark
     onBookmark(function(state){
-        state$values$reporter <- input$reporter
-        state$values$partner <- input$partner
+        # state$values$reporter <- input$reporter
+        # state$values$partner <- input$partner
     })
     
     # Read values from state$values when we restore
     onRestore(function(state) {
-        updateSelectizeInput(session, "reporter",
-                             choices = state$values$reporter,
-                             selected = state$values$reporter)
-        updateSelectizeInput(session, "partner",
-                             choices = state$values$partner,
-                             selected = state$values$partner)
+        # updateSelectizeInput(session, "reporter",
+        #                      choices = state$values$reporter,
+        #                      selected = state$values$reporter)
+        # updateSelectizeInput(session, "partner",
+        #                      choices = state$values$partner,
+        #                      selected = state$values$partner)
     })
     # 
     # Exclude the range input from bookmarking (because it's not working for the moment)
-    setBookmarkExclude(c("range", "reporter", "partner", "tableaggregationlevel"))
+    setBookmarkExclude(c("range", "tableaggregationlevel"))
 }
 
 # Complete app with UI and server components
