@@ -8,6 +8,13 @@ rowstodisplay <- 100
 dbdocker = FALSE
 dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
 
+# Load country codes tables for later used by the sankey diagram function
+# And to build country drop down lists
+con <- dbconnecttradeflows(dbdocker = dbdocker)
+reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
+partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
+RMySQL::dbDisconnect(con)
+    
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
@@ -121,23 +128,6 @@ loadvldcomextmonhtly <- function(con, productcode_,
     # Remove spaces from the country names
 }
 
-# Transpose a data frame of trade flows
-if(FALSE){
-    # Gather along period and all codes columns 
-    # spread the 
-    swd2 <- swd %>% 
-        select(-quantityraw) %>% # Remove quantityraw
-        # Gather along all columns except quantity, tradevalue and weight
-        gather(variable, value, quantity, tradevalue, weight) %>% 
-        # Rupert: start with value: tradevalue, weight, quantity
-        # v, mt, 
-        # v, mt, q
-        left_join(data_frame(variable = c("tradevalue", "quantity", "weight"),
-                             variable2 = c("v","q","w")), by="variable") %>% 
-        unite(varperiod, variable2, period, sep="") %>% 
-        spread()
-}
-
 
 # This function should remain the last object in the server.R script
 server <- function(input, output, session) {
@@ -154,12 +144,6 @@ server <- function(input, output, session) {
                     split(cgimm$group, cgimm$groupcategory),
                     selected = "VPA-All")
     })
-    
-    # Load country codes tables for later used by the sankey diagram function
-    con <- dbconnecttradeflows(dbdocker = dbdocker)
-    reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
-    partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
-    RMySQL::dbDisconnect(con)
     
     
     # Load a large data set from the database, based on date and productcode
@@ -272,9 +256,8 @@ server <- function(input, output, session) {
         )
         cgimm <- eutradeflows::countrygroupimm
         dtf <- datasetInput() %>%
-            select(reporter, partner) %>% 
-            filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup]) %>% 
-            distinct()
+            distinct(partner, partnercode) %>% 
+            filter(partnercode %in% cgimm$partnercode[cgimm$group == input$partnergroup]) 
         # old content to delete
         # partnerx <- unique(datasetInput()$partner)
         # partnerx <- partnerx[order(partnerx)]

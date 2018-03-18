@@ -49,7 +49,6 @@ ui <- function(request){
                             choices = partnertable$partner, 
                             selected = "Cameroon",
                             multiple = TRUE),
-                downloadButton('downloadData', 'Download'),
                 bookmarkButton(),
                 helpText("Information on the current selection"),
                 textOutput("info"),
