@@ -1,3 +1,24 @@
+#' Create a database connection for Shiny
+#' 
+#' Depending on the dbdocker parameter, 
+#' this function will return a database connection 
+#' inside a docker container or a local database connection.
+#' @param dbdocker logical specifying if the database connection is to be made with a docker container or not
+#' @return a database connection object, used to communicate with the database engine.
+#' @export
+dbconnecttradeflows <- function(dbdocker, dbname = "tradeflows"){
+    if(dbdocker){
+        # Return a connection to a database in a docker container.
+        # Parameter are taken from environement variables in the container, 
+        # see function documentation.
+        return(eutradeflows::dbconnectdocker())
+    } else {  
+        # Return a connection to local database.
+        return(RMySQL::dbConnect(RMySQL::MySQL(), dbname = dbname))
+    }
+}
+
+
 #' Creates a database structure based on a sql dump file
 #' @description Load a .sql file containing a database structure.
 #' @details The default .sql file is storred in the package configuration folder.

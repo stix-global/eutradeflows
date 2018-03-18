@@ -1,5 +1,5 @@
 #' Prepare nodes and links to generate a Sankey diagram
-#' @input dtf a data frame of trade flows data
+#' @param dtf a data frame of trade flows data
 #' @param reporter data frame of reporter codes and names
 #' @param partner data frame of partner codes and names
 #' @return a list of data frames with links and nodes
@@ -62,7 +62,7 @@ preparesankeynodes <- function(dtf, reporter, partner, debugname = FALSE){
 #'     preparesankeynodes %>% 
 #'     plotsankey()
 #' }
-#' @output NULL
+#' @return NULL
 #' @export
 plotsankey <- function(linksandnodes, value = "tradevalue", units = "K€"){
     sankeyNetwork(Links = linksandnodes$links,

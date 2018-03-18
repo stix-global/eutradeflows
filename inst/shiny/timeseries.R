@@ -3,6 +3,10 @@ library(tidyr)
 library(eutradeflows)
 library(dygraphs)
 
+rowstodisplay <- 100
+dbdocker = FALSE
+dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
+
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
 # In Docker, load the application 
@@ -69,25 +73,6 @@ ui <- function(request){
     )
 }    
 
-rowstodisplay <- 100
-dbdocker = FALSE
-dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRangeSelector
-
-# Create a database connection
-# Depending on the dbdocker parameter, it will create a connection 
-# to a docker container or a local connection.
-#' @param dbdocker logical specifying if the database connection is to be made with a docker container or not
-dbconnecttradeflows <- function(dbdocker){
-    if(dbdocker){
-        # Return a connection to a database in a docker container.
-        # Parameter are taken from environement variables in the container, 
-        # see function documentation.
-        return(eutradeflows::dbconnectdocker())
-    } else {  
-        # Return a connection to local database.
-        return(RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows"))
-    }
-}
 
 
 #' Load a data frame of trade flows 

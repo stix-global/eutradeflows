@@ -7,6 +7,8 @@
 preparesankeynodes(dtf, reporter, partner, debugname = FALSE)
 }
 \arguments{
+\item{dtf}{a data frame of trade flows data}
+
 \item{reporter}{data frame of reporter codes and names}
 
 \item{partner}{data frame of partner codes and names}
