@@ -57,21 +57,34 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
                      RMySQL::dbGetInfo(RMySQLcon)$dbname))
     }
     
-    # load all codes and keep only most recent codes
+    # load all codes  
     rawcode <- tbl(RMySQLcon, tableread) %>%
         collect() 
     vldcode <- rawcode %>%
         group_by(!!codevariable) %>%
+        # keep only the most recent codes
         filter(datestart == max(datestart)) %>%
-        select(outputfields)
+        select(outputfields) %>% 
+        # remove duplicates
+        unique()
+    
+    # Operations that are not generic 
+    # Remove duplicates where one product code with the same datestart has 2 descriptions
+    # based on the example product code 38249992 which has 2 descriptions
+    if("productcode" %in% outputfields){
+        vldcode <- vldcode [!duplicated(vldcode$productcode),]
+    }
+    # Remove trailing white space in reporter and partner country names
+    if("reporter" %in% outputfields){ vldcode$reporter <- trimws(vldcode$reporter)}
+    if("partner" %in% outputfields){ vldcode$partner <- trimws(vldcode$partner)}
     
     # After cleaning, 
     # the number of distinct rows for all columns should be equal to
     # the number of distinct codes in the raw dataset
-    stopifnot(identical(nrow(unique(vldcode)),
+    stopifnot(identical(nrow(vldcode),
                         nrow(distinct(rawcode, !!codevariable))))
-    # Remove duplicates
-    vldcode <- unique(vldcode)
+   
+
     # Write back to the database
     RMySQL::dbWriteTable(RMySQLcon, tablewrite, vldcode,
                          row.names = FALSE, append = TRUE)
