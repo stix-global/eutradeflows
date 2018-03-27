@@ -173,27 +173,55 @@ server <- function(input, output, session) {
             group_by(productimm, reporter, reportercode, partner, partnercode, flowcode) %>% 
             summarise(tradevalue = sum(tradevalue),
                       weight = sum(weight),
-                      quantity = sum(quantity))
+                      quantity = sum(quantity)) 
+        
         return(dtf)
     })
     
-    # The filtered dataset converted to a time series object for plotting
-    datasetxts <- reactive({
-        # req(input$partner)
-        dtf <- datasetaggregated() %>%
-            mutate(date = lubridate::parse_date_time(period, "ym")) %>%
-            ungroup() %>% # Force removal of grouping variables from the selection
-            select(date, tradevalue, quantity, weight) %>%
-            data.frame()
-        # Convert to a time series
-        dtfxts <- xts::xts(dtf[,-1], order.by=dtf[,1])
-        return(dtfxts)
+    datasetsankeynodes <- reactive({
+        # Import
+        if(input$flowcode == 1){ 
+            dtf <- datasetaggregated() %>% 
+                # Remove strange country codes from the data
+                filter(partnercode != 1010 & partnercode != 1011 & 
+                           reportercode !=0) %>% 
+                preparesankeynodes(reportertable, partnertable)
+            return(dtf)
+        }
+        
+        # Export invert reporter and partner
+        if(input$flowcode == 2){ 
+            # invert reporter and partner
+            partnertable2 <- partnertable %>% 
+                rename(reportercode  = partnercode,
+                       reporter = partner)
+            reportertable2 <- reportertable %>% 
+                rename(partnercode = reportercode,
+                       partner = reporter)
+            
+            dtf <- datasetaggregated() %>% 
+                # Remove strange country codes from the data
+                filter(partnercode != 1010 & partnercode != 1011 & 
+                           reportercode !=0) %>% 
+                # Ungroup to avoid Error:
+                # Column `partnercode` can't be modified because it's a grouping variable
+                ungroup() %>% 
+                # invert reporter and partner
+                mutate(partnercode_before = partnercode,
+                       partnercode = reportercode,
+                       reportercode = partnercode_before) %>% 
+                preparesankeynodes(reporter = partnertable2,
+                                   partner =  reportertable2)
+            return(dtf)
+        }
+
     })
     
     output$info <- renderText({ 
         productimmselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)
-        paste(nrow(datasetInput()), "rows fetched from the database.",
+        paste("input$flowcode",input$flowcode,
+              nrow(datasetInput()), "rows fetched from the database.",
               "Product group imm:", input$productgroupimm,
               ". Product imm:", input$productimm,
               ". Product codes 8 digit:",
@@ -272,28 +300,18 @@ server <- function(input, output, session) {
                              selected = dtf$partner)
     })
     
-    
     output$sankeytradevalue <- renderSankeyNetwork({
-        datasetaggregated() %>% 
-            filter(partnercode != 1010 & partnercode != 1011 & 
-                       reportercode !=0) %>% 
-            preparesankeynodes(reportertable, partnertable) %>% 
+        datasetsankeynodes() %>% 
             plotsankey(value = "tradevalue", units = "K€")
     })
     
     output$sankeyweight <- renderSankeyNetwork({
-        datasetaggregated() %>% 
-            filter(partnercode != 1010 & partnercode != 1011 & 
-                       reportercode !=0) %>% 
-            preparesankeynodes(reportertable, partnertable) %>% 
+        datasetsankeynodes() %>% 
             plotsankey(value = "weight", units = "t")
     })
     
     output$sankeyquantity <- renderSankeyNetwork({
-        datasetaggregated() %>% 
-            filter(partnercode != 1010 & partnercode != 1011 & 
-                       reportercode !=0) %>% 
-            preparesankeynodes(reportertable, partnertable) %>% 
+        datasetsankeynodes() %>% 
             plotsankey(value = "quantity", 
                        units = as.character(unique(select(datasetfiltered(),unitcode))))
     })
