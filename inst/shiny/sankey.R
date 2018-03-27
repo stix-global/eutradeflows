@@ -14,7 +14,6 @@ con <- dbconnecttradeflows(dbdocker = dbdocker)
 reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
 partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
 RMySQL::dbDisconnect(con)
-    
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
@@ -45,9 +44,10 @@ ui <- function(request){
                 radioButtons("flowcode", "Flow direction:", inline = TRUE,
                              choiceNames = c("Import", "Export"),
                              choiceValues = c(1, 2)),
-                actionButton("year2015", "2015"),
-                actionButton("year2016", "2016"),
-                actionButton("year2017", "2017"),
+                actionButton("yearminus3", as.numeric(format(Sys.time(), "%Y")) - 3),
+                actionButton("yearminus2", as.numeric(format(Sys.time(), "%Y")) - 2),
+                actionButton("yearminus1", as.numeric(format(Sys.time(), "%Y")) - 1),
+                actionButton("year", format(Sys.time(), "%Y")),
                 sliderInput("range", "Date range:",
                             min = as.Date('2000-01-01'), max = Sys.Date(),
                             value = c(as.Date('2012-01-01'), Sys.Date()),
@@ -153,6 +153,9 @@ server <- function(input, output, session) {
     # such as reporter and partner country etc...
     datasetfiltered <- reactive({
         validate(
+            need(nrow(datasetInput()) > 0, "No input data for the selected period.")
+        )
+        validate(
             need(input$partnergroup != "", "Please select a reporter country group")
         )
         cgimm <- eutradeflows::countrygroupimm
@@ -203,6 +206,29 @@ server <- function(input, output, session) {
                 nrow(datasetfiltered()))
     })
     
+    # Update slider input based on the year buttons 
+    yearrange <- function(minus){
+        inputyear <- as.numeric(format(Sys.time(), "%Y")) - minus
+        return(c(as.Date(paste0(inputyear, "-01-01")),
+                 as.Date(paste0(inputyear, "-12-31"))))
+    }
+    observe({
+        input$year
+        updateSliderInput(session, "range", value = yearrange(minus = 0))
+    })
+    observe({
+        input$yearminus1
+        updateSliderInput(session, "range", value = yearrange(minus = 1))
+    })
+    observe({
+        input$yearminus2
+        updateSliderInput(session, "range", value = yearrange(minus = 2))
+    })
+    observe({
+        input$yearminus3
+        updateSliderInput(session, "range", value = yearrange(minus = 3))
+    })
+
     # update list of product imm based on the product group imm
     observe({
         imm <- eutradeflows::classificationimm %>%
@@ -226,7 +252,6 @@ server <- function(input, output, session) {
         reporterx <- unique(datasetInput()$reporter)
         reporterx <- reporterx[order(reporterx)]
         reporterx <- reporterx[!is.na(reporterx)]
-        # previousselection <- input$reporter 
         updateSelectizeInput(session, "reporter",
                              choices = reporterx,
                              selected = reporterx)
@@ -242,11 +267,6 @@ server <- function(input, output, session) {
         dtf <- datasetInput() %>%
             distinct(partner, partnercode) %>% 
             filter(partnercode %in% cgimm$partnercode[cgimm$group == input$partnergroup]) 
-        # old content to delete
-        # partnerx <- unique(datasetInput()$partner)
-        # partnerx <- partnerx[order(partnerx)]
-        # partnerx <- c( "All", partnerx[!is.na(partnerx)])
-        # previousselection <- input$partner
         updateSelectizeInput(session, "partner",
                              choices = dtf$partner,
                              selected = dtf$partner)
