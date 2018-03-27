@@ -53,10 +53,12 @@ ui <- function(request){
                             value = c(as.Date('2012-01-01'), Sys.Date()),
                             timeFormat = "%Y%m"),
                 uiOutput("partnergroupselector"),
-                selectizeInput("partner", "Choose partner country:", 
+                sliderInput("numberofpartners", "Max number of partners to display",
+                            min = 1, max = 100, value = 20),
+                selectizeInput("partner", "Partner countries:", 
                                choices = "All", selected="All",
                                multiple = TRUE),
-                selectizeInput("reporter", "Choose reporting country:", 
+                selectizeInput("reporter", "Reporting countries:", 
                                choices = "All EU", selected="All EU",
                                multiple = TRUE),
                 bookmarkButton(),
@@ -300,6 +302,44 @@ server <- function(input, output, session) {
                              selected = dtf$partner)
     })
     
+    # Update list of partner countries based on the max number of partners selected
+    observe({
+        validate(
+            need(nrow(datasetInput()) > 0, "No input data for the selected period.")
+        )
+        validate(
+            need(input$partnergroup != "", "Please select a reporter country group")
+        )
+        
+        cgimm <- eutradeflows::countrygroupimm
+        # Get a list of the n largest partner countries, in terms of trade value
+        dtf <- datasetInput() %>%
+            # Aggregates could be added to the input data or calculated here?
+            # filter(partner %in% cgimm$partnername[cgimm$group == input$partnergroup])
+            filter(partnercode %in% cgimm$partnercode[cgimm$group == input$partnergroup] & 
+                       reporter %in% input$reporter) %>% 
+            mutate(productimm = input$productimm) %>% 
+            group_by(productimm, partner, partnercode, flowcode) %>% 
+            summarise(tradevalue = sum(tradevalue),
+                      weight = sum(weight),
+                      quantity = sum(quantity)) %>% 
+            # Order the list of partners by decreasing tradevalue 
+            arrange(desc(tradevalue)) %>%
+            ungroup() 
+        
+        # Get the max number of partner countries
+        updateSliderInput(session, "numberofpartners", max = nrow(dtf))
+        
+        # Keep only the n largest countries
+        dtf <- dtf %>% 
+            slice(1:input$numberofpartners)
+        updateSelectizeInput(session, "partner",
+                             selected = dtf$partner)
+    })
+    
+    
+    
+    # Draw Sankey diagrams for 3 variables: tradevalue, weight and quantity 
     output$sankeytradevalue <- renderSankeyNetwork({
         datasetsankeynodes() %>% 
             plotsankey(value = "tradevalue", units = "K€")
