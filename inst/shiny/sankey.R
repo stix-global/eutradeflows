@@ -311,6 +311,9 @@ server <- function(input, output, session) {
             need(input$partnergroup != "", "Please select a reporter country group")
         )
         
+        # How to update the partner list also when the date range changes?
+        # input$range
+        
         cgimm <- eutradeflows::countrygroupimm
         # Get a list of the n largest partner countries, in terms of trade value
         dtf <- datasetInput() %>%
