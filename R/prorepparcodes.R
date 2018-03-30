@@ -206,8 +206,8 @@ addunit2tbl <- function(RMySQLcon, maintbl,
     }
 
     # Check that the total tradevalue didn't change
-    tv1 <- maintbl %>% summarise(n = sum(tradevalue)) %>% collect()
-    tv2 <- maintbl2 %>% summarise(n = sum(tradevalue)) %>% collect()
+    tv1 <- maintbl %>% summarise(n = sum(tradevalue, na.rm = TRUE)) %>% collect()
+    tv2 <- maintbl2 %>% summarise(n = sum(tradevalue, na.rm = TRUE)) %>% collect()
     stopifnot(identical(tv1$n, tv2$n))
     
     return(maintbl2)
