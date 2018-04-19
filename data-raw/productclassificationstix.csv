@@ -1,0 +1,763 @@
+Product_code,STIX_major_product_group,STIX_product_summary,STIX_order
+44011000,Biomass,Fuelwood,AD
+44011100,Biomass,Fuelwood,AD
+44011200,Biomass,Fuelwood,AD
+44012100,Biomass,Chips,AC
+44012200,Biomass,Chips,AC
+44013010,Biomass,Wood waste,AE
+44013020,Biomass,Wood waste,AE
+44013040,Biomass,Wood waste,AE
+44013080,Biomass,Wood waste,AE
+44013090,Biomass,Wood waste,AE
+44013100,Biomass,Pellets,AB
+44013900,Biomass,Wood waste,AE
+44013910,Biomass,Wood waste,AE
+44013920,Biomass,Wood waste,AE
+44013930,Biomass,Wood waste,AE
+44013980,Biomass,Wood waste,AE
+44013990,Biomass,Wood waste,AE
+44014010,Biomass,Wood waste,AE
+44014090,Biomass,Wood waste,AE
+44020000,Other wood products,Charcoal,JD
+44021000,Other wood products,Charcoal,JD
+44029000,Other wood products,Charcoal,JD
+44031000,Logs,Softwood,BD
+44031100,Logs,Softwood,BD
+44031200,Logs,Softwood,BD
+44032010,Logs,Softwood,BD
+44032011,Logs,Softwood,BD
+44032019,Logs,Softwood,BD
+44032030,Logs,Softwood,BD
+44032031,Logs,Softwood,BD
+44032039,Logs,Softwood,BD
+44032090,Logs,Softwood,BD
+44032091,Logs,Softwood,BD
+44032099,Logs,Softwood,BD
+44032110,Logs,Softwood,BD
+44032190,Logs,Softwood,BD
+44032200,Logs,Softwood,BD
+44032310,Logs,Softwood,BD
+44032390,Logs,Softwood,BD
+44032400,Logs,Softwood,BD
+44032510,Logs,Softwood,BD
+44032590,Logs,Softwood,BD
+44032600,Logs,Softwood,BD
+44034100,Logs,Tropical hardwood,BB
+44034910,Logs,Tropical hardwood,BB
+44034920,Logs,Tropical hardwood,BB
+44034935,Logs,Tropical hardwood,BB
+44034940,Logs,Tropical hardwood,BB
+44034980,Logs,Tropical hardwood,BB
+44034985,Logs,Tropical hardwood,BB
+44034995,Logs,Tropical hardwood,BB
+44039100,Logs,Other hardwood,BC
+44039110,Logs,Other hardwood,BC
+44039190,Logs,Other hardwood,BC
+44039200,Logs,Other hardwood,BC
+44039210,Logs,Other hardwood,BC
+44039290,Logs,Other hardwood,BC
+44039300,Logs,Other hardwood,BC
+44039400,Logs,Other hardwood,BC
+44039510,Logs,Other hardwood,BC
+44039590,Logs,Other hardwood,BC
+44039600,Logs,Other hardwood,BC
+44039700,Logs,Other hardwood,BC
+44039800,Logs,Other hardwood,BC
+44039900,Logs,Other hardwood,BC
+44039910,Logs,Other hardwood,BC
+44039930,Logs,Other hardwood,BC
+44039950,Logs,Other hardwood,BC
+44039951,Logs,Other hardwood,BC
+44039959,Logs,Other hardwood,BC
+44039995,Logs,Other hardwood,BC
+44039998,Logs,Other hardwood,BC
+44041000,Other wood products,Poles,JJ
+44042000,Other wood products,Poles,JJ
+44050000,Other wood products,Wood wool,JN
+44061000,Other wood products,Sleepers,JL
+44061100,Other wood products,Sleepers,JL
+44061200,Other wood products,Sleepers,JL
+44069000,Other wood products,Sleepers,JL
+44069100,Other wood products,Sleepers,JL
+44069200,Other wood products,Sleepers,JL
+44071015,Sawnwood,Softwood,CD
+44071031,Sawnwood,Softwood,CD
+44071033,Sawnwood,Softwood,CD
+44071038,Sawnwood,Softwood,CD
+44071091,Sawnwood,Softwood,CD
+44071093,Sawnwood,Softwood,CD
+44071098,Sawnwood,Softwood,CD
+44071110,Sawnwood,Softwood,CD
+44071120,Sawnwood,Softwood,CD
+44071190,Sawnwood,Softwood,CD
+44071210,Sawnwood,Softwood,CD
+44071220,Sawnwood,Softwood,CD
+44071290,Sawnwood,Softwood,CD
+44071910,Sawnwood,Softwood,CD
+44071920,Sawnwood,Softwood,CD
+44071990,Sawnwood,Softwood,CD
+44072110,Sawnwood,Tropical hardwood,CB
+44072191,Sawnwood,Tropical hardwood,CB
+44072199,Sawnwood,Tropical hardwood,CB
+44072210,Sawnwood,Tropical hardwood,CB
+44072291,Sawnwood,Tropical hardwood,CB
+44072299,Sawnwood,Tropical hardwood,CB
+44072415,Sawnwood,Tropical hardwood,CB
+44072430,Sawnwood,Tropical hardwood,CB
+44072490,Sawnwood,Tropical hardwood,CB
+44072510,Sawnwood,Tropical hardwood,CB
+44072530,Sawnwood,Tropical hardwood,CB
+44072550,Sawnwood,Tropical hardwood,CB
+44072560,Sawnwood,Tropical hardwood,CB
+44072580,Sawnwood,Tropical hardwood,CB
+44072590,Sawnwood,Tropical hardwood,CB
+44072610,Sawnwood,Tropical hardwood,CB
+44072630,Sawnwood,Tropical hardwood,CB
+44072650,Sawnwood,Tropical hardwood,CB
+44072690,Sawnwood,Tropical hardwood,CB
+44072710,Sawnwood,Tropical hardwood,CB
+44072791,Sawnwood,Tropical hardwood,CB
+44072799,Sawnwood,Tropical hardwood,CB
+44072810,Sawnwood,Tropical hardwood,CB
+44072891,Sawnwood,Tropical hardwood,CB
+44072899,Sawnwood,Tropical hardwood,CB
+44072905,Sawnwood,Tropical hardwood,CB
+44072915,Sawnwood,Tropical hardwood,CB
+44072920,Sawnwood,Tropical hardwood,CB
+44072925,Sawnwood,Tropical hardwood,CB
+44072930,Sawnwood,Tropical hardwood,CB
+44072931,Joinery,Flooring,HH
+44072939,Sawnwood,Tropical hardwood,CB
+44072945,Sawnwood,Tropical hardwood,CB
+44072950,Sawnwood,Tropical hardwood,CB
+44072960,Sawnwood,Tropical hardwood,CB
+44072961,Sawnwood,Tropical hardwood,CB
+44072968,Sawnwood,Tropical hardwood,CB
+44072969,Sawnwood,Tropical hardwood,CB
+44072983,Sawnwood,Tropical hardwood,CB
+44072985,Sawnwood,Tropical hardwood,CB
+44072995,Sawnwood,Tropical hardwood,CB
+44072996,Sawnwood,Tropical hardwood,CB
+44072997,Sawnwood,Tropical hardwood,CB
+44072998,Sawnwood,Tropical hardwood,CB
+44072999,Sawnwood,Tropical hardwood,CB
+44079115,Sawnwood,Other hardwood,CC
+44079131,Joinery,Flooring,HH
+44079139,Sawnwood,Other hardwood,CC
+44079190,Sawnwood,Other hardwood,CC
+44079200,Sawnwood,Other hardwood,CC
+44079310,Sawnwood,Other hardwood,CC
+44079391,Sawnwood,Other hardwood,CC
+44079399,Sawnwood,Other hardwood,CC
+44079410,Sawnwood,Other hardwood,CC
+44079491,Sawnwood,Other hardwood,CC
+44079499,Sawnwood,Other hardwood,CC
+44079510,Sawnwood,Other hardwood,CC
+44079591,Sawnwood,Other hardwood,CC
+44079599,Sawnwood,Other hardwood,CC
+44079610,Sawnwood,Other hardwood,CC
+44079691,Sawnwood,Other hardwood,CC
+44079699,Sawnwood,Other hardwood,CC
+44079710,Sawnwood,Other hardwood,CC
+44079791,Sawnwood,Other hardwood,CC
+44079799,Sawnwood,Other hardwood,CC
+44079910,Sawnwood,Other hardwood,CC
+44079920,Sawnwood,Other hardwood,CC
+44079925,Sawnwood,Other hardwood,CC
+44079927,Sawnwood,Other hardwood,CC
+44079930,Sawnwood,Other hardwood,CC
+44079940,Sawnwood,Other hardwood,CC
+44079950,Sawnwood,Other hardwood,CC
+44079990,Sawnwood,Other hardwood,CC
+44079991,Sawnwood,Other hardwood,CC
+44079994,Sawnwood,Other hardwood,CC
+44079996,Sawnwood,Other hardwood,CC
+44079997,Sawnwood,Other hardwood,CC
+44079998,Sawnwood,Other hardwood,CC
+44081015,Veneer,Softwood,ED
+44081091,Veneer,Softwood,ED
+44081093,Veneer,Softwood,ED
+44081098,Veneer,Softwood,ED
+44081099,Veneer,Softwood,ED
+44083111,Veneer,Tropical hardwood,EB
+44083121,Veneer,Tropical hardwood,EB
+44083125,Veneer,Tropical hardwood,EB
+44083130,Veneer,Tropical hardwood,EB
+44083915,Veneer,Tropical hardwood,EB
+44083921,Veneer,Tropical hardwood,EB
+44083930,Veneer,Tropical hardwood,EB
+44083931,Veneer,Tropical hardwood,EB
+44083935,Veneer,Tropical hardwood,EB
+44083955,Veneer,Tropical hardwood,EB
+44083970,Veneer,Tropical hardwood,EB
+44083980,Veneer,Tropical hardwood,EB
+44083985,Veneer,Tropical hardwood,EB
+44083990,Veneer,Tropical hardwood,EB
+44083995,Veneer,Tropical hardwood,EB
+44089015,Veneer,Other hardwood,EC
+44089035,Veneer,Other hardwood,EC
+44089081,Veneer,Other hardwood,EC
+44089085,Veneer,Other hardwood,EC
+44089089,Veneer,Other hardwood,EC
+44089095,Veneer,Other hardwood,EC
+44091011,Mouldings,Softwood,DC
+44091018,Mouldings,Softwood,DC
+44092011,Mouldings,Hardwood,DB
+44092091,Joinery,Flooring,HH
+44092098,Mouldings,Hardwood,DB
+44092100,Bamboo products,All bamboo products,UA
+44092200,Joinery,Flooring,HH
+44092910,Mouldings,Hardwood,DB
+44092991,Joinery,Flooring,HH
+44092999,Mouldings,Hardwood,DB
+44101110,Composite panels,Particle Board,GC
+44101130,Composite panels,Particle Board,GC
+44101150,Composite panels,Particle Board,GC
+44101190,Composite panels,Particle Board,GC
+44101210,Composite panels,Particle Board,GC
+44101290,Composite panels,Particle Board,GC
+44101900,Composite panels,Particle Board,GC
+44101910,Composite panels,Particle Board,GC
+44101930,Composite panels,Particle Board,GC
+44101950,Composite panels,Particle Board,GC
+44101990,Composite panels,Particle Board,GC
+44102100,Composite panels,Particle Board,GC
+44102900,Composite panels,Particle Board,GC
+44103100,Composite panels,Particle Board,GC
+44103200,Composite panels,Particle Board,GC
+44103300,Composite panels,Particle Board,GC
+44103900,Composite panels,Particle Board,GC
+44109000,Composite panels,Particle Board,GC
+44111110,Composite panels,Fibreboard,GB
+44111190,Composite panels,Fibreboard,GB
+44111210,Composite panels,Fibreboard,GB
+44111290,Composite panels,Fibreboard,GB
+44111310,Composite panels,Fibreboard,GB
+44111390,Composite panels,Fibreboard,GB
+44111410,Composite panels,Fibreboard,GB
+44111490,Composite panels,Fibreboard,GB
+44111910,Composite panels,Fibreboard,GB
+44111990,Composite panels,Fibreboard,GB
+44112110,Composite panels,Fibreboard,GB
+44112190,Composite panels,Fibreboard,GB
+44112910,Composite panels,Fibreboard,GB
+44112990,Composite panels,Fibreboard,GB
+44113110,Composite panels,Fibreboard,GB
+44113190,Composite panels,Fibreboard,GB
+44113910,Composite panels,Fibreboard,GB
+44113990,Composite panels,Fibreboard,GB
+44119100,Composite panels,Fibreboard,GB
+44119210,Composite panels,Fibreboard,GB
+44119290,Composite panels,Fibreboard,GB
+44119310,Composite panels,Fibreboard,GB
+44119390,Composite panels,Fibreboard,GB
+44119410,Composite panels,Fibreboard,GB
+44119490,Composite panels,Fibreboard,GB
+44119900,Composite panels,Fibreboard,GB
+44121000,Bamboo products,All bamboo products,UA
+44121310,Plywood,Tropical hardwood,FB
+44121390,Plywood,Tropical hardwood,FB
+44121400,Plywood,Other hardwood,FC
+44121900,Plywood,Softwood,FD
+44122210,Plywood,Tropical hardwood,FB
+44122291,Plywood,Blockboard and similar,FE
+44122299,Plywood,Tropical hardwood,FB
+44122300,Plywood,Other hardwood,FC
+44122920,Plywood,Blockboard and similar,FE
+44122980,Plywood,Other hardwood,FC
+44123110,Plywood,Tropical hardwood,FB
+44123190,Plywood,Tropical hardwood,FB
+44123200,Plywood,Other hardwood,FC
+44123210,Plywood,Other hardwood,FC
+44123290,Plywood,Other hardwood,FC
+44123300,Plywood,Other hardwood,FC
+44123400,Plywood,Other hardwood,FC
+44123900,Plywood,Softwood,FD
+44129210,Plywood,Tropical hardwood,FB
+44129291,Plywood,Blockboard and similar,FE
+44129299,Plywood,Tropical hardwood,FB
+44129300,Plywood,Softwood,FD
+44129410,Plywood,Blockboard and similar,FE
+44129490,Plywood,Blockboard and similar,FE
+44129920,Plywood,Blockboard and similar,FE
+44129930,Plywood,Blockboard and similar,FE
+44129940,Plywood,Blockboard and similar,FE
+44129950,Plywood,Blockboard and similar,FE
+44129970,Plywood,Blockboard and similar,FE
+44129980,Plywood,Blockboard and similar,FE
+44129985,Plywood,Blockboard and similar,FE
+44130000,Other wood products,Densified wood,JE
+44140010,Other wood products,Picture frames,JI
+44140090,Other wood products,Picture frames,JI
+44151010,Other wood products,Boxes and Drums,JB
+44151090,Other wood products,Boxes and Drums,JB
+44152020,Other wood products,Pallets,JH
+44152090,Other wood products,Pallets,JH
+44160000,Other wood products,Casks and Barrels,JC
+44170000,Other wood products,Tools,JM
+44181010,Joinery,Windows - tropical hardwood,HE
+44181050,Joinery,Windows - softwood,HG
+44181090,Joinery,Windows - other hardwood,HF
+44182010,Joinery,Doors - tropical hardwood,HB
+44182050,Joinery,Doors - softwood,HD
+44182080,Joinery,Doors - other hardwood,HC
+44183010,Joinery,Flooring,HH
+44183091,Joinery,Flooring,HH
+44183099,Joinery,Flooring,HH
+44184000,Joinery,Other joinery,HJ
+44185000,Joinery,Other joinery,HJ
+44186000,Joinery,Other joinery,HJ
+44187100,Joinery,Flooring,HH
+44187200,Joinery,Flooring,HH
+44187310,Joinery,Flooring,HH
+44187390,Joinery,Flooring,HH
+44187400,Joinery,Flooring,HH
+44187500,Joinery,Flooring,HH
+44187900,Joinery,Flooring,HH
+44189010,Joinery,Glulam,HI
+44189080,Joinery,Other joinery,HJ
+44189090,Joinery,Other joinery,HJ
+44189100,Bamboo products,All bamboo products,UA
+44189910,Joinery,Glulam,HI
+44189990,Joinery,Other joinery,HJ
+44190010,Other wood products,Kitchenware,JF
+44190090,Other wood products,Kitchenware,JF
+44191100,Bamboo products,All bamboo products,UA
+44191200,Bamboo products,All bamboo products,UA
+44191900,Bamboo products,All bamboo products,UA
+44199010,Other wood products,Kitchenware,JF
+44199090,Other wood products,Kitchenware,JF
+44201011,Other wood products,Marquetry,JG
+44201019,Other wood products,Marquetry,JG
+44209010,Other wood products,Marquetry,JG
+44209091,Other wood products,Marquetry,JG
+44209099,Other wood products,Marquetry,JG
+44211000,Other wood products,Not elsewhere stated,JO
+44219091,Other wood products,Not elsewhere stated,JO
+44219095,Other wood products,Not elsewhere stated,JO
+44219097,Other wood products,Not elsewhere stated,JO
+44219098,Other wood products,Not elsewhere stated,JO
+44219100,Bamboo products,All bamboo products,UA
+44219910,Other wood products,Not elsewhere stated,JO
+44219991,Other wood products,Not elsewhere stated,JO
+44219999,Other wood products,Not elsewhere stated,JO
+45011000,Cork products,All cork products,TA
+45019000,Cork products,All cork products,TA
+45020000,Cork products,All cork products,TA
+45031010,Cork products,All cork products,TA
+45031090,Cork products,All cork products,TA
+45039000,Cork products,All cork products,TA
+45041011,Cork products,All cork products,TA
+45041019,Cork products,All cork products,TA
+45041091,Cork products,All cork products,TA
+45041099,Cork products,All cork products,TA
+45049010,Cork products,All cork products,TA
+45049020,Cork products,All cork products,TA
+45049080,Cork products,All cork products,TA
+45049091,Cork products,All cork products,TA
+45049099,Cork products,All cork products,TA
+47010010,Pulp,Mixed pulp,MD
+47010090,Pulp,Mixed pulp,MD
+47020000,Pulp,Mixed pulp,MD
+47031100,Pulp,Softwood pulp,MC
+47031900,Pulp,Hardwood pulp,MB
+47032100,Pulp,Softwood pulp,MC
+47032900,Pulp,Hardwood pulp,MB
+47041100,Pulp,Softwood pulp,MC
+47041900,Pulp,Hardwood pulp,MB
+47042100,Pulp,Softwood pulp,MC
+47042900,Pulp,Hardwood pulp,MB
+47050000,Pulp,Mixed pulp,MD
+47061000,Pulp,Other pulp,ME
+47062000,Pulp,Other pulp,ME
+47063000,Pulp,Other pulp,ME
+47069100,Pulp,Other pulp,ME
+47069200,Pulp,Other pulp,ME
+47069300,Pulp,Other pulp,ME
+48010000,Paper,Newsprint,PB
+48010010,Paper,Newsprint,PB
+48010090,Paper,Newsprint,PB
+48021000,Paper,Other paper,PM
+48022000,Paper,Other paper,PM
+48023000,Paper,Other paper,PM
+48024010,Paper,Other paper,PM
+48024090,Paper,Other paper,PM
+48025110,Paper,Other paper,PM
+48025190,Paper,Uncoated for writing/printing,PD
+48025220,Paper,Uncoated for writing/printing,PD
+48025280,Paper,Uncoated for writing/printing,PD
+48025320,Paper,Uncoated for writing/printing,PD
+48025380,Paper,Uncoated for writing/printing,PD
+48025400,Paper,Uncoated for writing/printing,PD
+48025410,Paper,Other paper,PM
+48025490,Paper,Uncoated for writing/printing,PD
+48025500,Paper,Uncoated for writing/printing,PD
+48025510,Paper,Uncoated for writing/printing,PD
+48025515,Paper,Uncoated for writing/printing,PD
+48025520,Paper,Uncoated for writing/printing,PD
+48025525,Paper,Uncoated for writing/printing,PD
+48025530,Paper,Uncoated for writing/printing,PD
+48025590,Paper,Uncoated for writing/printing,PD
+48025610,Paper,Uncoated for writing/printing,PD
+48025620,Paper,Uncoated for writing/printing,PD
+48025680,Paper,Uncoated for writing/printing,PD
+48025690,Paper,Uncoated for writing/printing,PD
+48025700,Paper,Uncoated for writing/printing,PD
+48025810,Paper,Uncoated for writing/printing,PD
+48025890,Paper,Uncoated for writing/printing,PD
+48026011,Paper,Uncoated for writing/printing,PD
+48026019,Paper,Uncoated for writing/printing,PD
+48026091,Paper,Uncoated for writing/printing,PD
+48026099,Paper,Uncoated for writing/printing,PD
+48026110,Paper,Newsprint,PB
+48026115,Paper,Uncoated for writing/printing,PD
+48026120,Paper,Uncoated for writing/printing,PD
+48026150,Paper,Uncoated for writing/printing,PD
+48026180,Paper,Uncoated for writing/printing,PD
+48026190,Paper,Uncoated for writing/printing,PD
+48026200,Paper,Uncoated for writing/printing,PD
+48026210,Paper,Newsprint,PB
+48026250,Paper,Uncoated for writing/printing,PD
+48026290,Paper,Uncoated for writing/printing,PD
+48026900,Paper,Uncoated for writing/printing,PD
+48026910,Paper,Newsprint,PB
+48026950,Paper,Uncoated for writing/printing,PD
+48026990,Paper,Uncoated for writing/printing,PD
+48030010,Paper,Toilet & sanitary,PH
+48030031,Paper,Toilet & sanitary,PH
+48030039,Paper,Toilet & sanitary,PH
+48030090,Paper,Toilet & sanitary,PH
+48041111,Paper,Uncoated kraft paper,PC
+48041115,Paper,Uncoated kraft paper,PC
+48041119,Paper,Uncoated kraft paper,PC
+48041190,Paper,Uncoated kraft paper,PC
+48041911,Paper,Uncoated kraft paper,PC
+48041912,Paper,Uncoated kraft paper,PC
+48041915,Paper,Uncoated kraft paper,PC
+48041919,Paper,Uncoated kraft paper,PC
+48041930,Paper,Uncoated kraft paper,PC
+48041931,Paper,Uncoated kraft paper,PC
+48041935,Paper,Uncoated kraft paper,PC
+48041938,Paper,Uncoated kraft paper,PC
+48041939,Paper,Uncoated kraft paper,PC
+48041990,Paper,Uncoated kraft paper,PC
+48042110,Paper,Uncoated kraft paper,PC
+48042190,Paper,Uncoated kraft paper,PC
+48042910,Paper,Uncoated kraft paper,PC
+48042990,Paper,Uncoated kraft paper,PC
+48043110,Paper,Uncoated kraft paper,PC
+48043151,Paper,Uncoated kraft paper,PC
+48043158,Paper,Uncoated kraft paper,PC
+48043159,Paper,Uncoated kraft paper,PC
+48043180,Paper,Uncoated kraft paper,PC
+48043190,Paper,Uncoated kraft paper,PC
+48043910,Paper,Uncoated kraft paper,PC
+48043951,Paper,Uncoated kraft paper,PC
+48043958,Paper,Uncoated kraft paper,PC
+48043959,Paper,Uncoated kraft paper,PC
+48043980,Paper,Uncoated kraft paper,PC
+48043990,Paper,Uncoated kraft paper,PC
+48044110,Paper,Uncoated kraft paper,PC
+48044191,Paper,Uncoated kraft paper,PC
+48044198,Paper,Uncoated kraft paper,PC
+48044199,Paper,Uncoated kraft paper,PC
+48044200,Paper,Uncoated kraft paper,PC
+48044210,Paper,Uncoated kraft paper,PC
+48044290,Paper,Uncoated kraft paper,PC
+48044900,Paper,Uncoated kraft paper,PC
+48044910,Paper,Uncoated kraft paper,PC
+48044990,Paper,Uncoated kraft paper,PC
+48045100,Paper,Uncoated kraft paper,PC
+48045110,Paper,Uncoated kraft paper,PC
+48045190,Paper,Uncoated kraft paper,PC
+48045200,Paper,Uncoated kraft paper,PC
+48045210,Paper,Uncoated kraft paper,PC
+48045290,Paper,Uncoated kraft paper,PC
+48045910,Paper,Uncoated kraft paper,PC
+48045990,Paper,Uncoated kraft paper,PC
+48051000,Paper,Other uncoated unworked in rolls/sheets,PE
+48051100,Paper,Other uncoated unworked in rolls/sheets,PE
+48051200,Paper,Other uncoated unworked in rolls/sheets,PE
+48051910,Paper,Other uncoated unworked in rolls/sheets,PE
+48051990,Paper,Other uncoated unworked in rolls/sheets,PE
+48052100,Paper,Other uncoated unworked in rolls/sheets,PE
+48052210,Paper,Other uncoated unworked in rolls/sheets,PE
+48052290,Paper,Other uncoated unworked in rolls/sheets,PE
+48052300,Paper,Other uncoated unworked in rolls/sheets,PE
+48052400,Paper,Other uncoated unworked in rolls/sheets,PE
+48052500,Paper,Other uncoated unworked in rolls/sheets,PE
+48052910,Paper,Other uncoated unworked in rolls/sheets,PE
+48052990,Paper,Other uncoated unworked in rolls/sheets,PE
+48053000,Paper,Other uncoated unworked in rolls/sheets,PE
+48053010,Paper,Other uncoated unworked in rolls/sheets,PE
+48053090,Paper,Other uncoated unworked in rolls/sheets,PE
+48054000,Paper,Other uncoated unworked in rolls/sheets,PE
+48055000,Paper,Other uncoated unworked in rolls/sheets,PE
+48056010,Paper,Other uncoated unworked in rolls/sheets,PE
+48056020,Paper,Other uncoated unworked in rolls/sheets,PE
+48056040,Paper,Other uncoated unworked in rolls/sheets,PE
+48056060,Paper,Other uncoated unworked in rolls/sheets,PE
+48056090,Paper,Other uncoated unworked in rolls/sheets,PE
+48057011,Paper,Other uncoated unworked in rolls/sheets,PE
+48057019,Paper,Other uncoated unworked in rolls/sheets,PE
+48057090,Paper,Other uncoated unworked in rolls/sheets,PE
+48058011,Paper,Other uncoated unworked in rolls/sheets,PE
+48058019,Paper,Other uncoated unworked in rolls/sheets,PE
+48058090,Paper,Other uncoated unworked in rolls/sheets,PE
+48059100,Paper,Other uncoated unworked in rolls/sheets,PE
+48059110,Paper,Other uncoated unworked in rolls/sheets,PE
+48059191,Paper,Other uncoated unworked in rolls/sheets,PE
+48059199,Paper,Other uncoated unworked in rolls/sheets,PE
+48059200,Paper,Other uncoated unworked in rolls/sheets,PE
+48059210,Paper,Other uncoated unworked in rolls/sheets,PE
+48059291,Paper,Other uncoated unworked in rolls/sheets,PE
+48059299,Paper,Other uncoated unworked in rolls/sheets,PE
+48059310,Paper,Other uncoated unworked in rolls/sheets,PE
+48059320,Paper,Other uncoated unworked in rolls/sheets,PE
+48059380,Paper,Other uncoated unworked in rolls/sheets,PE
+48059391,Paper,Other uncoated unworked in rolls/sheets,PE
+48059399,Paper,Other uncoated unworked in rolls/sheets,PE
+48061000,Paper,Other paper,PM
+48062000,Paper,Other paper,PM
+48063000,Paper,Other paper,PM
+48064010,Paper,Other paper,PM
+48064090,Paper,Other paper,PM
+48070010,Paper,Other paper,PM
+48070020,Paper,Other paper,PM
+48070030,Paper,Other paper,PM
+48070050,Paper,Other paper,PM
+48070080,Paper,Other paper,PM
+48070090,Paper,Other paper,PM
+48071000,Paper,Other paper,PM
+48079010,Paper,Other paper,PM
+48079050,Paper,Other paper,PM
+48079090,Paper,Other paper,PM
+48081000,Paper,Other paper,PM
+48082000,Paper,Other paper,PM
+48083000,Paper,Other paper,PM
+48084000,Paper,Other paper,PM
+48089000,Paper,Other paper,PM
+48091000,Paper,Other paper,PM
+48092000,Paper,Other paper,PM
+48092010,Paper,Other paper,PM
+48092090,Paper,Other paper,PM
+48099000,Paper,Other paper,PM
+48099010,Paper,Other paper,PM
+48099090,Paper,Other paper,PM
+48101110,Paper,Kaolin coated,PF
+48101191,Paper,Kaolin coated,PF
+48101199,Paper,Kaolin coated,PF
+48101200,Paper,Kaolin coated,PF
+48101300,Paper,Kaolin coated,PF
+48101311,Paper,Kaolin coated,PF
+48101319,Paper,Kaolin coated,PF
+48101320,Paper,Kaolin coated,PF
+48101380,Paper,Kaolin coated,PF
+48101391,Paper,Kaolin coated,PF
+48101399,Paper,Kaolin coated,PF
+48101400,Paper,Kaolin coated,PF
+48101411,Paper,Kaolin coated,PF
+48101419,Paper,Kaolin coated,PF
+48101420,Paper,Kaolin coated,PF
+48101480,Paper,Kaolin coated,PF
+48101491,Paper,Kaolin coated,PF
+48101499,Paper,Kaolin coated,PF
+48101900,Paper,Kaolin coated,PF
+48101910,Paper,Kaolin coated,PF
+48101990,Paper,Kaolin coated,PF
+48102100,Paper,Kaolin coated,PF
+48102200,Paper,Kaolin coated,PF
+48102210,Paper,Kaolin coated,PF
+48102290,Paper,Kaolin coated,PF
+48102291,Paper,Kaolin coated,PF
+48102299,Paper,Kaolin coated,PF
+48102911,Paper,Kaolin coated,PF
+48102919,Paper,Kaolin coated,PF
+48102920,Paper,Kaolin coated,PF
+48102930,Paper,Kaolin coated,PF
+48102980,Paper,Kaolin coated,PF
+48102990,Paper,Kaolin coated,PF
+48102991,Paper,Kaolin coated,PF
+48102999,Paper,Kaolin coated,PF
+48103100,Paper,Kaolin coated,PF
+48103210,Paper,Kaolin coated,PF
+48103290,Paper,Kaolin coated,PF
+48103900,Paper,Kaolin coated,PF
+48109110,Paper,Kaolin coated,PF
+48109130,Paper,Kaolin coated,PF
+48109190,Paper,Kaolin coated,PF
+48109210,Paper,Kaolin coated,PF
+48109230,Paper,Kaolin coated,PF
+48109290,Paper,Kaolin coated,PF
+48109910,Paper,Kaolin coated,PF
+48109930,Paper,Kaolin coated,PF
+48109980,Paper,Kaolin coated,PF
+48109990,Paper,Kaolin coated,PF
+48111000,Paper,Other coated/decorated in rolls/sheets,PG
+48112100,Paper,Other coated/decorated in rolls/sheets,PG
+48112900,Paper,Other coated/decorated in rolls/sheets,PG
+48113100,Paper,Other coated/decorated in rolls/sheets,PG
+48113900,Paper,Other coated/decorated in rolls/sheets,PG
+48114000,Paper,Other coated/decorated in rolls/sheets,PG
+48114110,Paper,Other coated/decorated in rolls/sheets,PG
+48114120,Paper,Other coated/decorated in rolls/sheets,PG
+48114190,Paper,Other coated/decorated in rolls/sheets,PG
+48114191,Paper,Other coated/decorated in rolls/sheets,PG
+48114199,Paper,Other coated/decorated in rolls/sheets,PG
+48114900,Paper,Other coated/decorated in rolls/sheets,PG
+48114910,Paper,Other coated/decorated in rolls/sheets,PG
+48114990,Paper,Other coated/decorated in rolls/sheets,PG
+48115100,Paper,Other coated/decorated in rolls/sheets,PG
+48115900,Paper,Other coated/decorated in rolls/sheets,PG
+48116000,Paper,Other coated/decorated in rolls/sheets,PG
+48119000,Paper,Other coated/decorated in rolls/sheets,PG
+48119010,Paper,Other coated/decorated in rolls/sheets,PG
+48119090,Paper,Other coated/decorated in rolls/sheets,PG
+48120000,Paper,Other paper,PM
+48131000,Paper,Other paper,PM
+48132000,Paper,Other paper,PM
+48139000,Paper,Other paper,PM
+48139010,Paper,Other paper,PM
+48139090,Paper,Other paper,PM
+48141000,Paper,Other paper,PM
+48142000,Paper,Other paper,PM
+48143000,Paper,Other paper,PM
+48149010,Paper,Other paper,PM
+48149070,Paper,Other paper,PM
+48149080,Paper,Other paper,PM
+48149090,Paper,Other paper,PM
+48150000,Paper,Other paper,PM
+48161000,Paper,Other paper,PM
+48162000,Paper,Other paper,PM
+48163000,Paper,Other paper,PM
+48169000,Paper,Other paper,PM
+48171000,Paper,Labels & envelopes etc,PL
+48172000,Paper,Labels & envelopes etc,PL
+48173000,Paper,Labels & envelopes etc,PL
+48181010,Paper,Toilet & sanitary,PH
+48181090,Paper,Toilet & sanitary,PH
+48182010,Paper,Toilet & sanitary,PH
+48182091,Paper,Toilet & sanitary,PH
+48182099,Paper,Toilet & sanitary,PH
+48183000,Paper,Toilet & sanitary,PH
+48184011,Paper,Toilet & sanitary,PH
+48184013,Paper,Toilet & sanitary,PH
+48184019,Paper,Toilet & sanitary,PH
+48184090,Paper,Toilet & sanitary,PH
+48184091,Paper,Toilet & sanitary,PH
+48184099,Paper,Toilet & sanitary,PH
+48185000,Paper,Toilet & sanitary,PH
+48189010,Paper,Toilet & sanitary,PH
+48189090,Paper,Toilet & sanitary,PH
+48191000,Paper,Cartons & containers,PJ
+48192000,Paper,Cartons & containers,PJ
+48192010,Paper,Cartons & containers,PJ
+48192090,Paper,Cartons & containers,PJ
+48193000,Paper,Cartons & containers,PJ
+48194000,Paper,Cartons & containers,PJ
+48195000,Paper,Cartons & containers,PJ
+48196000,Paper,Cartons & containers,PJ
+48201010,Paper,Account/exercise books etc,PI
+48201030,Paper,Account/exercise books etc,PI
+48201050,Paper,Account/exercise books etc,PI
+48201090,Paper,Account/exercise books etc,PI
+48202000,Paper,Account/exercise books etc,PI
+48203000,Paper,Account/exercise books etc,PI
+48204000,Paper,Account/exercise books etc,PI
+48204010,Paper,Account/exercise books etc,PI
+48204090,Paper,Account/exercise books etc,PI
+48205000,Paper,Account/exercise books etc,PI
+48209000,Paper,Account/exercise books etc,PI
+48211010,Paper,Labels & envelopes etc,PL
+48211090,Paper,Labels & envelopes etc,PL
+48219010,Paper,Labels & envelopes etc,PL
+48219090,Paper,Labels & envelopes etc,PL
+48221000,Paper,Other paper,PM
+48229000,Paper,Other paper,PM
+48231111,Paper,Labels & envelopes etc,PL
+48231119,Paper,Labels & envelopes etc,PL
+48231190,Paper,Labels & envelopes etc,PL
+48231200,Paper,Labels & envelopes etc,PL
+48231210,Paper,Labels & envelopes etc,PL
+48231290,Paper,Labels & envelopes etc,PL
+48231900,Paper,Labels & envelopes etc,PL
+48232000,Paper,Other paper,PM
+48234000,Paper,Other paper,PM
+48235110,Paper,Other paper,PM
+48235190,Paper,Other paper,PM
+48235910,Paper,Other paper,PM
+48235990,Paper,Other paper,PM
+48236010,Paper,Cups & dishes,PK
+48236090,Paper,Cups & dishes,PK
+48236100,Paper,Cups & dishes,PK
+48236910,Paper,Cups & dishes,PK
+48236990,Paper,Cups & dishes,PK
+48237010,Paper,Other paper,PM
+48237090,Paper,Other paper,PM
+48239010,Paper,Other paper,PM
+48239012,Paper,Other paper,PM
+48239014,Paper,Other paper,PM
+48239015,Paper,Other paper,PM
+48239020,Paper,Other paper,PM
+48239030,Paper,Other paper,PM
+48239040,Paper,Other paper,PM
+48239050,Paper,Other paper,PM
+48239080,Paper,Other paper,PM
+48239085,Paper,Other paper,PM
+48239090,Paper,Other paper,PM
+48239095,Paper,Other paper,PM
+49011000,Printed papers,All printed papers,SA
+49019100,Printed papers,All printed papers,SA
+49019900,Printed papers,All printed papers,SA
+49021000,Printed papers,All printed papers,SA
+49029000,Printed papers,All printed papers,SA
+49029010,Printed papers,All printed papers,SA
+49029030,Printed papers,All printed papers,SA
+49029090,Printed papers,All printed papers,SA
+49030000,Printed papers,All printed papers,SA
+49040000,Printed papers,All printed papers,SA
+49051000,Printed papers,All printed papers,SA
+49059100,Printed papers,All printed papers,SA
+49059900,Printed papers,All printed papers,SA
+49060000,Printed papers,All printed papers,SA
+49070010,Printed papers,All printed papers,SA
+49070030,Printed papers,All printed papers,SA
+49070090,Printed papers,All printed papers,SA
+49081000,Printed papers,All printed papers,SA
+49089000,Printed papers,All printed papers,SA
+49090000,Printed papers,All printed papers,SA
+49090010,Printed papers,All printed papers,SA
+49090090,Printed papers,All printed papers,SA
+49100000,Printed papers,All printed papers,SA
+49111010,Printed papers,All printed papers,SA
+49111090,Printed papers,All printed papers,SA
+49119100,Printed papers,All printed papers,SA
+49119110,Printed papers,All printed papers,SA
+49119180,Printed papers,All printed papers,SA
+49119900,Printed papers,All printed papers,SA
+94015000,Bamboo products,All bamboo products,UA
+94015100,Bamboo products,All bamboo products,UA
+94015200,Bamboo products,All bamboo products,UA
+94015300,Bamboo products,All bamboo products,UA
+94015900,Bamboo products,All bamboo products,UA
+94016100,Wood furniture,Seats upholstered,KC
+94016900,Wood furniture,Seats not upholstered,KB
+94019030,Wood furniture,Seat components,KD
+94033011,Wood furniture,Office,KH
+94033019,Wood furniture,Office,KH
+94033091,Wood furniture,Office,KH
+94033099,Wood furniture,Office,KH
+94034010,Wood furniture,Kitchen,KG
+94034090,Wood furniture,Kitchen,KG
+94035000,Wood furniture,Bedroom,KE
+94036010,Wood furniture,Dining/living room,KF
+94036030,Wood furniture,Shop,KI
+94036090,Wood furniture,Not elsewhere stated,KK
+94038000,Bamboo products,All bamboo products,UA
+94038100,Bamboo products,All bamboo products,UA
+94038200,Bamboo products,All bamboo products,UA
+94038300,Bamboo products,All bamboo products,UA
+94039030,Wood furniture,Other components,KJ
+94060010,Other wood products,Prefab buildings,JK
+94060020,Other wood products,Prefab buildings,JK
+94061000,Other wood products,Prefab buildings,JK
