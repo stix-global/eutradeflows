@@ -22,15 +22,15 @@ ui <- function(request){
         titlePanel("Time series from the STIX database", windowTitle = "STIX-Global / eutradeflows"),
         sidebarLayout(
             sidebarPanel(
-                selectInput("productgroupimm", "Choose a product group:", 
-                            choices = unique(eutradeflows::classificationimm$productgroupimm),
-                            selected = "Wood"),
-                selectInput("productimm", "Choose a product :", 
-                            choices = unique(eutradeflows::classificationimm$productimm),
-                            selected = "Sawn: tropical hardwood"),
-                selectInput("productcode", "Choose an 8 digit product Code (Optional):", 
-                            choices = "All",
-                            selected = "All"),
+                selectInput("productgroupstix", "Choose a product group:", 
+                            choices = unique(eutradeflows::classificationstix$productgroupstix),
+                            selected = "Sawnwood"),
+                selectInput("productstix", "Choose a product :", 
+                            choices = unique(eutradeflows::classificationstix$productstix),
+                            selected = "Tropical hardwood"),
+                # selectInput("productcode", "Choose an 8 digit product Code (Optional):", 
+                #             choices = "All",
+                #             selected = "All"),
                 radioButtons("flowcode", "Flow direction:", inline = TRUE,
                              choiceNames = c("Import", "Export"),
                              choiceValues = c(1, 2)),
@@ -65,8 +65,8 @@ ui <- function(request){
                 radioButtons("tableaggregationlevel",
                              "Show table of (flags only visible at the 8 digit level):",
                              inline = TRUE,
-                             choiceNames = c("IMM product aggregates", "8 digit product codes"),
-                             choiceValues = c("imm", "8d")),
+                             choiceNames = c("STIX product aggregates", "8 digit product codes"),
+                             choiceValues = c("stix", "8d")),
                 tableOutput("table")
             )
         )
@@ -123,12 +123,12 @@ if(FALSE){
 server <- function(input, output, session) {
     # Load a large data set from the database, based on date and productcode
     datasetInput <- reactive({
-        # Fetch the appropriate data, depending on the value of input$productimm
+        # Fetch the appropriate data, depending on the value of input$productstix
         con <- dbconnecttradeflows(dbdocker = dbdocker)
         on.exit(RMySQL::dbDisconnect(con))
-        # Convert imm product name to a vector of product codes
-        productselected <- classificationimm %>% 
-            filter(productimm %in% input$productimm)
+        # Convert stix product name to a vector of product codes
+        productselected <- classificationstix %>% 
+            filter(productstix %in% input$productstix)
         # Convert to character because SQL is slower if 
         # search is performed on character index, while using a numeric value
         productselected <- as.character(productselected$productcode)
@@ -155,8 +155,8 @@ server <- function(input, output, session) {
     
     datasetaggregated <- reactive({
         dtf <- datasetfiltered() %>% 
-            mutate(productimm = input$productimm) %>% 
-            group_by(productimm, reporter, partner, period, flowcode) %>% 
+            mutate(productstix = input$productstix) %>% 
+            group_by(productstix, reporter, partner, period, flowcode) %>% 
             summarise(tradevalue = sum(tradevalue),
                       weight = sum(weight),
                       quantity = sum(quantity))
@@ -177,13 +177,13 @@ server <- function(input, output, session) {
     })
     
     output$info <- renderText({ 
-        productimmselected <- classificationimm %>% 
-            filter(productimm %in% input$productimm)
+        productstixselected <- classificationstix %>% 
+            filter(productstix %in% input$productstix)
         paste(nrow(datasetInput()), "rows fetched from the database.",
-              "Product group imm:", input$productgroupimm,
-              ". Product imm:", input$productimm,
+              "Product group stix:", input$productgroupstix,
+              ". Product stix:", input$productstix,
               ". Product codes 8 digit:",
-              paste(productimmselected$productcode, collapse=", "),
+              paste(productstixselected$productcode, collapse=", "),
               "Flow direction: ", input$flowcode)
     })
     
@@ -192,22 +192,23 @@ server <- function(input, output, session) {
                 nrow(datasetfiltered()))
     })
     
-    # update list of product imm based on the product group imm
+    # update list of product stix based on the product group stix
     observe({
-        imm <- eutradeflows::classificationimm %>%
-            filter(productgroupimm == input$productgroupimm) %>%
-            distinct(productimm)
-        productimm <- imm$productimm
+        stix <- eutradeflows::classificationstix %>%
+            filter(productgroupstix == input$productgroupstix) %>%
+            distinct(productstix, productstixorder) %>% 
+            arrange(productstixorder)
+        productstix <- stix$productstix
         # If the previous selection is present in the list, reuse the same selection
         # otherwise take the first value
-        if(input$productimm %in% productimm){
-            productimmselected <- input$productimm
+        if(input$productstix %in% productstix){
+            productstixselected <- input$productstix
         } else {
-            productimmselected <- productimm[1]
+            productstixselected <- productstix[1]
         }
-        updateSelectizeInput(session, "productimm",
-                             choices = productimm,
-                             selected = productimmselected)
+        updateSelectizeInput(session, "productstix",
+                             choices = productstix,
+                             selected = productstixselected)
     }, priority = 2) # 
     
     # Update list of reporting countries based on the data fetched from the database
@@ -256,7 +257,7 @@ server <- function(input, output, session) {
     
     # 
     datasettoshow <-  reactive({
-        if(input$tableaggregationlevel == "imm"){
+        if(input$tableaggregationlevel == "stix"){
             return(datasetaggregated())
         } else {
             return(select(datasetfiltered(), -productdescription))
@@ -264,7 +265,6 @@ server <- function(input, output, session) {
         })
     output$table <- renderTable(datasettoshow()) 
     
-
     # downloadHandler() takes two arguments, both functions.
     # The content function is passed a filename as an argument, and
     #   it should write out data to that filename.
@@ -274,7 +274,7 @@ server <- function(input, output, session) {
         # browser what name to use when saving the file.
         filename = function() {
             return("name_not_displayed_in_file_save_dialog.csv")
-            # paste(input$productimm, input$filetype, sep = ".")
+            # paste(input$productstix, input$filetype, sep = ".")
         },
         
         # This function should write data to a file given to it by
