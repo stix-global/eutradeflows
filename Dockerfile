@@ -10,12 +10,12 @@ RUN apt-get update && apt-get install -y \
   libmariadb-client-lgpl-dev \
   mariadb-client 
 
-# Packages
-RUN Rscript -e "install.packages('dplyr')"
-RUN Rscript -e "install.packages('tidyr')"
-RUN Rscript -e "install.packages('dbplyr')"
-RUN Rscript -e "install.packages('RMySQL')"
-RUN Rscript -e "install.packages('DT')" # Display javascript tables
+# Install R Packages
+RUN install2.r --error \
+    devtools \
+    dplyr \
+    tidyr \
+    DT 
 
 # Set the working directory to /R
 WORKDIR /R
@@ -30,5 +30,4 @@ RUN R CMD build eutradeflows
 RUN R -e 'install.packages("eutradeflows_0.0.1.tar.gz")'
 
 # Install dependencies 
-# RUN Rscript -e "install.packages('devtools')"
 # RUN R -e 'devtools::install_github("EuropeanForestInstitute/tradeflows")'
