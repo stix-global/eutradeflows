@@ -17,7 +17,10 @@ RUN install2.r --error \
     devtools \
     dplyr \
     tidyr \
-    DT 
+    ggplot2 \
+    DT \
+    dbplyr \
+    RMySQL
 
 # Set the working directory to /R
 WORKDIR /R
