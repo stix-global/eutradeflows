@@ -8,7 +8,9 @@ MAINTAINER Paul Rougieux "https://github.com/paulrougieux/"
 # * mariadb-client is used as a mysql client and for mysqldump
 RUN apt-get update && apt-get install -y \
   libmariadb-client-lgpl-dev \
-  mariadb-client 
+  mariadb-client \
+  libcurl4-openssl-dev \
+  libssl-dev
 
 # Install R Packages
 RUN install2.r --error \
