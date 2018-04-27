@@ -19,6 +19,7 @@ RUN install2.r --error \
     tidyr \
     ggplot2 \
     DT \
+    dygraphs \
     dbplyr \
     RMySQL
 
