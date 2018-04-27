@@ -17,6 +17,7 @@ RUN install2.r --error \
     devtools \
     dplyr \
     tidyr \
+    lubridate \
     ggplot2 \
     DT \
     dygraphs \
