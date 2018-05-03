@@ -10,7 +10,13 @@ dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRan
 
 # Load country codes tables for later used by the sankey diagram function
 # And to build country drop down lists
-con <- dbconnecttradeflows(dbdocker = dbdocker)
+#con <- dbconnecttradeflows(dbdocker = dbdocker)
+con <- RMySQL::dbConnect(RMySQL::MySQL(),
+                         dbname = "tradeflows",
+                         username = "R",
+                         password = "localhost",
+                         host = "localhost",
+                         port = 3306)
 reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
 partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
 RMySQL::dbDisconnect(con)
@@ -135,7 +141,13 @@ server <- function(input, output, session) {
     # Load a large data set from the database, based on date and productcode
     datasetInput <- reactive({
         # Fetch the appropriate data, depending on the value of input$productimm
-        con <- dbconnecttradeflows(dbdocker = dbdocker)
+        #con <- dbconnecttradeflows(dbdocker = dbdocker)
+        con <- RMySQL::dbConnect(RMySQL::MySQL(),
+                                 dbname = "tradeflows",
+                                 username = "R",
+                                 password = "localhost",
+                                 host = "localhost",
+                                 port = 3306)
         on.exit(RMySQL::dbDisconnect(con))
         # Convert imm product name to a vector of product codes
         productselected <- classificationimm %>% 

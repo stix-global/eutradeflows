@@ -124,7 +124,13 @@ server <- function(input, output, session) {
     # Load a large data set from the database, based on date and productcode
     datasetInput <- reactive({
         # Fetch the appropriate data, depending on the value of input$productstix
-        con <- dbconnecttradeflows(dbdocker = dbdocker)
+        #con <- dbconnecttradeflows(dbdocker = dbdocker)
+        con <- RMySQL::dbConnect(RMySQL::MySQL(),
+                                 dbname = "tradeflows",
+                                 username = "R",
+                                 password = "localhost",
+                                 host = "localhost",
+                                 port = 3306)
         on.exit(RMySQL::dbDisconnect(con))
         # Convert stix product name to a vector of product codes
         productselected <- classificationstix %>% 
