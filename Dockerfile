@@ -14,15 +14,21 @@ RUN apt-get update && apt-get install -y \
 
 # Install R Packages
 RUN install2.r --error \
-    devtools \
+    data.table \
+    dbplyr \
     dplyr \
-    tidyr \
-    lubridate \
-    ggplot2 \
+    devtools \
     DT \
     dygraphs \
-    dbplyr \
-    RMySQL
+    ggplot2 \
+    lubridate \
+    plotly \
+    RMySQL \
+    shinydashboard \
+    stringr \
+    tidyr 
+
+
 
 # Set the working directory to /R
 WORKDIR /R
