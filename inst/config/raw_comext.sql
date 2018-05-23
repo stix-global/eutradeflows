@@ -98,32 +98,20 @@ CREATE TABLE `raw_comext_partner` (
 DROP TABLE IF EXISTS `raw_comext_monthly_template`;
 CREATE TABLE `raw_comext_monthly_template` (
   `reportercode` int DEFAULT NULL,
+  `reporteriso` varchar(2) DEFAULT NULL,
   `partnercode` int DEFAULT NULL,
-  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `partneriso` varchar(2) DEFAULT NULL,
+  `tradetype` varchar(1) DEFAULT NULL,
+  `productcode` varchar(10) DEFAULT NULL,
+  `productsitc` varchar(5) DEFAULT NULL,
+  `productcpa2002` varchar(5) DEFAULT NULL,
+  `productcpa2008` varchar(5) DEFAULT NULL,
+  `productcpa21` varchar(5) DEFAULT NULL,
+  `productbec` varchar(5) DEFAULT NULL,
+  `productsection` varchar(5) DEFAULT NULL,
   `flowcode` int DEFAULT NULL,
   `statregime` int DEFAULT NULL,
-  `period` int DEFAULT NULL,
-  `tradevalue` double DEFAULT NULL,
-  `weight` double DEFAULT NULL,
-  `quantity` int DEFAULT NULL,
-  KEY `reportercode` (`reportercode`),
-  KEY `partnercode` (`partnercode`),
-  KEY `productcode` (`productcode`),
-  KEY `flowcode` (`flowcode`),
-  KEY `period` (`period`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
-
---
--- Table structure for table `raw_comext_yearly_template`
---
-DROP TABLE IF EXISTS `raw_comext_yearly_template`;
-CREATE TABLE `raw_comext_yearly_template` (
-  `reportercode` int DEFAULT NULL,
-  `partnercode` int DEFAULT NULL,
-  `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `flowcode` int DEFAULT NULL,
-  `statregime` int DEFAULT NULL,
+  `unitcode`  varchar(1) DEFAULT NULL,
   `period` int DEFAULT NULL,
   `tradevalue` double DEFAULT NULL,
   `weight` double DEFAULT NULL,

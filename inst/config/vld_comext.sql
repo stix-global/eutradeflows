@@ -99,14 +99,19 @@ CREATE TABLE `vld_comext_priceconversion` (
 --
 -- Table structure for table `vld_comext_monthly_template`
 --
+
 DROP TABLE IF EXISTS `vld_comext_monthly_template`;
 CREATE TABLE `vld_comext_monthly_template` (
   `reportercode` int DEFAULT NULL,
+  `reporteriso` varchar(2) DEFAULT NULL,
   `partnercode` int DEFAULT NULL,
+  `partneriso` varchar(2) DEFAULT NULL,
+  `tradetype` varchar(1) DEFAULT NULL,
   `productcode` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
   `flowcode` int DEFAULT NULL,
   `statregime` int DEFAULT NULL,
+  `unitcode`  varchar(1) DEFAULT NULL,
   `period` int DEFAULT NULL,
   `flag` int DEFAULT NULL,
   `tradevalue` double DEFAULT NULL,
