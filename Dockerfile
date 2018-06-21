@@ -44,3 +44,8 @@ RUN R -e 'install.packages("eutradeflows_0.0.1.tar.gz")'
 
 # Install dependencies 
 # RUN R -e 'devtools::install_github("EuropeanForestInstitute/tradeflows")'
+
+
+# try to avoid greying out of the apps
+# https://stackoverflow.com/questions/44397818/shiny-apps-greyed-out-nginx-proxy-over-ssl
+RUN echo 'sanitize_errors off;disable_protocols xdr-streaming xhr-streaming iframe-eventsource iframe-htmlfile;' >> /etc/shiny-server/shiny-server.conf
