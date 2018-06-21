@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install R Packages
 RUN install2.r --error \
+    stringr \
     data.table \
     dbplyr \
     dplyr \
@@ -25,7 +26,6 @@ RUN install2.r --error \
     plotly \
     RMySQL \
     shinydashboard \
-    stringr \
     tidyr 
 
 
