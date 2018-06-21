@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install R Packages
 RUN install2.r --error \
+    docopt \
     stringi \
     stringr \
     data.table \
