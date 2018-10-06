@@ -26,6 +26,7 @@ RUN install2.r --error \
     ggplot2 \
     lubridate \
     plotly \
+    pool \
     RMySQL \
     shinydashboard \
     tidyr 
