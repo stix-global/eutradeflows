@@ -6,7 +6,7 @@ library(eutradeflows)
 # shiny::runApp('/home/R/eutradeflows/docs/visualization/shinycsv')
 # In Docker, load the application 
 # Hack to disconnect open connections
-# RMySQL::dbDisconnect(RMySQL::dbListConnections(RMySQL::MySQL())[[1]])
+# RMariaDB::dbDisconnect(RMariaDB::dbListConnections(RMariaDB::MariaDB())[[1]])
 
 rowstodisplay <- 100
 dbdocker = FALSE
@@ -23,7 +23,7 @@ dbconnecttradeflows <- function(dbdocker){
         return(eutradeflows::dbconnectdocker())
     } else {  
         # Return a connection to local database.
-        return(RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows"))
+        return(RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows"))
     }
 }
 
@@ -86,7 +86,7 @@ function(input, output, session) {
                "Kitchen Furniture" = "940340%")
         # Load data from the database
         con <- dbconnecttradeflows(dbdocker = dbdocker)
-        on.exit(RMySQL::dbDisconnect(con))
+        on.exit(RMariaDB::dbDisconnect(con))
         loadvldcomextmonhtly(con, inputproductcode, 
                              periodmin = format(input$range[1], "%Y%m"),
                              periodmax = format(input$range[2], "%Y%m"))

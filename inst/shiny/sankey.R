@@ -13,13 +13,13 @@ dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRan
 con <- dbconnecttradeflows(dbdocker = dbdocker)
 reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
 partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
 # In Docker, load the application 
 # Hack to disconnect open connections
-# RMySQL::dbDisconnect(RMySQL::dbListConnections(RMySQL::MySQL())[[1]])
+# RMariaDB::dbDisconnect(RMariaDB::dbListConnections(RMariaDB::MariaDB())[[1]])
 # Load data to debug on the server
 # swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
 # chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
@@ -136,7 +136,7 @@ server <- function(input, output, session) {
     datasetInput <- reactive({
         # Fetch the appropriate data, depending on the value of input$productimm
         con <- dbconnecttradeflows(dbdocker = dbdocker)
-        on.exit(RMySQL::dbDisconnect(con))
+        on.exit(RMariaDB::dbDisconnect(con))
         # Convert imm product name to a vector of product codes
         productselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)

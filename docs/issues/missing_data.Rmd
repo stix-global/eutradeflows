@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(eutradeflows)
 library(dplyr)
 library(tidyr)
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 

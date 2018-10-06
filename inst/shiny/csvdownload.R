@@ -11,13 +11,13 @@ dateWindow <- c("2012-01-01", as.character(Sys.Date())) # used by dygraph::dyRan
 con <- dbconnecttradeflows(dbdocker = dbdocker)
 reportertable <- tbl(con, "vld_comext_reporter") %>% collect()
 partnertable <- tbl(con, "vld_comext_partner") %>% collect() 
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 
 # Run the application with 
 # shiny::runApp('/home/paul/R/eutradeflows/docs/visualization/timeseries')
 # In Docker, load the application 
 # Hack to disconnect open connections
-# RMySQL::dbDisconnect(RMySQL::dbListConnections(RMySQL::MySQL())[[1]])
+# RMariaDB::dbDisconnect(RMariaDB::dbListConnections(RMariaDB::MariaDB())[[1]])
 # Load data to debug on the server
 # swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
 # chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
@@ -78,28 +78,28 @@ ui <- function(request){
 
 
 #' Load a data frame of trade flows 
-#' @param RMySQLcon MySQL connection 
+#' @param RMariaDBcon MySQL connection 
 #' @param productcode_ character product code
 #' @param periodmin numeric period start
 #' @param periodmax numeric period end
 #' @param flowcode_ numeric flow code (1 for import, 2 for export)
 #' @examples 
 #' if(interactive){
-#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+#' con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 #' # Use full code
 #' swd <- loadvldcomextmonhtly(con, c("44071015", "44071031", "44071033", "44071038", "44071091", "44071093", "44071098"), 201701, 201709)  
 #' chips <- loadvldcomextmonhtly(con, c("44012100", "44012200"), 201701, 201709)  
 #' }
-loadvldcomextmonhtly <- function(RMySQLcon,
+loadvldcomextmonhtly <- function(RMariaDBcon,
                                  productcode_, 
                                  periodmin, 
                                  periodmax,
                                  flowcode_){
-    remote <- tbl(RMySQLcon, "vld_comext_monthly") %>% 
+    remote <- tbl(RMariaDBcon, "vld_comext_monthly") %>% 
         filter(productcode %in% productcode_ & 
                    flowcode == flowcode_ & 
                    period >= periodmin & period<=periodmax) %>% 
-        addproreppar2tbl(RMySQLcon, .) 
+        addproreppar2tbl(RMariaDBcon, .) 
     show_query(remote)
     collect(remote) 
         # # These operations should be performed in the cleaning procedure
@@ -119,7 +119,7 @@ if(FALSE){
     # Gather along period and all codes columns 
     # spread the 
     
-    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
     swd <- tbl(con, "vld_comext_monthly") %>% 
         filter(productcode == "44071098" & 
                    period %in% c(201501L, 201502L)) %>% 
@@ -146,7 +146,7 @@ server <- function(input, output, session) {
     datasetInput <- reactive({
         # Fetch the appropriate data, depending on the value of input$productimm
         con <- dbconnecttradeflows(dbdocker = dbdocker)
-        on.exit(RMySQL::dbDisconnect(con))
+        on.exit(RMariaDB::dbDisconnect(con))
         # Convert imm product name to a vector of product codes
         productselected <- classificationimm %>% 
             filter(productimm %in% input$productimm)

@@ -17,7 +17,7 @@ library(dplyr)
 #  eutradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
 
 ## ----dbConnect-----------------------------------------------------------
-#  con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+#  con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 
 ## ------------------------------------------------------------------------
 #  # transfer raw codes
@@ -31,7 +31,7 @@ library(dplyr)
 #  
 #  # Check the content of codes
 #  # Display the first 6 lines of all validated `vld̀  tables
-#  vldtables <- grep("vld", RMySQL::dbListTables(con), value = TRUE)
+#  vldtables <- grep("vld", RMariaDB::dbListTables(con), value = TRUE)
 #  lapply(vldtables,
 #         function(x){
 #             tbl(con, x) %>% head() %>% collect() %>% kable(caption = x)
@@ -41,5 +41,5 @@ library(dplyr)
 #  tradeflows::cleancomext()
 
 ## ----dbDisconnect--------------------------------------------------------
-#  RMySQL::dbDisconnect(con)
+#  RMariaDB::dbDisconnect(con)
 

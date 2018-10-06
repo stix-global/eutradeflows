@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r dbconnect}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 
@@ -41,7 +41,7 @@ upper and lower bounds on prices separately.
 
 
 ```{r dbDisconnect}
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```
 
 

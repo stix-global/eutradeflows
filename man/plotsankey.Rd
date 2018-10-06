@@ -17,7 +17,7 @@ Plot a sankey diagram, using the D3 library networkD3
 }
 \examples{
 \dontrun{
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 wood <- tbl(con, "vld_comext_monthly") \%>\% 
    filter(productcode ==  44072199 & 
               flowcode == 1 & 

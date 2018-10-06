@@ -46,7 +46,7 @@ eutradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows
 
 ## Connect to the database
 ```{r dbConnect}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 
@@ -66,7 +66,7 @@ cleanallcomextcodes(con)
 
 # Check the content of codes
 # Display the first 6 lines of all validated `vld̀  tables 
-vldtables <- grep("vld", RMySQL::dbListTables(con), value = TRUE)
+vldtables <- grep("vld", RMariaDB::dbListTables(con), value = TRUE)
 lapply(vldtables, 
        function(x){
            tbl(con, x) %>% head() %>% collect() %>% kable(caption = x)
@@ -89,6 +89,6 @@ The cleaning procedure is run each night by a cron job:
 
 ## Disconnect from the database
 ```{r dbDisconnect}
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```
 

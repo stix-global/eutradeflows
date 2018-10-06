@@ -4,7 +4,7 @@
 \alias{loadflows}
 \title{Load trade flows for the given product}
 \usage{
-loadflows(RMySQLcon, productanalysed,
+loadflows(RMariaDBcon, productanalysed,
   periodstart = (as.numeric(format(Sys.time(), "\%Y")) - 3) * 100,
   tableread = "vld_comext_monthly")
 }

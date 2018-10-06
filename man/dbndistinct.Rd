@@ -4,10 +4,10 @@
 \alias{dbndistinct}
 \title{Count the number of distinct rows in a database table for a given variable}
 \usage{
-dbndistinct(RMySQLcon, tablename, variable)
+dbndistinct(RMariaDBcon, tablename, variable)
 }
 \arguments{
-\item{RMySQLcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
+\item{RMariaDBcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
 
 \item{tablename}{character name of a database table}
 
@@ -20,10 +20,10 @@ numeric value
 Count the number of distinct rows in a database table for a given variable
 }
 \examples{
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-on.exit(RMySQL::dbDisconnect(con))
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
+on.exit(RMariaDB::dbDisconnect(con))
 # Transfer the iris data frame to the database
-RMySQL::dbWriteTable(con, "iris_in_db", iris, row.names = FALSE, overwrite = TRUE)
+RMariaDB::dbWriteTable(con, "iris_in_db", iris, row.names = FALSE, overwrite = TRUE)
 # Count the number of species
 dbndistinct(con, "iris_in_db", Species)
 }

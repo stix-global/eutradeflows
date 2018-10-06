@@ -5,12 +5,12 @@
 \alias{addunit2tbl}
 \title{Add product reporter and partner to a tbl object}
 \usage{
-addproreppar2tbl(RMySQLcon, maintbl)
+addproreppar2tbl(RMariaDBcon, maintbl)
 
-addunit2tbl(RMySQLcon, maintbl, tableunit = "vld_comext_unit")
+addunit2tbl(RMariaDBcon, maintbl, tableunit = "vld_comext_unit")
 }
 \arguments{
-\item{RMySQLcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
+\item{RMariaDBcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
 
 \item{maintbl}{tbl containing trade data, with productcode, reportercode and partnercode}
 }
@@ -26,12 +26,12 @@ then removes those which are out dated
 }
 \examples{
 \dontrun{
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 monthly <- tbl(con, "raw_comext_monthly_201707")
 monthly \%>\%
     filter(productcode == 44) \%>\%
     addproreppar2tbl(con, .) \%>\%
     collect()
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 }
 }

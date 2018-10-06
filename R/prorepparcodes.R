@@ -2,7 +2,7 @@
 #'
 #' Takes a raw codes table from comext, select codes which have the most
 #' recent \code{datestart} and make sure they are unique.
-#' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
+#' @param RMariaDBcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
 #' @param tableread character name of the table to read from
 #' @param tablewrite character name of the table to write to
 #' @param codevariable unquoted code variable (à la dplyr verbs)
@@ -10,10 +10,10 @@
 #' The output is actually a database table containing the cleaned codes.
 #' @examples \dontrun{ # Clean product and country codes
 #' # Connect to the database
-#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+#' con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 #' # Write dummy codes to the database table "raw_code"
 #' raw_code <- data.frame(code = c(4L, 4L), datestart = c(1L, 2L))
-#' RMySQL::dbWriteTable(con, "raw_code", raw_code, row.names = FALSE, overwrite = TRUE)
+#' RMariaDB::dbWriteTable(con, "raw_code", raw_code, row.names = FALSE, overwrite = TRUE)
 #' # Clean the codes and write them to the database table "vld_code" (for validated code)
 #' cleancode(con, tableread = "raw_code", tablewrite = "vld_code", codevariable = "code")
 #'
@@ -25,40 +25,40 @@
 #' # Clean comext product, reporter and partner codes
 #' cleanallcomextcodes(con)
 #' # Disconnect from the database
-#' RMySQL::dbDisconnect(con)
+#' RMariaDB::dbDisconnect(con)
 #' }
 #' @export
-cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
+cleancode <- function(RMariaDBcon, tableread, tablewrite, codevariable){
     # Implementation based on the "programming with dplyr" vignette
     # https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
     codevariable <- enquo(codevariable)
     
     # Check if output fields are in input fields
-    inputfields <- RMySQL::dbListFields(RMySQLcon, tableread)
-    outputfields <- RMySQL::dbListFields(RMySQLcon, tablewrite)
+    inputfields <- RMariaDB::dbListFields(RMariaDBcon, tableread)
+    outputfields <- RMariaDB::dbListFields(RMariaDBcon, tablewrite)
     stopifnot(outputfields %in% inputfields)
     
-    # This function cannot use  RMySQL::dbWriteTable with overwrite = TRUE
+    # This function cannot use  RMariaDB::dbWriteTable with overwrite = TRUE
     # because this would also overwrites the field types and indexes.
     # dbWriteTable chooses default types that are not optimal,
     # for example, it changes date fields to text fields.
-    # Therefore use RMySQL::dbWriteTable with append = TRUE,
+    # Therefore use RMariaDB::dbWriteTable with append = TRUE,
     # but first check if the table is empty
     # and if it is not empty, ask to recreate the database
     # structure with empty tables.
     # Check if the output table is empty
-    res <- RMySQL::dbSendQuery(RMySQLcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
-    sqltable <- RMySQL::dbFetch(res)
-    RMySQL::dbClearResult(res)
+    res <- RMariaDB::dbSendQuery(RMariaDBcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
+    sqltable <- RMariaDB::dbFetch(res)
+    RMariaDB::dbClearResult(res)
     if(sqltable$nrow > 0){
         stop("Table ", tablewrite, " is not empty.",
              "You can recreate an empty table structure with:\n",
              sprintf("createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
-                     RMySQL::dbGetInfo(RMySQLcon)$dbname))
+                     RMariaDB::dbGetInfo(RMariaDBcon)$dbname))
     }
     
     # load all codes  
-    rawcode <- tbl(RMySQLcon, tableread) %>%
+    rawcode <- tbl(RMariaDBcon, tableread) %>%
         collect() 
     vldcode <- rawcode %>%
         group_by(!!codevariable) %>%
@@ -86,29 +86,29 @@ cleancode <- function(RMySQLcon, tableread, tablewrite, codevariable){
    
 
     # Write back to the database
-    RMySQL::dbWriteTable(RMySQLcon, tablewrite, vldcode,
+    RMariaDB::dbWriteTable(RMariaDBcon, tablewrite, vldcode,
                          row.names = FALSE, append = TRUE)
 }
 
 
 #' @rdname cleancode
 #' @export
-cleanunit <- function(RMySQLcon, 
+cleanunit <- function(RMariaDBcon, 
                       tableread = "raw_comext_unit",
                       tablewrite = "vld_comext_unit"){
     # Check if the output table is empty
-    res <- RMySQL::dbSendQuery(RMySQLcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
-    sqltable <- RMySQL::dbFetch(res)
-    RMySQL::dbClearResult(res)
+    res <- RMariaDB::dbSendQuery(RMariaDBcon, sprintf("SELECT COUNT(*) as nrow FROM %s;",tablewrite))
+    sqltable <- RMariaDB::dbFetch(res)
+    RMariaDB::dbClearResult(res)
     if(sqltable$nrow > 0){
         stop("Table ", tablewrite, " is not empty.",
              "You can recreate an empty table structure with:\n",
              sprintf("createdbstructure(sqlfile = 'vld_comext.sql', dbname = '%s')",
-                     RMySQL::dbGetInfo(RMySQLcon)$dbname))
+                     RMariaDB::dbGetInfo(RMariaDBcon)$dbname))
     }
     
     # Load raw units 
-    rawunits <- tbl(RMySQLcon, tableread) %>%
+    rawunits <- tbl(RMariaDBcon, tableread) %>%
         collect() 
     
     # Change start and end dates to a period in month
@@ -118,7 +118,7 @@ cleanunit <- function(RMySQLcon,
         select(-datestart, -dateend)
     
     # Write back to the database
-    RMySQL::dbWriteTable(RMySQLcon, tablewrite, vldunits,
+    RMariaDB::dbWriteTable(RMariaDBcon, tablewrite, vldunits,
                          row.names = FALSE, append = TRUE)
 }
 
@@ -130,28 +130,28 @@ cleanunit <- function(RMySQLcon,
 #'
 #' @rdname cleancode
 #' @export
-cleanallcomextcodes <- function(RMySQLcon){
+cleanallcomextcodes <- function(RMariaDBcon){
     createdbstructure(sqlfile = "vld_comext.sql",
                       # extract db name from the RMySQL connection object
-                      dbname = RMySQL::dbGetInfo(RMySQLcon)$dbname)
+                      dbname = RMariaDB::dbGetInfo(RMariaDBcon)$dbname)
     message("Cleaning product, reporter and partner codes...")
-    cleancode(RMySQLcon, "raw_comext_product", "vld_comext_product", productcode)
-    cleancode(RMySQLcon, "raw_comext_reporter", "vld_comext_reporter", reportercode)
-    cleancode(RMySQLcon, "raw_comext_partner", "vld_comext_partner", partnercode)
+    cleancode(RMariaDBcon, "raw_comext_product", "vld_comext_product", productcode)
+    cleancode(RMariaDBcon, "raw_comext_reporter", "vld_comext_reporter", reportercode)
+    cleancode(RMariaDBcon, "raw_comext_partner", "vld_comext_partner", partnercode)
     message("Cleaning unit codes...")
-    cleancode(RMySQLcon, "raw_comext_unit_description", 
+    cleancode(RMariaDBcon, "raw_comext_unit_description", 
               "vld_comext_unit_description", unitcode)
-    cleanunit(RMySQLcon)
+    cleanunit(RMariaDBcon)
     
     # Diagnostics
     # Display row count information
     # based on https://stackoverflow.com/a/1775272/2641825
-    res <- RMySQL::dbSendQuery(RMySQLcon, "SELECT
+    res <- RMariaDB::dbSendQuery(RMariaDBcon, "SELECT
                                (SELECT COUNT(*) FROM   vld_comext_product)  AS product,
                                (SELECT COUNT(*) FROM   vld_comext_reporter) AS reporter,
                                (SELECT COUNT(*) FROM   vld_comext_partner)  AS partner")
-    nrows <- RMySQL::dbFetch(res)
-    RMySQL::dbClearResult(res)
+    nrows <- RMariaDB::dbFetch(res)
+    RMariaDB::dbClearResult(res)
     message("Transfered:\n",
             nrows$product, " rows to the vld_comext_product table\n",
             nrows$reporter, " rows to the vld_comext_reporter table\n",
@@ -161,25 +161,25 @@ cleanallcomextcodes <- function(RMySQLcon){
 
 #' Add product reporter and partner to a tbl object
 #' @return a tbl object left joined to the product, reporter and partner tables.
-#' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
+#' @param RMariaDBcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
 #' @param maintbl tbl containing trade data, with productcode, reportercode and partnercode
 #' @examples \dontrun{
-#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+#' con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 #' monthly <- tbl(con, "raw_comext_monthly_201707")
 #' monthly %>%
 #'     filter(productcode == 44) %>%
 #'     addproreppar2tbl(con, .) %>%
 #'     collect()
-#' RMySQL::dbDisconnect(con)
+#' RMariaDB::dbDisconnect(con)
 #' }
 #' @export
-addproreppar2tbl <- function(RMySQLcon, maintbl){
+addproreppar2tbl <- function(RMariaDBcon, maintbl){
     maintbl %>%
-        left_join(tbl(RMySQLcon, "vld_comext_product"),
+        left_join(tbl(RMariaDBcon, "vld_comext_product"),
                   by = "productcode") %>%
-        left_join(tbl(RMySQLcon, "vld_comext_reporter"),
+        left_join(tbl(RMariaDBcon, "vld_comext_reporter"),
                   by = "reportercode") %>%
-        left_join(tbl(RMySQLcon, "vld_comext_partner"),
+        left_join(tbl(RMariaDBcon, "vld_comext_partner"),
                   by = "partnercode")
 }
 
@@ -188,10 +188,10 @@ addproreppar2tbl <- function(RMySQLcon, maintbl){
 #' then removes those which are out dated
 #' @rdname addproreppar2tbl
 #' @export
-addunit2tbl <- function(RMySQLcon, maintbl, 
+addunit2tbl <- function(RMariaDBcon, maintbl, 
                         tableunit = "vld_comext_unit"){
     maintbl2 <- maintbl %>% 
-        left_join(tbl(RMySQLcon, tableunit),
+        left_join(tbl(RMariaDBcon, tableunit),
                   by = "productcode") %>% 
         filter((periodstart <= period & period <= periodend) | is.na(unitcode)) %>% 
         # Remove unnecessary columns
@@ -215,21 +215,21 @@ addunit2tbl <- function(RMySQLcon, maintbl,
 
 
 #' Count the number of distinct rows in a database table for a given variable
-#' @param RMySQLcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
+#' @param RMariaDBcon database connection object created by RMySQL \code{\link[DBI]{dbConnect}}
 #' @param tablename character name of a database table 
 #' @param variable character name of a variable in that database table
 #' @return numeric value
 #' @examples 
-#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-#' on.exit(RMySQL::dbDisconnect(con))
+#' con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
+#' on.exit(RMariaDB::dbDisconnect(con))
 #' # Transfer the iris data frame to the database
-#' RMySQL::dbWriteTable(con, "iris_in_db", iris, row.names = FALSE, overwrite = TRUE)
+#' RMariaDB::dbWriteTable(con, "iris_in_db", iris, row.names = FALSE, overwrite = TRUE)
 #' # Count the number of species
 #' dbndistinct(con, "iris_in_db", Species)
 #' @export
-dbndistinct <- function(RMySQLcon, tablename, variable){
+dbndistinct <- function(RMariaDBcon, tablename, variable){
     variable <- enquo(variable)
-    dtf <- tbl(RMySQLcon, tablename) %>% 
+    dtf <- tbl(RMariaDBcon, tablename) %>% 
         distinct(!!variable) %>% 
         summarise(n = n()) %>% 
         collect() 

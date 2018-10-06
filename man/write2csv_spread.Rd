@@ -33,12 +33,12 @@ Long descriptions are truncated.
 }
 \examples{
 \dontrun{ # Clean product and country codes
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 csvfile <- tempfile(fileext = ".csv")
 loadflows(con, productanalysed = "44071190", periodstart = 201700, 
           tableread = "vld_comext_monthly") \%>\% 
     write2csv_spread(csvfile)
 readLines(csvfile,5) # Check the first lines of the csv file
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 }
 }

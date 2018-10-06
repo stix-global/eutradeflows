@@ -15,7 +15,7 @@ library(eutradeflows)
 
 knitr::opts_chunk$set(echo = TRUE)
 
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 # Dump

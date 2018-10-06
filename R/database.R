@@ -14,7 +14,7 @@ dbconnecttradeflows <- function(dbdocker, dbname = "tradeflows"){
         return(eutradeflows::dbconnectdocker())
     } else {  
         # Return a connection to local database.
-        return(RMySQL::dbConnect(RMySQL::MySQL(), dbname = dbname))
+        return(RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = dbname))
     }
 }
 

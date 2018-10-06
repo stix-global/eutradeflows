@@ -14,7 +14,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 # Connect to the database
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 
@@ -214,7 +214,7 @@ message("Add cleanallcomextcodes(con) to the cleancomext function")
 # On the server (make this into a function)
 if(FALSE){
     # 
-    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
     tableread <- "vld_comext_monthly"
     vld <- tbl(con, tableread) %>%
         distinct(productcode) %>% collect()
@@ -335,6 +335,6 @@ dtfr %>%
 
 
 ```{r disconnectfromDB}
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```
 

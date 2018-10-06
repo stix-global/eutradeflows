@@ -6,15 +6,15 @@
 \alias{cleanallcomextcodes}
 \title{Extract a list of unique, most recent product, reporter and partner codes from Comext}
 \usage{
-cleancode(RMySQLcon, tableread, tablewrite, codevariable)
+cleancode(RMariaDBcon, tableread, tablewrite, codevariable)
 
-cleanunit(RMySQLcon, tableread = "raw_comext_unit",
+cleanunit(RMariaDBcon, tableread = "raw_comext_unit",
   tablewrite = "vld_comext_unit")
 
-cleanallcomextcodes(RMySQLcon)
+cleanallcomextcodes(RMariaDBcon)
 }
 \arguments{
-\item{RMySQLcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
+\item{RMariaDBcon}{database connection object created by RMySQL \code{\link[DBI]{dbConnect}}}
 
 \item{tableread}{character name of the table to read from}
 
@@ -38,10 +38,10 @@ It is a porcelaine function based on the plumbing function \code{cleancode}.
 \examples{
 \dontrun{ # Clean product and country codes
 # Connect to the database
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 # Write dummy codes to the database table "raw_code"
 raw_code <- data.frame(code = c(4L, 4L), datestart = c(1L, 2L))
-RMySQL::dbWriteTable(con, "raw_code", raw_code, row.names = FALSE, overwrite = TRUE)
+RMariaDB::dbWriteTable(con, "raw_code", raw_code, row.names = FALSE, overwrite = TRUE)
 # Clean the codes and write them to the database table "vld_code" (for validated code)
 cleancode(con, tableread = "raw_code", tablewrite = "vld_code", codevariable = "code")
 
@@ -53,6 +53,6 @@ tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeh
 # Clean comext product, reporter and partner codes
 cleanallcomextcodes(con)
 # Disconnect from the database
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 }
 }

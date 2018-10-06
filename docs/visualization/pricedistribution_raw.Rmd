@@ -36,7 +36,7 @@ library(ggplot2)
 
 Connect to the database.
 ```{r dbConnect}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 # Introduction
@@ -319,5 +319,5 @@ wpm %>%
 
 Disconnect from the database.
 ```{r dbDisconnect}
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```

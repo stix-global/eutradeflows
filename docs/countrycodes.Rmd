@@ -29,7 +29,7 @@ nrow(partnertxt)
 
 # Load raw codes from the database 
 ```{r loadproductsfromdb}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 if(FALSE){ # If raw codes are not present, transfer them
     tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
 }
@@ -50,9 +50,9 @@ reporter %>%
 try(cleancode(con, "raw_comext_reporter", "vld_comext_reporter", reportercode))
 # dtf has 29 observations inside the cleancode function in breakpoint mode
 # nrows in the database
-res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_reporter")
-sqltable <- RMySQL::dbFetch(res)
-RMySQL::dbClearResult(res)
+res <- RMariaDB::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_reporter")
+sqltable <- RMariaDB::dbFetch(res)
+RMariaDB::dbClearResult(res)
 sqltable$nrow
 
 
@@ -63,9 +63,9 @@ sqltable$nrow
 try(cleancode(con, "raw_comext_partner", "vld_comext_partner", partnercode))
 # dtf has 295 observation inside the cleancode function in breakpoint mode
 # nrows in the database
-res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_partner")
-sqltable <- RMySQL::dbFetch(res)
-RMySQL::dbClearResult(res)
+res <- RMariaDB::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_partner")
+sqltable <- RMariaDB::dbFetch(res)
+RMariaDB::dbClearResult(res)
 sqltable$nrow
 ```
 

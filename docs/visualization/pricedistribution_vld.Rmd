@@ -34,7 +34,7 @@ library(tidyr)
 library(ggplot2)
 
 # Connect to the database.
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 

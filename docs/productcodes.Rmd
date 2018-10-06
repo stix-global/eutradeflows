@@ -32,9 +32,9 @@ if(FALSE){ # If codes are not present, transfer them
     # create empty database structure for validated codes
     createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'test')
     # transfer raw codes
-    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
     tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
-    RMySQL::dbDisconnect(con)
+    RMariaDB::dbDisconnect(con)
 }
 ```
 
@@ -42,11 +42,11 @@ if(FALSE){ # If codes are not present, transfer them
 # Explore raw product codes 
 ## Load raw product codes in a data frame
 ```{r loadproductsfromdb}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 
 # Load all products in a dataframe
 allproducts <- tbl(con, "raw_comext_product") %>% collect()
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 
 # Keep wood products only
 wp <- allproducts %>% 
@@ -114,9 +114,9 @@ No there are 8 rows in which this is not the case.
 ## cleanallcomextcodes function
 ```{r}
 # See chunks above to add raw products to the database if they are missing
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 try(cleanallcomextcodes(con))
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```
 
 
@@ -128,7 +128,7 @@ library(tradeflows)
 # Update the database structures for raw and validated data
 createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
 createdbstructure(sqlfile = "vld_comext.sql", dbname = "tradeflows")
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # Transfer raw codes from the files to the database
 tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201707/text/english/")
 # Clean codes
@@ -157,7 +157,7 @@ transfer7zfolder2db(con,
 ## Clean product codes function
 ```{r}
 # See steps above to recreate the database if needed
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 try(cleancode(con, "raw_comext_product", "vld_comext_product", productcode))
 
 # In debug mode inside the cleancode function,
@@ -170,12 +170,12 @@ try(cleancode(con, "raw_comext_product", "vld_comext_product", productcode))
 # Are there no duplicates?
 
 # number of rows
-res <- RMySQL::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_product")
-sqltable <- RMySQL::dbFetch(res)
-RMySQL::dbClearResult(res)
+res <- RMariaDB::dbSendQuery(con, "SELECT COUNT(*) as nrow FROM vld_comext_product")
+sqltable <- RMariaDB::dbFetch(res)
+RMariaDB::dbClearResult(res)
 sqltable$nrow
 
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 
 ```
 
@@ -228,7 +228,7 @@ periods <- c("201201", "201207", "201206", "201412")
 # Add information 
 ## Merge with dplyr::left_join
 ```{r}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 # tables
 product <- tbl(con, "vld_comext_product")
 reporter <- tbl(con, "vld_comext_reporter")
@@ -241,13 +241,13 @@ if(FALSE){
     # Run this in a separate R session, the transfer will take several minutes
     library(tradeharvester)
     setwd("~/R/tradeharvester")
-    con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
     transfer7zfolder2db(con,
                         rawdatacomextfolder = "data-raw/comext/201707/data",
                         productcodestart = c(44, 94),
                         tablename = "raw_comext_monthly_201707",
                         tabletemplate = "raw_comext_monthly")
-    RMySQL::dbDisconnect(con)
+    RMariaDB::dbDisconnect(con)
 }
 
 
@@ -267,14 +267,14 @@ query %>% explain()
 dtf <- query %>% collect()
 dtf %>% head %>% kable()
 
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 
 ```
 
 
 ### Use the function addproreppar2tbl
 ```{r}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 monthly <- tbl(con, "raw_comext_monthly_201707")
 m44 <-monthly %>%
     filter(productcode == 44) %>%
@@ -335,9 +335,9 @@ WHERE  m.productcode = 44
 # Issues
 ### 20170816 cleancodes function debugging before the change of productcodes to a character variable
 ```{r eval=FALSE}
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
-inputfields <- RMySQL::dbListFields(con,"raw_comext_product")
-outputfields <- RMySQL::dbListFields(con,"vld_comext_product")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
+inputfields <- RMariaDB::dbListFields(con,"raw_comext_product")
+outputfields <- RMariaDB::dbListFields(con,"vld_comext_product")
 # validated fields should exist in the raw table
 stopifnot(outputfields %in% inputfields)
 
@@ -349,7 +349,7 @@ cleancode(con, "raw_comext_product", "vld_comext_product", productcode)
 
 # Load all products in a dataframe
 allproducts <- tbl(con, "raw_comext_product") %>% collect()
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 
 
 # Select output fields
@@ -510,7 +510,7 @@ valcn4707$productdescription[valcn4707$productcode==47073090]
 # Explore product codes
 ```{r}
 # In the tradeflows database, where most of the real data is located
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows") 
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows") 
 
 
 # Get a vector of products available in the database
@@ -542,7 +542,7 @@ dtfr %>%
     arrange(desc(n))
 # There are 304 product codes at the 4 digit level.
 
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```
 
 

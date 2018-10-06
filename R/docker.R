@@ -28,7 +28,7 @@ dbconnectdocker <- function(dbname = "tradeflows",
    } else {
        password <- Sys.getenv(envpassword)
    }
-    con <- RMySQL::dbConnect(RMySQL::MySQL(), 
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), 
                              dbname = dbname,
                              username = Sys.getenv(envuser),
                              password = password,

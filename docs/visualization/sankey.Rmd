@@ -46,7 +46,7 @@ there is no code variable in the nodes table
 # Gerating sankey diagram for one product
 ```{r}
 library(eutradeflows)
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # Raw Eurostat Comext data
 wood <- tbl(con, "vld_comext_monthly") %>% 
     filter(productcode ==  44072199 & 

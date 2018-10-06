@@ -26,7 +26,7 @@ productselected <- classificationimm %>% filter(productimm %in% productimm_)
 productselected <- as.character(productselected$productcode)
 tableread <- "vld_comext_monthly"
 periodstart <- 200000
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # swd <- eutradeflows::loadflows(con, 440799, periodstart = 200000)
 swd <- tbl(con, tableread) %>%
     filter(productcode %in% productselected &
@@ -122,7 +122,7 @@ productselected <- classificationimm %>% filter(productimm %in% productimm_)
 productselected <- as.character(productselected$productcode)
 tableread <- "vld_comext_monthly"
 periodstart <- 200000
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # swd <- eutradeflows::loadflows(con, 440799, periodstart = 200000)
 swd <- tbl(con, tableread) %>%
     filter(productcode %in% productselected &

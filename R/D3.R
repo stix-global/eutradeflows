@@ -49,7 +49,7 @@ preparesankeynodes <- function(dtf, reporter, partner, debugname = FALSE){
 #' @param value the value to be displayed in the sankey diagram, a column 
 #' in linksandnodes$links
 #' @examples \dontrun{
-#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+#' con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 #' wood <- tbl(con, "vld_comext_monthly") %>% 
 #'    filter(productcode ==  44072199 & 
 #'               flowcode == 1 & 

@@ -8,7 +8,7 @@ output:
 ```{r databasetableanalysed, echo=FALSE}
 # Comment out to pass tableanalysed as a parameter in the parent environment
 tableanalysed = 'raw_comext_monthly_201708' 
-con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "tradeflows")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 ---
 title: "Count rows in the database table `r tableanalysed`"
@@ -187,6 +187,6 @@ ggplot(perprospecial, aes(x = period, y = n)) +
 
 
 ```{r dbDisconnect}
-RMySQL::dbDisconnect(con)
+RMariaDB::dbDisconnect(con)
 ```
 

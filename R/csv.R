@@ -1,11 +1,11 @@
 #' Load trade flows for the given product
 #' @rdname write2csv
 #' @export
-loadflows <- function(RMySQLcon, productanalysed,
+loadflows <- function(RMariaDBcon, productanalysed,
                       periodstart = (as.numeric(format(Sys.time(), "%Y")) - 3) * 100, 
                       tableread = "vld_comext_monthly"){
     productpattern <- paste0(productanalysed, "%")
-    dtf <- tbl(RMySQLcon, tableread) %>%
+    dtf <- tbl(RMariaDBcon, tableread) %>%
         filter(productcode %like% productpattern &
                    period > periodstart) %>% 
         addproreppar2tbl(con,.) %>% 
@@ -51,13 +51,13 @@ formatflows <- function(dtf){
 #' @param dtf a data frame containing validated trade flows 
 #' @param csvfile character path to a csv file
 #' @examples \dontrun{ # Clean product and country codes
-#' con <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = "test")
+#' con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 #' csvfile <- tempfile(fileext = ".csv")
 #' loadflows(con, productanalysed = "44071190", periodstart = 201700, 
 #'           tableread = "vld_comext_monthly") %>% 
 #'     write2csv_spread(csvfile)
 #' readLines(csvfile,5) # Check the first lines of the csv file
-#' RMySQL::dbDisconnect(con)
+#' RMariaDB::dbDisconnect(con)
 #' }
 #' @return The input data frame invisibly
 #' @export
