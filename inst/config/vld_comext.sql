@@ -111,7 +111,6 @@ CREATE TABLE `vld_comext_monthly_template` (
   `unitcode` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
   `flowcode` int DEFAULT NULL,
   `statregime` int DEFAULT NULL,
-  `unitcode`  varchar(1) DEFAULT NULL,
   `period` int DEFAULT NULL,
   `flag` int DEFAULT NULL,
   `tradevalue` double DEFAULT NULL,
