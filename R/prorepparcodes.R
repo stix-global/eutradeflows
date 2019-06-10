@@ -60,6 +60,14 @@ cleancode <- function(RMariaDBcon, tableread, tablewrite, codevariable){
     # load all codes  
     rawcode <- tbl(RMariaDBcon, tableread) %>%
         collect() 
+    
+    # Fix issue 5
+    # "Not determined" is a slightly better qualifier of the absence of partner,
+    # remove "No data" from the raw table.
+    if("partner" %in% names(rawcode) & sum(rawcode$partnercode==0)>1){
+        rawcode <- rawcode[rawcode$partner!="No data",]
+    }
+    
     vldcode <- rawcode %>%
         group_by(!!codevariable) %>%
         # keep only the most recent codes

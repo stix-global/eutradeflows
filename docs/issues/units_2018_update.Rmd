@@ -1,0 +1,73 @@
+---
+title: "Missing_Data"
+author: "Paul Rougieux"
+date: "18 March 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(eutradeflows)
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+# Introduction
+
+See also the same file in the tradeflows package. 
+
+
+# Issue 5 
+[eutradeflows issue 5](https://github.com/stix-global/eutradeflows/issues/5)
+"The number of distinct rows for all columns should be equal to the number of distinct codes in the raw dataset"
+
+
+```{r}
+# Recreate the validated database structure
+createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
+message("Cleaning product, reporter and partner codes...")
+cleancode(con, "raw_comext_product", "vld_comext_product", productcode)
+cleancode(con, "raw_comext_reporter", "vld_comext_reporter", reportercode)
+message("The issue is with the partner code cleaning")
+cleancode(con, "raw_comext_partner", "vld_comext_partner", partnercode)
+
+message("Cleaning unit codes...")
+cleancode(con, "raw_comext_unit_description", "vld_comext_unit_description", unitcode)
+```
+
+A break point placed in prorepparcodes.R in the `cleancode()` function
+shows that this error is due to the fact that code 0 can represent both 
+"no data"" and "not determined":
+```
+vldcode %>% filter(partnercode == 0)
+# A tibble: 2 x 2
+# Groups:   partnercode [1]
+  partnercode partner       
+        <int> <chr>         
+1           0 No data       
+2           0 Not determined
+```
+"Not determined" is a slightly better qualifier of the absence of partner,
+remove "No data" from the raw table.
+If "partner" is in the column name and partnercode==0 is duplicated, 
+then remove the "No data" from the partner.
+```
+if("partner" %in% names(rawcode) & sum(rawcode$partnercode==0)>1){
+    rawcode <- rawcode[rawcode$partner!="No data",]
+}
+```
+
+
+
+# modify the add unit function
+
+```{r}
+productanalysed <- "44071091"
+dtfr <- tbl(con, "raw_comext_monthly") %>%
+    filter(productcode == productanalysed) %>%
+    collect()
+    eutradeflows::addunit2tbl(RMariaDBcon,
+                              maintbl = .,
+                              tableunit = tableunit)  
+```
+
