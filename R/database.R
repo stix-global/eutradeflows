@@ -93,6 +93,7 @@ createdbstructure <- function(sqlfile,
 #' @examples \dontrun{ # Dump a database table
 #' dumptable("tradeflows", "raw_comext_monthly_201709")
 #' }
+#' @seealso \code{\link{loadtabledump}}
 #' @export
 dumptable <- function(databasename, tablename, 
                       dumpfolder = "/mnt/sdb/data-raw/sqldump/"){
@@ -113,6 +114,7 @@ dumptable <- function(databasename, tablename,
 #' This function uses shell utilities to load a sql dump into the database. 
 #' @param databasename character name of the database
 #' @param dumpfile character path to a dumpfile
+#' @seealso \code{\link{dumptable}}
 #' @export
 loadtabledump <- function(databasename, dumpfile){
     bashcommand <- sprintf("7zr e -so %s |mysql %s",
