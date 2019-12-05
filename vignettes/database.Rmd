@@ -16,11 +16,17 @@ output:
 # This vignette should be edited in the /vignettes folder
 # Documentation on how to build vignettes in http://r-pkgs.had.co.nz/vignettes.html
 # To build this vignette run 
-devtools::build_vignettes()
+#devtools::build_vignettes()
 devtools::build(vignettes = TRUE)
-# Then rebuild the package CTRL+SHIFT+B so that the vignette is 
-# integrated to the package documentation
-# Maybe also run check?
+# This will generate  "/home/paul/rp/eutradeflows_0.0.1.tar.gz"
+# Then in stall this source package in the bash shell:
+# R CMD INSTALL /home/paul/rp/eutradeflows_0.0.1.tar.gz
+# Then the vignette appears in the main help page for the package.
+#
+# The vignettes don't appear in the main help page for the package.
+# when rebuilding the package CTRL+SHIFT+B in RSTUDIO
+# CTRL+SHIFT+B used to integrate the vignette to the package documentation
+# Why doesn't it work anymore? 
 ```
 
 
