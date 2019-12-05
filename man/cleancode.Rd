@@ -8,8 +8,11 @@
 \usage{
 cleancode(RMariaDBcon, tableread, tablewrite, codevariable)
 
-cleanunit(RMariaDBcon, tableread = "raw_comext_unit",
-  tablewrite = "vld_comext_unit")
+cleanunit(
+  RMariaDBcon,
+  tableread = "raw_comext_unit",
+  tablewrite = "vld_comext_unit"
+)
 
 cleanallcomextcodes(RMariaDBcon)
 }
@@ -48,7 +51,8 @@ cleancode(con, tableread = "raw_code", tablewrite = "vld_code", codevariable = "
 # Comext codes
 if(FALSE){ # If raw codes are not present, transfer them
 createdbstructure(sqlfile = "raw_comext.sql", dbname = "test")
-tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+tradeharvester::transfertxtcodesfolder2db(con, 
+    rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
 }
 # Clean comext product, reporter and partner codes
 cleanallcomextcodes(con)

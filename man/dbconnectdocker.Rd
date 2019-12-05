@@ -4,9 +4,13 @@
 \alias{dbconnectdocker}
 \title{Open a RMySQL database connection inside a docker container}
 \usage{
-dbconnectdocker(dbname = "tradeflows", envuser = "HARVESTER_DB_USER",
-  envpassword = "HARVESTER_DB_PASSWORD", envhost = "HARVESTER_DB_HOST",
-  envport = "HARVESTER_DB_PORT")
+dbconnectdocker(
+  dbname = "tradeflows",
+  envuser = "HARVESTER_DB_USER",
+  envpassword = "HARVESTER_DB_PASSWORD",
+  envhost = "HARVESTER_DB_HOST",
+  envport = "HARVESTER_DB_PORT"
+)
 }
 \arguments{
 \item{envuser}{name of the environment variable that contains the user name}

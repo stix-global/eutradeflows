@@ -1,0 +1,143 @@
+---
+title: "Create a database to contain Comext data"
+author: "Paul Rougieux"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Create a database to contain Comext data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+output:
+  knitr:::html_vignette:
+    toc: yes
+---
+
+
+```{r buildvignette, eval=FALSE, echo=FALSE}
+# This vignette should be edited in the /vignettes folder
+# Documentation on how to build vignettes in http://r-pkgs.had.co.nz/vignettes.html
+# To build this vignette run 
+devtools::build_vignettes()
+devtools::build(vignettes = TRUE)
+# Then rebuild the package CTRL+SHIFT+B so that the vignette is 
+# integrated to the package documentation
+# Maybe also run check?
+```
+
+
+```{r setup, warning=FALSE, message=FALSE}
+library(knitr)
+# Do not evaluate code chunks below, only display code
+opts_chunk$set(eval=FALSE) 
+library(dplyr)
+```
+
+
+## Install a MariaDB database server and client
+
+Install mariadb server and client on Debian
+```
+sudo apt installmariadb-server
+sudo apt install libmariadbclient-dev
+```
+
+Make sure the tradeflows package is also installed. 
+It contains the database configuration in inst/config/databaseconfig.R
+Note: this should probably be changed to environment variables. 
+
+
+## Create a database
+
+In bash enter the following commands:
+```
+sudo mariadb
+```
+Then at the MariaDB prompt:
+```
+CREATE USER 'R'@'localhost' IDENTIFIED BY 'localhost';
+CREATE USER paul@localhost;
+create database tradeflows;
+connect tradeflows;
+GRANT ALL PRIVILEGES ON tradeflows. * TO R@localhost;
+GRANT ALL PRIVILEGES ON tradeflows. * TO paul@localhost;
+quit
+```
+
+## Create a database structure
+Recreating the empty database structure:
+
+* will not erase the main  raw and validated data. 
+ Because only templates are created. 
+* it will erase all complementary raw tables raw_comext_partner, raw_comext_product, raw_comext_reporter, raw_comext_unit, raw_comext_unit_description
+* and it will erase all complementary validated tables vld_comext_partner, vld_comext_price, vld_comext_priceconversion , vld_comext_pricew , vld_comext_product, vld_comext_reporter, vld_comext_unit, vld_comext_unit_description
+
+```{r}
+# create emtpty database structure for raw codes
+eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
+# create empty database structure for validated codes
+eutradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
+```
+
+## Load table dumps into the database structure
+
+```{r}
+if(FALSE){
+    path <- '/tmp/comext_sql_dump/'
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_monthly.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_monthly_template.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_partner.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_product.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_reporter.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_unit_description.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_unit.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_comext_yearly_template.sql.7z'))
+    eutradeflows::loadtabledump('tradeflows', file.path(path,'raw_flow_yearly.sql.7z'))
+}
+```
+
+## harvest metadata
+The issue was that the metadata was empty for the countries.
+There was metadata for products however. 
+
+```{r}
+if(FALSE){
+    data_raw_path <- "/tmp/data-raw"
+    # Connect to the database
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+    eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows') 
+    tradeharveseter::harvestcomextmetadata(con, data_raw_path)
+
+    # Issues with partner code lead me to load them separately not needed if everything works well
+    # Write partner codes to the database
+    # tradeharvester::writetxtcodes2db(con, "raw_comext_partner",
+    #                                  file.path(data_raw_path, 
+    #                                            "/comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/ENGLISH/PARTNERS.txt"),
+    #                                  columnnames = c("partnercode", "datestart", "dateend",
+    #                                                  "partner", "datestart2", "dateend2"))
+    # Disconnect from the database
+    RMariaDB::dbDisconnect(con)
+}
+```
+
+## Clean comext codes
+
+```{r}
+if(FALSE){
+    # Conect to the DB
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+    # Extract unique match between each code and their most recent description
+    # Note: the raw data contains repeated codes because the description changes over time. 
+    eutradeflows::cleanallcomextcodes(con)
+    # Check for the presence of codes 
+    reporter <- tbl(con, "vld_comext_reporter") %>% collect()    
+    partner <- tbl(con, 'vld_comext_partner') %>% collect()
+    product <- tbl(con, 'vld_comext_product') %>% collect()
+    unit <- tbl(con, 'vld_comext_unit') %>% collect()
+    unit_description <- tbl(con, 'vld_comext_unit_description') %>% collect()
+    # Disconnect from the DB 
+    RMariaDB::dbDisconnect(con)
+}
+```
+
+
+## Clean data
+See the other vignette on the [cleaning procedure](clean.html).

@@ -4,8 +4,7 @@
 \alias{dumptable}
 \title{Copy the content of a database table to a compressed SQL dump file}
 \usage{
-dumptable(databasename, tablename,
-  dumpfolder = "/mnt/sdb/data-raw/sqldump/")
+dumptable(databasename, tablename, dumpfolder = "/mnt/sdb/data-raw/sqldump/")
 }
 \arguments{
 \item{databasename}{character name of the database}

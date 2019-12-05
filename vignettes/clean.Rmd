@@ -13,6 +13,8 @@ output:
 
 
 ```{r buildvignette, eval=FALSE, echo=FALSE}
+# This vignette should be edited in the vignettes/ folder
+# Documentation on how to build vignettes in http://r-pkgs.had.co.nz/vignettes.html
 # To build this vignette run 
 devtools::build_vignettes()
 # Then rebuild the package CTRL+SHIFT+B so that the vignette is 

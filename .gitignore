@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 *.html
+!doc/*.html
 !inst/doc/*.html
 *.log
 *.png
@@ -19,3 +20,5 @@
 *.toc
 *.ods#
 *.csv#
+doc
+Meta
