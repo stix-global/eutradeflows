@@ -77,15 +77,32 @@ cleancode <- function(RMariaDBcon, tableread, tablewrite, codevariable){
         # remove duplicates
         unique()
     
-    # Operations that are not generic 
+    # Operations that are not generic
+    # 
+    # Modifications specific to product codes
     # Remove duplicates where one product code with the same datestart has 2 descriptions
     # based on the example product code 38249992 which has 2 descriptions
     if("productcode" %in% outputfields){
         vldcode <- vldcode [!duplicated(vldcode$productcode),]
     }
-    # Remove trailing white space in reporter and partner country names
-    if("reporter" %in% outputfields){ vldcode$reporter <- trimws(vldcode$reporter)}
-    if("partner" %in% outputfields){ vldcode$partner <- trimws(vldcode$partner)}
+    # Modifications specific to reporter codes
+    # Remove trailing white space in country names
+    if("reporter" %in% outputfields){
+        vldcode$reporter <- trimws(vldcode$reporter)
+    }
+    # Modification specific to partner codes
+    if("partner" %in% outputfields){
+        # Remove trailing white space in country names
+        vldcode$partner <- trimws(vldcode$partner)
+        # Add information concerning EU partner countries
+        reporter_raw <- tbl(RMariaDBcon, 'raw_comext_reporter') %>% 
+            select(reportercode) %>% 
+            distinct() %>% 
+            collect()
+        # A vector of True False indicating whether the partner is a 
+        # EU member or not
+        vldcode$eu <- vldcode$partner %in% reporter_raw$reportercode
+    }
     
     # After cleaning, 
     # the number of distinct rows for all columns should be equal to

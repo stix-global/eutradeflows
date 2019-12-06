@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS `vld_comext_reporter`;
 CREATE TABLE `vld_comext_reporter` (
   `reportercode` int DEFAULT NULL,
   `reporter` text COLLATE utf8_unicode_ci,
+  `eu` BOOLEAN,
   UNIQUE KEY `reportercode` (`reportercode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
