@@ -1,0 +1,142 @@
+---
+title: "Missing_Data"
+author: "Paul Rougieux"
+date: "18 March 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+# Introduction
+
+The purpose of this notebook is to compare yearly flows to monthly flows. 
+
+Plan: 
+We select a few products of interest, then compare the sum of the monthly trade flows to the yearly trade flows. 
+If there are differences, we also compare flags with respect to this sum. 
+
+Products of interest
+```{r}
+products_of_interest <- c(44072969, 44072799)
+
+
+tbl(con, 'raw_comext_product') %>% 
+    filter(productcode %in% products_of_interest) %>% 
+    select(-datestart2, -dateend2) %>% 
+    knitr::kable(format='markdown',
+          caption='Changes to the SAPELLI product code')
+```
+
+
+
+
+# Load data
+
+## Update DB if needed
+Load yearly dump to the database. This should be done only once. 
+
+```{r eval=FALSE}
+# loadtabledump('tradeflows', '~/downloads/raw_comext_yearly.sql.7z')
+```
+## Metadata
+```{r}
+# Load partner country codes and names
+partner_names <- tbl(con, 'vld_comext_partner') %>% collect()
+# Load reporter country codes and names
+reporter_names <- tbl(con, 'vld_comext_reporter') %>% collect()
+```
+
+
+## Yearly flows
+```{r}
+# Load from the database
+yearly <- tbl(con, "raw_comext_yearly") %>%
+    # Filter import flows from VPA countries and product 44
+    filter(flowcode == 1 &
+               # Query seems faster when productcode is a character variable
+               productcode %in% products_of_interest) %>% 
+    collect() 
+# Prepare the data
+yearly <- yearly %>% 
+    left_join(partner_names, 'partnercode') %>% 
+    left_join(reporter_names, 'reportercode') %>% 
+    mutate(year  = period %/% 100)
+```
+
+
+
+## Monthly flows
+For example for 
+```{r}
+# Load from the database
+monthly <- tbl(con, "raw_comext_monthly") %>%
+    # Filter import flows from VPA countries and product 44
+    filter(flowcode == 1 &
+               # Query seems faster when productcode is a character variable
+               productcode %in% products_of_interest) %>% 
+    collect()
+# Prepare the data
+monthly <- monthly %>% 
+    left_join(partner_names, 'partnercode') %>% 
+    left_join(reporter_names, 'reportercode') %>% 
+    mutate(year  = period %/% 100)
+```
+
+
+
+# Compare yearly and monthly
+
+
+## Aggregate monthly
+
+```{r}
+monthly_agg <- monthly %>% 
+    group_by(reportercode, reporter, partnercode, partner, year) %>% 
+    # Sum and rename variable to identify monthly values later in the comparison
+    summarise(tradevalue_m = sum(tradevalue), 
+              weight_m = sum(weight),
+              quantity_m = sum(quantity))
+```
+
+## Join and compare
+
+```{r}
+join_index <- c('reportercode', 'reporter', 'partnercode', 'partner', 'year')
+comp <- yearly %>% 
+    select(c(join_index, 'tradevalue','weight', 'quantity')) %>% 
+    full_join(monthly_agg, by=join_index) %>% 
+    mutate(tradevalue_diff = tradevalue - tradevalue_m,
+           weight_diff = weight - weight_m,
+           quantity_diff = quantity - quantity_m) 
+
+comp_agg <- comp %>% 
+    group_by(reporter, year) %>% 
+    summarise(tradevalue_diff_ratio = sum(tradevalue_diff)/sum(tradevalue),
+              weight_diff_ratio = sum(weight_diff)/sum(weight),
+              quantity_diff_ratio = sum(quantity_diff)/sum(quantity))
+# comp_agg
+```
+
+
+# Conclusion 
+
+
+## January 2020
+I compared the aggregated monthly flows to the yearly flows. 
+In general the sum of the tradevalue, weight and quantity for all monthly flows within one year is 
+equal to the yearly tradevalue, weight and quantity respectively. 
+This is what we expected. 
+The values are strictly identical in most countries. 
+There are some countries in which I observed differences, mostly below 1% of the reported tradevalue. 
+Except for Poland for which we saw a difference of 1.4 % in tradevalue in 2004. 
+
+

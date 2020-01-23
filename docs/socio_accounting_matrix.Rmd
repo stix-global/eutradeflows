@@ -1,0 +1,111 @@
+---
+title: "Missing_Data"
+author: "Paul Rougieux"
+date: "18 March 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+# Introduction
+
+TODO move this file to a new git repository for the work on social accountring matrices.
+
+The purpose of this notebook is to export trade prices at an aggregate level for socio accounting matrices. 
+
+
+1. forestry
+2. wood industry --> issue of residues which are joint production
+   One activity and several products: main product and by product.
+3. pulp and paper
+
+Product aggregares commonly used in partial equilibrium models of the forest sector. 
+
+## forestproductsdemand
+
+Looking at previous work in the repository forestproductsdemand
+
+In `forestproductsdemand/R/load.R`
+
+```
+~/rp/forestproductsdemand$ grep downloadfao R/load.R
+    newsprint = downloadfao(1671, 5510, 5610, 5622, 5910, 5922)
+    printingAndWritingPaper = downloadfao(1674, 5510, 5610, 5622, 5910, 5922)
+    otherPaperAndPaperboard = downloadfao(1675, 5510, 5610, 5622, 5910, 5922)
+    totalPaperAndPaperboard = downloadfao(1876, 5510, 5610, 5622, 5910, 5922)
+    sawnwoodC = downloadfao(1632, 5516, 5616, 5622, 5916, 5922)
+    sawnwoodNC = downloadfao(1633, 5516, 5616, 5622, 5916, 5922)
+    sawnwoodTotal = downloadfao(1872, 5516, 5616, 5622, 5916, 5922)
+#     roundwoodC = downloadfao(1862, 5516, 5616, 5622, 5916, 5922)
+#     roundwoodNC = downloadfao(1863, 5516, 5616, 5622, 5916, 5922)
+    fuelwood = downloadfao(1864, 5516, 5616, 5622, 5916, 5922)
+    indusroundwoodtotal = downloadfao(1866, 5516, 5616, 5622, 5916, 5922)
+    indusroundwoodC = downloadfao(1866, 5516, 5616, 5622, 5916, 5922)
+    indusroundwoodNC = downloadfao(1867, 5516, 5616, 5622, 5916, 5922)
+    indusroundwoodother = downloadfao(1871, 5516, 5616, 5622, 5916, 5922)
+    roundwoodTotal = downloadfao(1861, 5516, 5616, 5622, 5916, 5922)
+    fibreboard = downloadfao(1874, 5516, 5616, 5622, 5916, 5922)
+    particleboard = downloadfao(1646, 5516, 5616, 5622, 5916, 5922)
+    plywood = downloadfao(1640, 5516, 5616, 5622, 5916, 5922)
+    veneersheets = downloadfao(1634, 5516, 5616, 5622, 5916, 5922)
+    woodbasedpanels = downloadfao(1873, 5516, 5616, 5622, 5916, 5922)
+    wastepaper = downloadfao(1669, 5516, 5616, 5622, 5916, 5922)
+    # but downloadfao doesn't load production and trade quantity.
+    fuelwood = downloadfao(1864, 5516, 5616, 5622, 5916, 5922)
+```
+
+
+In `forestproductsdemand/R/clean.R`
+The clean() function prepares forest products data from FAOSTAT:
+```
+   # Load raw data
+    load("data-raw/paperandpaperboard.RData")
+    load("data-raw/sawnwood.RData")
+    load("data-raw/roundwood.RData")
+    load("data-raw/woodpanels.RData")
+    load("data-raw/wastepaper.RData")
+    load("data-raw/fuelwood.RData")
+
+    # Clean each product
+    paperproducts <- cleanrawdata(paperandpaperboard, WB,
+                                  metadata = data.frame(unit = "Tons", 
+                                                  title = "Paper and Paperboard", 
+                                                  baseyear = baseyear))
+    roundwood <- cleanrawdata(roundwood, WB,
+                              metadata = data.frame(unit = "M3", 
+                                              title = "Roundwood", 
+                                              baseyear = baseyear))
+    sawnwood <- cleanrawdata(sawnwood, WB,
+                             metadata = data.frame(unit = "M3", 
+                                             title = "Sawnwood", 
+                                             baseyear = baseyear))
+    woodpanels <- cleanrawdata(woodpanels, WB,
+                               metadata = data.frame(unit = "M3", 
+                                               title = "Wood Panels", 
+                                               baseyear = baseyear))
+    fuelwood <- cleanrawdata(fuelwood, WB,
+                             metadata = data.frame(unit = "M3",
+                                                   title = "Fuel Wood",
+                                                   baseyear = baseyear))
+```
+
+
+
+# Load data
+```{r}
+
+```
+
+
+# Compute prices
+
+
