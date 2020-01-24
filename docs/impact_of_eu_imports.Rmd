@@ -1,0 +1,210 @@
+---
+title: "Environmental impact of EU imports."
+author: "Paul Rougieux"
+date: "18 March 2018"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+# Introduction
+
+
+The purpose of this document is to select the main biocommodities imported by EU countries. 
+
+
+## Select product groups 
+
+3 categories of the monitoring system and their respective HS codes. 
+
+List of codes based on this website:
+[foreign-trade.com/reference/hscode](https://www.foreign-trade.com/reference/hscode.htm)
+
+
+```
+Food and feed 
+
+01-05  Animal & Animal Products
+    08 FRUIT AND NUTS
+06-15  Vegetable Products
+16-24  Foodstuffs
+
+
+Energy 
+
+28-38  Chemicals & Allied Industries
+    For example
+    32	TANNING ...
+    29	ORGANIC CHEMICALS
+    Ethanol is under 292218
+
+
+Raw material
+
+39-40  Plastics / Rubbers
+41-43  Raw Hides, Skins, Leather, & Furs
+44-49  Wood & Wood Products
+50-63  Textiles 
+```
+
+
+In a first stage I'll add yearly flows for the following codes at 2 digit level:
+08, 15 and 29 besides the existing forest products already in there. 
+
+
+# Load 
+
+## Metadata
+
+```{r}
+# Load partner country codes and names
+partner_names <- tbl(con, 'vld_comext_partner') %>% collect()
+# Load reporter country codes and names
+reporter_names <- tbl(con, 'vld_comext_reporter') %>% collect()
+eu_codes <- reporter_names$reportercode
+```
+
+
+## data
+See if the data can be loaded in memory. 
+
+
+Note on object size before the filter and select statement 1.4 GB.
+Object size after the filter and select statement 107.2 Mb.
+
+```{r}
+yearly_tbl <- tbl(con, 'raw_comext_yearly_env_impact') %>% 
+    # Only imports
+    filter(flowcode == 1L &
+               # Only Extra-EU partners
+               !partnercode %in% eu_codes) %>% 
+    select(c("reportercode", "reporteriso", "partnercode", "partneriso", 
+             "productcode", "flowcode", "statregime", "unitcode", 
+             "period", "tradevalue", "weight", "quantity"))
+# Display the generated SQL query
+print(show_query(yearly_tbl))
+# Load the yearly table from the database to the memory
+system.time(
+    yearly <- yearly_tbl %>% collect()
+)
+  # user  system elapsed 
+  # 1.706   0.310  76.138 
+yearly <- yearly %>% 
+    mutate(year = period %/% 100,
+           productcode2d = substr(productcode, 1,2)) 
+
+# Place taken in memory
+print(object.size(yearly), units = "auto")
+rm(yearly_tbl)
+```
+
+# Aggregate
+
+We selected extra EU partners anyway. 
+Aggregated time series at the 2 digit level. 
+```{r}
+yearly_agg <- yearly %>% 
+    group_by(productcode2d, year) %>% 
+    # Use sum(as.numeric(.)) to avoid integer overflow error
+    summarise(tradevalue = sum(as.numeric(tradevalue), na.rm = TRUE),
+              weight = sum(as.numeric(weight), na.rm = TRUE))
+
+# Aggregate quantities might be relevant later they need to take care of units
+# TODO the quantity might be pivoted to wide format along the unit and joined with the yearly_agg data frame.
+yearly_agg_quantity <- yearly %>% 
+    mutate(productcode2d = substr(productcode, 1,2)) %>% 
+    # Add the unit code, relevant for quantity calculations
+    group_by(productcode2d, unitcode, year) %>% 
+    # Use sum(as.numeric(.)) to avoid integer overflow error
+    summarise(quantity = sum(as.numeric(quantity),na.rm = TRUE))
+```
+
+
+## Table overview last 5 years
+Total trade values over the last 5 years, by product chapter
+
+
+```{r results='asis'}
+yearly_agg %>% 
+    group_by(productcode2d) %>% 
+    mutate(tradevalue_b = round(tradevalue/1e9,2)) %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    pivot_wider(id_cols = productcode2d, names_from = year, values_from = tradevalue_b) %>% 
+    knitr::kable(format = 'markdown',caption = 'Trade value in billion euros')
+```
+
+
+
+# Plot time series
+
+```{r fig.height=20, fig.width=12}
+yearly_agg %>% 
+    # Reshape in long format to use tradevalue and weight as facet variables
+    pivot_longer(cols=c(tradevalue, weight), 
+                 names_to = 'variable', values_to = 'value') %>% 
+    mutate(value = value/1e9) %>% 
+    ggplot(aes(year, value, color=productcode2d)) +
+        geom_point() +
+        theme(legend.position = "none") +
+        facet_wrap(productcode2d~variable, scales = 'free', ncol=2) +
+    ylab("Tradevalues in billion EUROS and weight in billion kg")
+ggsave("~/downloads/HS2.pdf", width = 12, height = 20)
+```
+
+
+
+
+
+# Table of the main products at 8 digit level
+
+
+
+Refer to the website above for the product description. 
+
+TODO: add metadata with product description. 
+
+
+## 08 Fruits
+3 first products each year with their trade value in billion euros.
+
+```{r results='asis'}
+yearly %>% 
+    filter(productcode2d == "08") %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    group_by(year, productcode) %>% 
+    summarise(tradevalue_b = round(sum(tradevalue)/1e9,1)) %>% 
+    group_by(year) %>% 
+    arrange(year, desc(tradevalue_b)) %>% 
+    slice(1:3) %>% 
+    knitr::kable(format = 'latex', caption='3 first products each year with their trade value in billion euros.')
+```
+
+## 15 oil 
+
+3 first products each year with their trade value in billion euros.
+
+```{r results='asis'}
+yearly %>% 
+    filter(productcode2d == 15) %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    group_by(year, productcode) %>% 
+    summarise(tradevalue_b = round(sum(tradevalue)/1e9,1)) %>% 
+    group_by(year) %>% 
+    arrange(year, desc(tradevalue_b)) %>% 
+    slice(1:3) %>% 
+    knitr::kable(format = 'markdown', caption='3 first products each year with their trade value in billion euros.')
+```
+
