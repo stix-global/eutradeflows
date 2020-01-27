@@ -1,0 +1,182 @@
+---
+title: "Environmental impact of EU imports."
+author: "Paul Rougieux"
+date: "18 March 2018"
+output:
+  pdf_document: 
+    number_sections: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir="../..") # file paths are relative to the root of the project directory
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+# Introduction
+
+
+The purpose of this document is to select the main biocommodities imported by EU countries at the CN 2 digit level. 
+
+
+
+## Select product groups 
+
+3 categories of the monitoring system and their respective HS codes. 
+
+List of codes based on this website:
+[foreign-trade.com/reference/hscode](https://www.foreign-trade.com/reference/hscode.htm)
+
+
+```
+Food and feed 
+
+01-05  Animal & Animal Products
+    08 FRUIT AND NUTS
+06-15  Vegetable Products
+16-24  Foodstuffs
+
+
+Energy 
+
+28-38  Chemicals & Allied Industries
+    For example
+    32	TANNING ...
+    29	ORGANIC CHEMICALS
+    Ethanol is under 292218
+
+
+Raw material
+
+39-40  Plastics / Rubbers
+41-43  Raw Hides, Skins, Leather, & Furs
+44-49  Wood & Wood Products
+50-63  Textiles 
+```
+
+
+In a first stage I'll add yearly flows for the following codes at 2 digit level:
+08, 15 and 29 besides the existing forest products already in there. 
+
+
+# Load 
+
+See the notebook bio_imports_update_cache.Rmd to update the data.
+
+
+```{r}
+# Load metadata
+partner_names <- readRDS("data_raw/env_impact/partner_names.rds")
+reporter_names <- readRDS("data_raw/env_impact/reporter_names.rds")
+product_names <- readRDS("data_raw/env_impact/product_names.rds")
+
+product_names_HS2 <- product_names %>% 
+    mutate(productcode2d = substr(productcode,1,2)) %>% 
+    filter(productcode == productcode2d)
+
+```
+
+
+
+```{r}
+# Load data from cache
+system.time(
+    yearly <- readRDS("data_raw/env_impact/extra_eu_bio_imports.rds")
+)
+# 15 seconds for 63 countries
+#   user  system elapsed 
+# 14.999   0.382  15.389 
+
+yearly <- yearly %>% 
+    mutate(year = period %/% 100,
+           productcode2d = substr(productcode, 1,2)) 
+
+```
+
+
+# Aggregate
+
+We selected extra EU partners in the query already (see `bio_imports_update_cache.Rmd`). 
+Then we aggregate trade value and weight each year at the 2 digit level. 
+```{r}
+yearly_agg <- yearly %>% 
+    group_by(productcode2d, year) %>% 
+    # Use sum(as.numeric(.)) to avoid integer overflow error
+    summarise(tradevalue = sum(as.numeric(tradevalue), na.rm = TRUE),
+              weight = sum(as.numeric(weight), na.rm = TRUE))
+
+# Aggregate quantities might be relevant later they need to take care of units
+# TODO the quantity might be pivoted to wide format along the unit and joined with the yearly_agg data frame.
+yearly_agg_quantity <- yearly %>% 
+    mutate(productcode2d = substr(productcode, 1,2)) %>% 
+    # Add the unit code, relevant for quantity calculations
+    group_by(productcode2d, unitcode, year) %>% 
+    # Use sum(as.numeric(.)) to avoid integer overflow error
+    summarise(quantity = sum(as.numeric(quantity),na.rm = TRUE))
+```
+
+
+## Table overview last 5 years
+Total trade values over the last 5 years, by product chapter
+
+```{r results='asis'}
+yearly_agg %>% 
+    group_by(productcode2d) %>% 
+    left_join(product_names_HS2, by="productcode2d") %>% 
+    mutate(tradevalue_b = round(tradevalue/1e9,2)) %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    pivot_wider(id_cols = c("productcode2d", "productdescription"), names_from = year, values_from = tradevalue_b) %>% 
+    knitr::kable(format = 'markdown',caption = 'Trade value in billion euros')
+```
+
+
+
+# Plot time series
+
+```{r fig.height=08, fig.width=12}
+yearly_agg_long <- yearly_agg %>% 
+    # Reshape in long format to use tradevalue and weight as facet variables
+    pivot_longer(cols=c(tradevalue, weight), 
+                 names_to = 'variable', values_to = 'value') %>% 
+    mutate(value = value/1e9) 
+
+# Loop
+for (this_product in unique(yearly_agg_long$productcode2d)){
+    print(this_product)
+    df <-  yearly_agg_long %>% 
+        filter(productcode2d == this_product) 
+    product_description <- product_names_HS2$productdescription[product_names_HS2$productcode2d==this_product]
+    p <- df %>% 
+        ggplot(aes(year, value, color=productcode2d)) +
+        geom_point() +
+        theme(legend.position = "none") +
+        facet_wrap(~variable, scales = 'free', ncol=2) +
+        ylab("Tradevalues in billion EUROS and weight in billion kg") +
+        ggtitle(paste(this_product, product_description))
+    if(this_product == "03") break
+    print(p)
+}
+
+```
+
+
+```{r eval=FALSE}
+# ALl on one plot
+yearly_agg_long %>% 
+    ggplot(aes(year, value, color=productcode2d)) +
+    geom_point() +
+    theme(legend.position = "none") +
+    facet_wrap(productcode2d~variable, scales = 'free', ncol=2) +
+    ylab("Tradevalues in billion EUROS and weight in billion kg")
+ggsave("~/downloads/HS2.pdf", width = 12, height = 20)
+```
+
+
+

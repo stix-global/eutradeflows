@@ -1,0 +1,81 @@
+---
+title: "Environmental impact of EU imports."
+author: "Paul Rougieux"
+date: "18 March 2018"
+output:
+  pdf_document: 
+    number_sections: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir="../..") # file paths are relative to the root of the project directory
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+# Introduction
+
+The purpose of this document is to select the main biocommodities imported by EU countries at the CN 2 digit level. 
+
+## Load from cache
+```{r}
+system.time(
+    yearly <- readRDS("data_raw/env_impact/extra_eu_bio_imports.rds")
+)
+# 15 seconds for 63 countries
+#   user  system elapsed 
+# 14.999   0.382  15.389 
+
+yearly <- yearly %>% 
+    mutate(year = period %/% 100,
+           productcode2d = substr(productcode, 1,2)) 
+
+```
+
+
+# Table of the main products at 8 digit level
+
+Refer to the website above for the product description. 
+
+TODO: add metadata with product description. 
+
+
+## 08 Fruits
+3 first products each year with their trade value in billion euros.
+
+```{r results='asis'}
+yearly %>% 
+    filter(productcode2d == "08") %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    group_by(year, productcode) %>% 
+    summarise(tradevalue_b = round(sum(tradevalue)/1e9,1)) %>% 
+    group_by(year) %>% 
+    arrange(year, desc(tradevalue_b)) %>% 
+    slice(1:3) %>% 
+    knitr::kable(format = 'latex', caption='3 first products each year with their trade value in billion euros.')
+```
+
+## 15 oil 
+
+3 first products each year with their trade value in billion euros.
+
+```{r results='asis'}
+yearly %>% 
+    filter(productcode2d == 15) %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    group_by(year, productcode) %>% 
+    summarise(tradevalue_b = round(sum(tradevalue)/1e9,1)) %>% 
+    group_by(year) %>% 
+    arrange(year, desc(tradevalue_b)) %>% 
+    slice(1:3) %>% 
+    knitr::kable(format = 'markdown', caption='3 first products each year with their trade value in billion euros.')
+```
+
