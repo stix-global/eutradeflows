@@ -1,5 +1,5 @@
 ---
-title: "Environmental impact of EU imports."
+title: "Overview at the CN 2 chapter level"
 author: "Paul Rougieux"
 date: "18 March 2018"
 output:
@@ -9,13 +9,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+library(kableExtra) # will load necessary LaTeX packages such as booktabs
+library(knitr)
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_knit$set(root.dir="../..") # file paths are relative to the root of the project directory
 library(eutradeflows)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 ```
 
 
@@ -25,50 +26,10 @@ con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 The purpose of this document is to select the main biocommodities imported by EU countries at the CN 2 digit level. 
 
 
+## Load data 
 
-## Select product groups 
-
-3 categories of the monitoring system and their respective HS codes. 
-
-List of codes based on this website:
-[foreign-trade.com/reference/hscode](https://www.foreign-trade.com/reference/hscode.htm)
-
-
-```
-Food and feed 
-
-01-05  Animal & Animal Products
-    08 FRUIT AND NUTS
-06-15  Vegetable Products
-16-24  Foodstuffs
-
-
-Energy 
-
-28-38  Chemicals & Allied Industries
-    For example
-    32	TANNING ...
-    29	ORGANIC CHEMICALS
-    Ethanol is under 292218
-
-
-Raw material
-
-39-40  Plastics / Rubbers
-41-43  Raw Hides, Skins, Leather, & Furs
-44-49  Wood & Wood Products
-50-63  Textiles 
-```
-
-
-In a first stage I'll add yearly flows for the following codes at 2 digit level:
-08, 15 and 29 besides the existing forest products already in there. 
-
-
-# Load 
-
-See the notebook bio_imports_update_cache.Rmd to update the data.
-
+Load data from rds files (Serialization Interface for R Objects). 
+See the notebook bio_imports_update_cache.Rmd to update the cached data.
 
 ```{r}
 # Load metadata
@@ -80,11 +41,6 @@ product_names_HS2 <- product_names %>%
     mutate(productcode2d = substr(productcode,1,2)) %>% 
     filter(productcode == productcode2d)
 
-```
-
-
-
-```{r}
 # Load data from cache
 system.time(
     yearly <- readRDS("data_raw/env_impact/extra_eu_bio_imports.rds")
@@ -96,11 +52,13 @@ system.time(
 yearly <- yearly %>% 
     mutate(year = period %/% 100,
            productcode2d = substr(productcode, 1,2)) 
-
 ```
 
 
-# Aggregate
+## Aggregate
+
+FEATURE: calculate aggregates in the cache document, so this document generates faster?
+Is this needed? 
 
 We selected extra EU partners in the query already (see `bio_imports_update_cache.Rmd`). 
 Then we aggregate trade value and weight each year at the 2 digit level. 
@@ -112,7 +70,7 @@ yearly_agg <- yearly %>%
               weight = sum(as.numeric(weight), na.rm = TRUE))
 
 # Aggregate quantities might be relevant later they need to take care of units
-# TODO the quantity might be pivoted to wide format along the unit and joined with the yearly_agg data frame.
+# FEATURE the quantity might be pivoted to wide format along the unit and joined with the yearly_agg data frame.
 yearly_agg_quantity <- yearly %>% 
     mutate(productcode2d = substr(productcode, 1,2)) %>% 
     # Add the unit code, relevant for quantity calculations
@@ -122,7 +80,9 @@ yearly_agg_quantity <- yearly %>%
 ```
 
 
-## Table overview last 5 years
+# Overview  last 5 years
+
+## Trade value in billion euros
 Total trade values over the last 5 years, by product chapter
 
 ```{r results='asis'}
@@ -133,14 +93,39 @@ yearly_agg %>%
     # Last 5 years of data
     filter(year > max(year) - 5) %>% 
     pivot_wider(id_cols = c("productcode2d", "productdescription"), names_from = year, values_from = tradevalue_b) %>% 
-    knitr::kable(format = 'markdown',caption = 'Trade value in billion euros')
+    mutate(productdescription = substr(productdescription,1,51)) %>% 
+    # Note booktabs=TRUE doesn't float with error:
+    # LaTeX Warning: Float too large for page by 866.38799pt on input line 265. 
+    # knitr::kable(format = 'latex', caption = 'Trade value in billion euros', booktabs=TRUE) %>%
+    knitr::kable(format = 'markdown', caption = 'Trade value in billion euros') %>%
+    kableExtra::column_spec(2, width = "30em")
+```
+
+
+## Mass in billion kg
+Total trade values over the last 5 years, by product chapter
+
+```{r results='asis'}
+yearly_agg %>% 
+    group_by(productcode2d) %>% 
+    left_join(product_names_HS2, by="productcode2d") %>% 
+    mutate(weight_b = round(weight/1e9,2)) %>% 
+    # Last 5 years of data
+    filter(year > max(year) - 5) %>% 
+    pivot_wider(id_cols = c("productcode2d", "productdescription"), names_from = year, values_from = weight_b) %>% 
+    mutate(productdescription = substr(productdescription,1,41)) %>% 
+    # Note booktabs=TRUE doesn't float with error:
+    # LaTeX Warning: Float too large for page by 866.38799pt on input line 265. 
+    # knitr::kable(format = 'latex', caption = 'Trade value in billion euros', booktabs=TRUE) %>%
+    knitr::kable(format = 'markdown', caption = 'Trade value in billion euros') %>%
+    kableExtra::column_spec(2, width = "30em")
 ```
 
 
 
 # Plot time series
 
-```{r fig.height=08, fig.width=12}
+```{r fig.height=08, fig.width=12, results='asis'}
 yearly_agg_long <- yearly_agg %>% 
     # Reshape in long format to use tradevalue and weight as facet variables
     pivot_longer(cols=c(tradevalue, weight), 
@@ -148,20 +133,36 @@ yearly_agg_long <- yearly_agg %>%
     mutate(value = value/1e9) 
 
 # Loop
-for (this_product in unique(yearly_agg_long$productcode2d)){
-    print(this_product)
+for (this_product2d in unique(yearly_agg_long$productcode2d)){
+    # if(this_product2d == "03") break # shorten loop for debug
     df <-  yearly_agg_long %>% 
-        filter(productcode2d == this_product) 
-    product_description <- product_names_HS2$productdescription[product_names_HS2$productcode2d==this_product]
+        filter(productcode2d == this_product2d) 
+    product_description <- product_names_HS2$productdescription[product_names_HS2$productcode2d==this_product2d]
+    # Make a sub-section title
+    # As explained https://stackoverflow.com/a/36808845/2641825
+    cat(sprintf('\n\n## %s %s \n\n',
+                this_product2d, substr(product_description,1,63)))
+    
+    # Plot time series of trade value and weight
     p <- df %>% 
         ggplot(aes(year, value, color=productcode2d)) +
         geom_point() +
         theme(legend.position = "none") +
         facet_wrap(~variable, scales = 'free', ncol=2) +
         ylab("Tradevalues in billion EUROS and weight in billion kg") +
-        ggtitle(paste(this_product, product_description))
-    if(this_product == "03") break
+        ggtitle(paste(this_product2d, product_description))
     print(p)
+    
+    # Display summary table of value in billion euros and weight in billion kg
+    yearly_agg %>% 
+        filter(productcode2d == this_product2d
+                & year > max(year) - 5 ) %>% 
+        mutate(tradevalue_b = round(tradevalue/1e9,3),
+               weight_b = round(weight/1e9,3)) %>% 
+        select(-tradevalue, -weight) %>% 
+        # kable(format.args = list(big.mark = ',')) %>% 
+        kable() %>% 
+        print()
 }
 
 ```

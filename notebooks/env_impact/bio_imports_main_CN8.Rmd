@@ -1,0 +1,107 @@
+---
+title: "Main commodities at the CN 8 digit level"
+author: "Paul Rougieux"
+date: "18 March 2018"
+output:
+  pdf_document: 
+    number_sections: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir="../..") # file paths are relative to the root of the project directory
+library(eutradeflows)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+
+# Introduction
+
+The purpose of this document is to select the main comodities under each CN2 chapter. 
+
+## Load data 
+
+Load data from rds files (Serialization Interface for R Objects). 
+See the notebook [bio_imports_update_cache.Rmd](bio_imports_update_cache.Rmd) to update the cached data.
+
+```{r}
+# Load metadata
+partner_names <- readRDS("data_raw/env_impact/partner_names.rds")
+reporter_names <- readRDS("data_raw/env_impact/reporter_names.rds")
+product_names <- readRDS("data_raw/env_impact/product_names.rds")
+
+product_names_HS2 <- product_names %>% 
+    mutate(productcode2d = substr(productcode,1,2)) %>% 
+    filter(productcode == productcode2d)
+
+# Load data from cache
+system.time(
+    yearly <- readRDS("data_raw/env_impact/extra_eu_bio_imports.rds")
+)
+# 15 seconds for 63 countries
+#   user  system elapsed 
+# 14.999   0.382  15.389 
+
+yearly <- yearly %>% 
+    mutate(year = period %/% 100,
+           productcode2d = substr(productcode, 1,2)) 
+```
+
+
+## Aggregate
+
+```{r}
+main_products <- yearly %>% 
+    filter(year > max(year) - 5) %>% 
+    # Calculate the sum for each CN8 product code 
+    group_by(year, productcode2d, productcode) %>% 
+    summarise(tradevalue = sum(tradevalue),
+              weight = sum(weight),
+              tradevalue_b = round(sum(tradevalue)/1e9,1)) %>% 
+    # Calculate the percentage of trade within each CN2 product group and each year
+    group_by(productcode2d, year) %>% 
+    arrange(productcode2d, year, desc(tradevalue))  %>% 
+    mutate(sumtradevalue = sum(tradevalue, na.rm = TRUE),
+           tradevalue_pct = round(tradevalue / sumtradevalue,2),
+           tradevalue_pct_cumul = cumsum(tradevalue_pct)) %>% 
+    # Keep only products representing 60% of the total trade value
+    filter(tradevalue_pct_cumul < 0.6) %>% 
+    left_join(product_names, by="productcode") %>%
+    mutate(productdescription = substr(productdescription, 1, 20)) 
+```
+
+\pagebreak
+
+# Main products at 8 digit level
+
+List of products which represent at least 60% of total trade under the given CN2 chapter (group). 
+
+
+```{r results='asis'}
+for (this_product2d in unique(yearly$productcode2d)){
+    # if(this_product2d=="03") break # Short loop for development
+    # Sub section title 
+    product_description <- product_names_HS2$productdescription[product_names_HS2$productcode2d==this_product2d]
+    cat(sprintf('\n\n## %s %s \n\n',this_product2d, substr(product_description,1,63)))
+    # Filter only products under this CN2 code
+    df <- main_products %>% 
+        filter(productcode2d == this_product2d) 
+    # Display 
+    df %>% 
+        ungroup() %>% 
+        mutate(year = ifelse(year==lag(year, default=0),"",year)) %>% 
+        select(year, productcode, productdescription, tradevalue, tradevalue_pct, weight) %>% 
+        knitr::kable() %>% 
+        print()
+    # Show full description
+    product_names %>% 
+        filter(productcode %in% unique(df$productcode)) %>% 
+        knitr::kable(format = 'latex') %>% 
+        kableExtra::column_spec(2, width = "60em")
+        print()
+}
+```
+
