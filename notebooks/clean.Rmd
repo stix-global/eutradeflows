@@ -1,0 +1,96 @@
+---
+title: "Validate Comext data, using the eutradeflows package"
+author: "Paul Rougieux"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Validate Comext data, using the eutradeflows package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+output:
+  knitr:::html_vignette:
+    toc: yes
+---
+
+
+```{r buildvignette, eval=FALSE, echo=FALSE}
+# This vignette should be edited in the vignettes/ folder
+# Documentation on how to build vignettes in http://r-pkgs.had.co.nz/vignettes.html
+# To build this vignette run 
+devtools::build_vignettes()
+# Then rebuild the package CTRL+SHIFT+B so that the vignette is 
+# integrated to the package documentation
+```
+
+
+```{r setup, warning=FALSE, message=FALSE}
+library(knitr)
+# Do not evaluate code chunks below, only display code
+opts_chunk$set(eval=FALSE) 
+library(dplyr)
+```
+
+
+## Create the database structure
+Recreating the empty database structure:
+
+* will not erase the main  raw and validated data. 
+ Because only templates are created. 
+* it will erase all complementary raw tables raw_comext_partner, raw_comext_product, raw_comext_reporter, raw_comext_unit, raw_comext_unit_description
+* and it will erase all complementary validated tables vld_comext_partner, vld_comext_price, vld_comext_priceconversion , vld_comext_pricew , vld_comext_product, vld_comext_reporter, vld_comext_unit, vld_comext_unit_description
+
+```{r}
+# create emtpty database structure for raw codes
+eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
+# create empty database structure for validated codes
+eutradeflows::createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'tradeflows')
+```
+
+
+## Connect to the database
+```{r dbConnect}
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+```
+
+
+## Load raw comext data and text files into the database
+```{r}
+# transfer raw codes
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+
+# transfer raw codes on the server
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201710/text/english/")
+```
+
+## Clean raw data
+### Prepare product, unit, reporter, partner codes
+```{r}
+cleanallcomextcodes(con)
+
+# Check the content of codes
+# Display the first 6 lines of all validated `vld̀  tables 
+vldtables <- grep("vld", RMariaDB::dbListTables(con), value = TRUE)
+lapply(vldtables, 
+       function(x){
+           tbl(con, x) %>% head() %>% collect() %>% kable(caption = x)
+       })
+```
+
+
+## Clean trade flows data
+
+Cleaning is implemented in the `tradeflows` package see the help of the function 
+`tradeflows::cleancomext()`.
+```{r}
+tradeflows::cleancomext()
+```
+
+The cleaning procedure is run each night by a cron job:
+```
+0 5 * * * paul Rscript -e "library(tradeflows); cleancomext('tradeflows')" >> ~/log/clean$(date +"\%Y\%m\%d").log 2>&1
+```
+
+## Disconnect from the database
+```{r dbDisconnect}
+RMariaDB::dbDisconnect(con)
+```
+
