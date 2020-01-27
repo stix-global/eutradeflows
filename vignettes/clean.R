@@ -23,10 +23,10 @@ library(dplyr)
 
 ## ------------------------------------------------------------------------
 #  # transfer raw codes
-#  tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+#  tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data_raw/comext/201707/text/english/")
 #  
 #  # transfer raw codes on the server
-#  tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201710/text/english/")
+#  tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data_raw/comext/201710/text/english/")
 
 ## ------------------------------------------------------------------------
 #  cleanallcomextcodes(con)

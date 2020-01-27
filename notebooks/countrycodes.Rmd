@@ -17,10 +17,10 @@ library(tidyr)
 
 # Load raw codes from the text file directly
 ```{r}
-reportertxt <- read.table(file = "../tradeharvester/data-raw/comext/201707/text/english/REPORTERS.txt",
+reportertxt <- read.table(file = "../tradeharvester/data_raw/comext/201707/text/english/REPORTERS.txt",
            sep = "\t", header = FALSE)
 nrow(reportertxt)
-partnertxt <- read.table(file = "../tradeharvester/data-raw/comext/201707/text/english/PARTNERS.txt",
+partnertxt <- read.table(file = "../tradeharvester/data_raw/comext/201707/text/english/PARTNERS.txt",
            sep = "\t", header = FALSE)
 nrow(partnertxt)
 
@@ -31,7 +31,7 @@ nrow(partnertxt)
 ```{r loadproductsfromdb}
 con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
 if(FALSE){ # If raw codes are not present, transfer them
-    tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+    tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data_raw/comext/201707/text/english/")
 }
 reporter <- tbl(con, "raw_comext_reporter")
 reporter %>% distinct(reportercode) %>% collect() %>%  nrow()

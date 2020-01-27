@@ -33,7 +33,7 @@ if(FALSE){ # If codes are not present, transfer them
     createdbstructure(sqlfile = 'vld_comext.sql', dbname = 'test')
     # transfer raw codes
     con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
-    tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data-raw/comext/201707/text/english/")
+    tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "~/R/tradeharvester/data_raw/comext/201707/text/english/")
     RMariaDB::dbDisconnect(con)
 }
 ```
@@ -130,7 +130,7 @@ createdbstructure(sqlfile = "raw_comext.sql", dbname = "tradeflows")
 createdbstructure(sqlfile = "vld_comext.sql", dbname = "tradeflows")
 con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # Transfer raw codes from the files to the database
-tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201707/text/english/")
+tradeharvester::transfertxtcodesfolder2db(con, rawdatacomextfolder = "/mnt/sdb/data_raw/comext/201707/text/english/")
 # Clean codes
 cleanallcomextcodes(con)
 
@@ -139,7 +139,7 @@ cleanallcomextcodes(con)
 library(tradeharvester)
 # Transfer monthly recent
 transfer7zfolder2db(con,
-                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/201708/data",
+                    rawdatacomextfolder = "/mnt/sdb/data_raw/comext/201708/data",
                     productcodestart = c(44, 94),
                     tablename = "raw_comext_monthly_201708",
                     tabletemplate = "raw_comext_monthly")
@@ -147,7 +147,7 @@ transfer7zfolder2db(con,
 # Transfer monthly archive
 # raw_comext_monthly_2016S1 had approximately 30309561 rows before the update
 transfer7zfolder2db(con,
-                    rawdatacomextfolder = "/mnt/sdb/data-raw/comext/2016S1/data",
+                    rawdatacomextfolder = "/mnt/sdb/data_raw/comext/2016S1/data",
                     productcodestart = c(44, 94),
                     tablename = "raw_comext_monthly_2016S1",
                     tabletemplate = "raw_comext_monthly")
@@ -243,7 +243,7 @@ if(FALSE){
     setwd("~/R/tradeharvester")
     con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "test")
     transfer7zfolder2db(con,
-                        rawdatacomextfolder = "data-raw/comext/201707/data",
+                        rawdatacomextfolder = "data_raw/comext/201707/data",
                         productcodestart = c(44, 94),
                         tablename = "raw_comext_monthly_201707",
                         tabletemplate = "raw_comext_monthly")
@@ -403,7 +403,7 @@ dtf_c_u$productdescription[1:5]
 # Looking at the source file, the duplicated codes issue seems to be due to the fact that 
 # productcodes do not contain only numbers, but can also contain characters
 # Reading the text file line by line
-readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>% 
+readLines("../tradeharvester/data_raw/comext/201707/text/english/CN.txt") %>% 
     grep("7302;", ., value=TRUE)
 # For example 7302I0 or 7302I2 are product codes, which get truncated during the database load process.
 
@@ -411,11 +411,11 @@ readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>%
 
 # Trying to read the text file into a data frame
 # Maximum character length
-# product <- read.table("../tradeharvester/data-raw/comext/201707/text/english/CN.txt",
+# product <- read.table("../tradeharvester/data_raw/comext/201707/text/english/CN.txt",
 #                       sep = "\t")  
 # Error in scan(file = file, what = what, sep = sep, quote = quote, dec = dec,  : 
 #   line 5534 did not have 6 elements
-cntxt <- readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt")
+cntxt <- readLines("../tradeharvester/data_raw/comext/201707/text/english/CN.txt")
 cntxt[5534]
 # but it does have 6 elements!
 product_20089218 <- read.table(text = cntxt[5534], header = FALSE, sep="\t")
@@ -459,7 +459,7 @@ praw %>% filter(productcode == 03035590)
 
 What happened in the text file?
 ```{r}
-cntxt <- readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>% 
+cntxt <- readLines("../tradeharvester/data_raw/comext/201707/text/english/CN.txt") %>% 
     grep("03035590", ., value=TRUE)
 cntxt
 ```
@@ -476,12 +476,12 @@ the old table name `val_comext_product`
 instead of the new name `vld_comext_product`.
 
 ```{r}
-cntxt <- readLines("../tradeharvester/data-raw/comext/201707/text/english/CN.txt") %>% 
+cntxt <- readLines("../tradeharvester/data_raw/comext/201707/text/english/CN.txt") %>% 
     grep("47073090", ., value=TRUE)
 
 cntxt
 
-cn <- read.delim("../tradeharvester/data-raw/comext/201707/text/english/CN.txt",
+cn <- read.delim("../tradeharvester/data_raw/comext/201707/text/english/CN.txt",
                  header = FALSE,
                  quote = "", # disable quotation
                  stringsAsFactors = FALSE)
@@ -547,7 +547,7 @@ RMariaDB::dbDisconnect(con)
 
 
 # Product codes IMM
-See data-raw/produc_classifications.R to see where the IMM product classification is loaded.
+See data_raw/produc_classifications.R to see where the IMM product classification is loaded.
 `eutradeflows::classificationimm` is part of the package.
 
 Based on the number of product per group below, I'll make two drop down lists. 

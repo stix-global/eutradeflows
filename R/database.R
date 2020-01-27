@@ -96,7 +96,7 @@ createdbstructure <- function(sqlfile,
 #' @seealso \code{\link{loadtabledump}}
 #' @export
 dumptable <- function(databasename, tablename, 
-                      dumpfolder = "/mnt/sdb/data-raw/sqldump/"){
+                      dumpfolder = "/mnt/sdb/data_raw/sqldump/"){
     if(!file.exists(dumpfolder)){
         stop("Folder `", dumpfolder, "` doesn't exist.")
     }

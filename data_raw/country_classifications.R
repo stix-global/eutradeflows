@@ -7,7 +7,7 @@ library(tidyr)
 # group_by(!!codevariable) 
 
 # Load country groups from a CSV file
-countrygroupimm <- read.csv("data-raw/countrygroupimm.csv", as.is=TRUE, na.strings = "")
+countrygroupimm <- read.csv("data_raw/countrygroupimm.csv", as.is=TRUE, na.strings = "")
 
 # Prepare country groups for use in a drop down list in Shiny
 countrygroupimm <- countrygroupimm %>% 

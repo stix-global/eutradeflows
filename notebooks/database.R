@@ -34,7 +34,7 @@ library(dplyr)
 
 ## ------------------------------------------------------------------------
 #  if(FALSE){
-#      data_raw_path <- "/tmp/data-raw"
+#      data_raw_path <- "/tmp/data_raw"
 #      # Connect to the database
 #      con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 #      eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')

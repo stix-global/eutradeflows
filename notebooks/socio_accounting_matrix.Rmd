@@ -68,12 +68,12 @@ In `forestproductsdemand/R/clean.R`
 The clean() function prepares forest products data from FAOSTAT:
 ```
    # Load raw data
-    load("data-raw/paperandpaperboard.RData")
-    load("data-raw/sawnwood.RData")
-    load("data-raw/roundwood.RData")
-    load("data-raw/woodpanels.RData")
-    load("data-raw/wastepaper.RData")
-    load("data-raw/fuelwood.RData")
+    load("data_raw/paperandpaperboard.RData")
+    load("data_raw/sawnwood.RData")
+    load("data_raw/roundwood.RData")
+    load("data_raw/woodpanels.RData")
+    load("data_raw/wastepaper.RData")
+    load("data_raw/fuelwood.RData")
 
     # Clean each product
     paperproducts <- cleanrawdata(paperandpaperboard, WB,

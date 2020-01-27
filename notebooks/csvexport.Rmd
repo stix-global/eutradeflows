@@ -219,7 +219,7 @@ if(FALSE){
     vld <- tbl(con, tableread) %>%
         distinct(productcode) %>% collect()
     lapply(vld$productcode,
-           function(p) loadflows(con, p) %>% formatflows() %>%  write2csv_spread(paste0("/mnt/sdb/data-raw/csv/8d/",p,".csv")))
+           function(p) loadflows(con, p) %>% formatflows() %>%  write2csv_spread(paste0("/mnt/sdb/data_raw/csv/8d/",p,".csv")))
 }
 ```
 

@@ -301,7 +301,7 @@ dtf %>%
 ## 20170925 Issue with the encoding of empty values mysql NULL, R NA
 How are empty values encoded in the text file?
 ```{bash eval=FALSE}
-cp ~/R/tradeharvester/data-raw/comext/201709/data/nc201501.7z /tmp/comext
+cp ~/R/tradeharvester/data_raw/comext/201709/data/nc201501.7z /tmp/comext
 cd /tmp/comext/
 7zr e nc201501.7z 
 # Extract all productcode starting with 44

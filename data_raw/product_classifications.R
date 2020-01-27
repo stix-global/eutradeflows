@@ -1,7 +1,7 @@
 library(dplyr)
-classificationimm <- read.csv("data-raw/classificationimm.csv", as.is=TRUE)
+classificationimm <- read.csv("data_raw/classificationimm.csv", as.is=TRUE)
 # Updated product classifiction received on April 11, 2018
-classificationstix <- read.csv("data-raw/productclassificationstix.csv", as.is = TRUE)
+classificationstix <- read.csv("data_raw/productclassificationstix.csv", as.is = TRUE)
 
 
 classificationimm <- classificationimm %>% 
