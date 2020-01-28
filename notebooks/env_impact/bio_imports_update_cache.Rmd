@@ -54,10 +54,20 @@ Note metadata is loaded first here, since EU country codes are used later in the
 ```{r eval=FALSE}
 # Load partner country codes and names
 partner_names <- tbl(con, 'vld_comext_partner') %>% collect()
+# Fix character encoding issue in Laos name (see Latex error in bio_imports_main_partner_countries.Rmd)
+partner_names$partner[grepl("Lao", partner_names$partner)] <- "Lao"
+
 # Load reporter country codes and names
 reporter_names <- tbl(con, 'vld_comext_reporter') %>% collect()
 # Load product codes and names
 product_names <- tbl(con, 'vld_comext_product') %>% collect()
+# Fix character encoding issue in some product names
+product_names$productdescription <- gsub("�"," ", product_names$productdescription)
+# The issue is not only with this "├" special character but also with those that follow 
+# Truncate those to 40 characters
+product_names$productdescription <- ifelse(grepl("├",product_names$productdescription),
+       substr(product_names$productdescription,1,40),
+       product_names$productdescription)
 
 # Save the metadata in rds cache files
 saveRDS(partner_names, "data_raw/env_impact/partner_names.rds")

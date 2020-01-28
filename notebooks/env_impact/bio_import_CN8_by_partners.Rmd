@@ -100,14 +100,14 @@ main_partners <- yearly %>%
 
 # Main partners at 8 digit level
 
-List of products which represent at least 60% of total trade under the given CN2 chapter (group). 
+List of products which represent around 80% of total trade under the given CN2 chapter (group). 
 
 
 ```{r results='asis'}
 i = 1
 for (this_product in unique(main_products$productcode)){
     i = i+1
-    if(i==5) break # Short loop for development
+    # if(i==5) break # Short loop for development
     # Sub section title 
     product_description <- product_names$productdescription[product_names$productcode==this_product]
     cat(sprintf('\n\n## %s %s \n\n',this_product, substr(product_description,1,57)))
@@ -122,4 +122,50 @@ for (this_product in unique(main_products$productcode)){
         print()
 }
 ```
+
+```{r eval=FALSE}
+# ENcoding issue
+# upon compiling this notebook I receive following error:
+# ! Package inputenc Error: Unicode character  (U+0092)
+# (inputenc)                not set up for use with LaTeX.
+# 
+# Try other LaTeX engines instead (e.g., xelatex) if you are using pdflatex. For R Markdown users, see https://bookdown.org/yihui/rmarkdown/pdf-document.html
+# Error: Failed to compile bio_imports_by_country_CN8.tex. See https://yihui.name/tinytex/r/#debugging for debugging tips. See bio_imports_by_country_CN8.log for more info.
+# Execution halted
+partner_names$partner[!validUTF8(partner_names$partner)]
+product_names$productdescription[!validUTF8(product_names$productdescription)]
+# The issue is here according to the last line of the latex log
+# ...                                              
+#                                                   
+# l.3034 & Laos (People
+#                        s Democratic Republic) & 28922963 & 0.05 & 
+partner_names$partner[grepl("Lao", partner_names$partner)] 
+
+
+# Other latex error:
+# l.8716 COMPOUNDS, IN THE FORM OF A LIQUID AT 20�
+#                                                   C, N.E.S. 
+# 
+
+product_names$productdescription[grepl("IN THE FORM OF A LIQUID AT",product_names$productdescription)]
+#validUTF8(product_names$productdescription[grepl("IN THE FORM OF A LIQUID AT",product_names$productdescription)])
+iconv(product_names$productdescription[grepl("IN THE FORM OF A LIQUID AT",product_names$productdescription)], from='utf8')
+
+
+# Detect file encoding of the CN.txt file
+# /tmp/comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/ENGLISH
+# Command line utility
+# $ uchardet /tmp/comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/ENGLISH/CN.txt 
+# UTF-8
+# For lack of a better method, 
+# I did a replace all for the question mark characters in 
+# product_names$productdescription[grepl("�",product_names$productdescription)]
+# [1] "WINES PRODUCED IN VALL�E DU RH�NE, IN CONTAINERS HOLDING <= 2 L AND OF AN ACTUAL ALCOHOLIC STRENGTH OF <= 15% VOL, WITH PDO (OTHER THAN SPARKLING WINE, SEMI-SPARKLING WINE AND WHITE WINE)"                                                                        
+# [2] "WINES PRODUCED IN VALL�E DU RH�NE, IN CONTAINERS HOLDING > 2 L AND OF AN ACTUAL ALCOHOLIC STRENGTH OF <= 15% VOL, WITH PDO (OTHER THAN SPARKLING WINE, SEMI-SPARKLING WINE AND WHITE WINE)"                                                                         
+# [3] "WINES PRODUCED IN EU, IN CONTAINERS HOLDING > 2 L AND OF AN ACTUAL ALCOHOLIC STRENGTH OF <= 15% VOL, WITH PDO (OTHER THAN BORDEAUX, BOURGOGNE, BEAUJOLAIS, VALL�E DU RH�NE, LANGUEDOC-ROUSSILLON, VAL DE LOIRE, SPARKLING WINE, SEMI-SPARKLING WINE AND WHITE WINE)"
+# [4] "CHEMICAL PRODUCTS OR PREPARATIONS, PREDOMINANTLY COMPOSED OF ORGANIC COMPOUNDS, IN THE FORM OF A LIQUID AT 20�C, N.E.S."                                                                                                                                            
+# [5] "CHEMICAL PRODUCTS OR PREPARATIONS, PREDOMINANTLY COMPOSED OF ORGANIC COMPOUNDS, N.E.S. (EXCL. IN THE FORM OF A LIQUID AT 20�C)"  
+
+```
+
 

@@ -67,8 +67,8 @@ main_products <- yearly %>%
     mutate(sumtradevalue = sum(tradevalue, na.rm = TRUE),
            tradevalue_pct = round(tradevalue / sumtradevalue,2),
            tradevalue_pct_cumul = cumsum(tradevalue_pct)) %>% 
-    # Keep only products representing 60% of the total trade value
-    filter(tradevalue_pct_cumul < 0.6) %>% 
+    # Keep only products representing 80% of the total trade value
+    filter(tradevalue_pct_cumul <= 0.8 | tradevalue_pct >= 0.8) %>% 
     left_join(product_names, by="productcode") %>%
     mutate(productdescription = substr(productdescription, 1, 20)) 
 ```
@@ -100,8 +100,28 @@ for (this_product2d in unique(yearly$productcode2d)){
     product_names %>% 
         filter(productcode %in% unique(df$productcode)) %>% 
         knitr::kable(format = 'latex') %>% 
-        kableExtra::column_spec(2, width = "60em")
+        kableExtra::column_spec(2, width = "50em") %>% 
         print()
 }
+```
+
+
+
+```{r eval=FALSE}
+# Encoding issue
+# ! Package inputenc Error: Unicode character ├ (U+251C)
+# (inputenc)                not set up for use with LaTeX.
+# l.10836 ..., N.E.S. (EXCL. IN LIQUID FORM AT 20├
+#                                                   É┬░C)\\ 
+x <- product_names$productdescription[grepl("├",product_names$productdescription)]
+bli <- gregexpr(pattern ='2',x)
+bla <- sapply(bli, `[[`, 1)
+min(bla[bla>3])
+# The issue is not only with this special character but also with those that follow 
+# Truncate those to 40 characters
+y <- ifelse(grepl("├",product_names$productdescription),
+       substr(product_names$productdescription,1,40),
+       product_names$productdescription)
+summary(nchar(y))
 ```
 
