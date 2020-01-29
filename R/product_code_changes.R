@@ -4,7 +4,8 @@
 #' @param cn_code_changes a table of cn_code_changes (already contained in the package)
 #' @return data frame of all subsequent codes for the given original code
 #' @examples
-#' subsequent_codes(cn_code_changes, "44072969")
+#' subsequent_codes("44072969")
+#' @export
 subsequent_codes <- function(orig_codes_to_check, cn_code_changes = eutradeflows::cn_code_changes){
     # Accumulative CN code changes
     cn_changes_acc <- data.frame()
@@ -33,7 +34,8 @@ subsequent_codes <- function(orig_codes_to_check, cn_code_changes = eutradeflows
 #' Function to find previous codes
 #' @param dest_codes_to_check usually only one code
 #' @examples
-#' previous_codes(cn_code_changes, "44072969")
+#' previous_codes("44072969")
+#' @export
 previous_codes <- function(dest_codes_to_check, cn_code_changes = eutradeflows::cn_code_changes){
     # Accumulative CN code changes
     cn_changes_acc <- data.frame()
@@ -97,9 +99,11 @@ update_code_changes <- function(csv_file = "~/downloads/CN_2019_update_of_codes.
 
 #' CN code changes
 #'
-#' This dataset is available as eutradeflows::cn_code_changes
 #' Code changes are obtained from EUROSTAT Ramon
-#' The Excel file is simply saved to a csv by hand. 
+#' The Excel file is simply saved to a csv by hand, then transfered to a data frame
+#' with the function  update_code_changes
+#'
+#' This dataset is available as eutradeflows::cn_code_changes.
 #' 
 #' @format A data frame with 15000 rows and 4 variables:
 #' \describe{

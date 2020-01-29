@@ -21,5 +21,5 @@ data frame of all subsequent codes for the given original code
 Find subsequent code for a given product code
 }
 \examples{
-subsequent_codes(cn_code_changes, "44072969")
+subsequent_codes("44072969")
 }

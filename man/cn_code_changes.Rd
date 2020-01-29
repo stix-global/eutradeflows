@@ -18,8 +18,11 @@
 cn_code_changes
 }
 \description{
-This dataset is available as eutradeflows::cn_code_changes
 Code changes are obtained from EUROSTAT Ramon
-The Excel file is simply saved to a csv by hand.
+The Excel file is simply saved to a csv by hand, then transfered to a data frame
+with the function  update_code_changes
+}
+\details{
+This dataset is available as eutradeflows::cn_code_changes.
 }
 \keyword{datasets}

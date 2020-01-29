@@ -16,5 +16,5 @@ previous_codes(
 Function to find previous codes
 }
 \examples{
-previous_codes(cn_code_changes, "44072969")
+previous_codes("44072969")
 }
