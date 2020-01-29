@@ -69,10 +69,19 @@ product_names$productdescription <- ifelse(grepl("├",product_names$productdesc
        substr(product_names$productdescription,1,40),
        product_names$productdescription)
 
+
 # Save the metadata in rds cache files
 saveRDS(partner_names, "data_raw/env_impact/partner_names.rds")
 saveRDS(reporter_names, "data_raw/env_impact/reporter_names.rds")
 saveRDS(product_names, "data_raw/env_impact/product_names.rds")
+
+# Save extra metadata in csv files
+# Product names at the 2 digit level only
+product_names_HS2 <- product_names %>% 
+    mutate(productcode2d = substr(productcode,1,2)) %>% 
+    filter(productcode == productcode2d)
+write.csv(product_names_HS2,"data_raw/env_impact/product_names_CN2.csv")
+
 
 # List of EU country codes used to select extra-eu trade only below
 eu_codes <- reporter_names$reportercode
