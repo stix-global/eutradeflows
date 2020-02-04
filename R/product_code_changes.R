@@ -33,6 +33,7 @@ subsequent_codes <- function(orig_codes_to_check, cn_code_changes = eutradeflows
 
 #' Function to find previous codes
 #' @param dest_codes_to_check usually only one code
+#' @param cn_code_changes a table of cn_code_changes (already contained in the package)
 #' @examples
 #' previous_codes("44072969")
 #' @export

@@ -21,26 +21,12 @@ con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 
 # Introduction
 
-This has now been moved to a separate repository.
 
 The purpose of this document is to update the cache in the form of rds files so the data
 can be analysed on machines which do not have a database installation. 
 
+Trade flows for Finland. 
 
-See if the data can be loaded in memory. 
-
-Pre processing of the input data:
-* The imput data is loaded from comext is loaded to the database with the trade harvester package.
-    see docs/harvest under the tradeharvester package. 
-    section 2020 update, subsection on the laptop.
-* It is then prepared and aggregated in a R script called R/env_impact.R
-
-
-Object size 
-* with 7 products 
-    * object size before the filter and select statement 1.4 GB.
-    * Object size after the filter and select statement 107.2 Mb.
-* with 63 products 738.4 Mb and as rds file uses 87Mb.
 
 # Download from Comext and transfer to DB
 
@@ -72,16 +58,16 @@ product_names$productdescription <- ifelse(grepl("├",product_names$productdesc
 
 
 # Save the metadata in rds cache files
-saveRDS(partner_names, "data_raw/env_impact/partner_names.rds")
-saveRDS(reporter_names, "data_raw/env_impact/reporter_names.rds")
-saveRDS(product_names, "data_raw/env_impact/product_names.rds")
+saveRDS(partner_names, "data_raw/biosam/partner_names.rds")
+saveRDS(reporter_names, "data_raw/biosam/reporter_names.rds")
+saveRDS(product_names, "data_raw/biosam/product_names.rds")
 
 # Save extra metadata in csv files
 # Product names at the 2 digit level only
 product_names_HS2 <- product_names %>% 
     mutate(productcode2d = substr(productcode,1,2)) %>% 
     filter(productcode == productcode2d)
-write.csv(product_names_HS2,"data_raw/env_impact/product_names_CN2.csv")
+write.csv(product_names_HS2,"data_raw/biosam/product_names_CN2.csv")
 
 
 # List of EU country codes used to select extra-eu trade only below
@@ -90,11 +76,9 @@ eu_codes <- reporter_names$reportercode
 
 ## Load from database and update data cache
 ```{r eval=FALSE}
-yearly_tbl <- tbl(con, 'raw_comext_yearly_env_impact') %>% 
+yearly_tbl <- tbl(con, 'raw_comext_yearly') %>% 
     # Only imports
-    filter(flowcode == 1L &
-               # Only Extra-EU partners
-               !partnercode %in% eu_codes) %>% 
+    filter(reportercode %in% c(32L)) %>% 
     select(c("reportercode", "reporteriso", "partnercode", "partneriso", 
              "productcode", "flowcode", "statregime", "unitcode", 
              "period", "tradevalue", "weight", "quantity"))
@@ -117,24 +101,7 @@ print(object.size(yearly), units = "auto")
 rm(yearly_tbl)
 
 # Backup the output of the query
-saveRDS(yearly, "data_raw/env_impact/extra_eu_bio_imports.rds")
-
-```
-
-
-# Read from cache
-```{r}
-system.time(
-    yearly <- readRDS("data_raw/env_impact/extra_eu_bio_imports.rds")
-)
-# 15 seconds for 63 countries
-#   user  system elapsed 
-# 14.999   0.382  15.389 
-
-yearly <- yearly %>% 
-    mutate(year = period %/% 100,
-           productcode2d = substr(productcode, 1,2)) 
-
+saveRDS(yearly, "data_raw/biosam/forest_import_finland.rds")
 ```
 
 

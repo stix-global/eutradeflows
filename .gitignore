@@ -1,5 +1,6 @@
 # Ignore cached files
 data_raw/env_impact/*
+data_raw/biosam/*
 # Other files
 .Rproj.user
 .Rhistory
