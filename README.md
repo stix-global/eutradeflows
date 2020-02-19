@@ -3,6 +3,9 @@
 # R package eutradeflows
 A validation algorithm for forest products trade data from Comext
 
+This package is under development at: 
+https://gitlab.com/paulrougieux/eutradeflows
+
 # Installation
 To install this R package from github:
 
