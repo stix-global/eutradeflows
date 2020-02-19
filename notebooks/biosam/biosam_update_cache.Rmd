@@ -74,34 +74,74 @@ write.csv(product_names_HS2,"data_raw/biosam/product_names_CN2.csv")
 eu_codes <- reporter_names$reportercode
 ```
 
+
+
+
 ## Load from database and update data cache
+
+### FInland only
+
+#### Forest products with furniture
 ```{r eval=FALSE}
 yearly_tbl <- tbl(con, 'raw_comext_yearly') %>% 
-    # Only imports
+    # Only Finland
     filter(reportercode %in% c(32L)) %>% 
     select(c("reportercode", "reporteriso", "partnercode", "partneriso", 
              "productcode", "flowcode", "statregime", "unitcode", 
              "period", "tradevalue", "weight", "quantity"))
-# Display the generated SQL query
-print(show_query(yearly_tbl))
+# Load the yearly table from the database to the memory
+system.time(
+    finland_fp <- yearly_tbl %>% collect()
+)
+# user  system elapsed 
+# 0.742   0.038   1.319 
+# Backup the output of the query
+saveRDS(finland_fp, "data_raw/biosam/trade_finland_forest_products.rds")
+```
+
+
+#### Products until CN96
+```{r eval=FALSE}
+yearly_tbl <- tbl(con, 'raw_comext_yearly_env_impact') %>% 
+    # Only Finland
+    filter(reportercode %in% c(32L)) %>% 
+    select(c("reportercode", "reporteriso", "partnercode", "partneriso", 
+             "productcode", "flowcode", "statregime", "unitcode", 
+             "period", "tradevalue", "weight", "quantity"))
+# Load the yearly table from the database to the memory
+system.time(
+    yearly <- yearly_tbl %>% collect()
+)
+#  user  system elapsed 
+# 4.595   0.400  20.186 
+# Backup the output of the query
+saveRDS(yearly, "data_raw/biosam/trade_finland_to_CN63.rds")
+```
+
+
+### All countries
+```{r eval=FALSE}
+yearly_tbl <- tbl(con, 'raw_comext_yearly') %>% 
+    select(c("reportercode", "reporteriso", "partnercode", "partneriso", 
+             "productcode", "flowcode", "statregime", "unitcode", 
+             "period", "tradevalue", "weight", "quantity"))
 # Load the yearly table from the database to the memory
 system.time(
     yearly <- yearly_tbl %>% collect()
 )
 
-# With 7 products:
-# user  system elapsed 
-# 1.706   0.310  76.138 
-# With 63 products:
-#   user  system elapsed 
-# 25.017   2.662 697.931 
-
-# Place taken in memory
-print(object.size(yearly), units = "auto")
-rm(yearly_tbl)
-
 # Backup the output of the query
-saveRDS(yearly, "data_raw/biosam/forest_import_finland.rds")
+saveRDS(yearly, "data_raw/biosam/forest_trade_all_countries.rds")
+```
+
+
+# Load data from cache
+
+```{r eval=FALSE}
+partner_names <- readRDS("data_raw/biosam/partner_names.rds")
+reporter_names <- readRDS("data_raw/biosam/reporter_names.rds")
+product_names <- readRDS("data_raw/biosam/product_names.rds")
+yearly_finland <- readRDS("data_raw/biosam/forest_trade_finland.rds")
 ```
 
 
