@@ -6,7 +6,7 @@ Authors@R: c(
 Description: A Validation Algorithm for Forest Products Trade Data from Comext
 Depends:
     R (>= 3.1.2)
-License: GPL-3 + file LICENSE
+License: MIT and EUPL + file LICENCE.md
 Encoding: UTF-8
 LazyData: true
 Imports:
