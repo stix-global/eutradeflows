@@ -1,5 +1,5 @@
 Package: eutradeflows
-Title: A Validation Algorithm for Forest Products Trade Data from Comext
+Title: Download bilateral trade flow data from Eurostat Comext
 Version: 0.0.1
 Authors@R: c(
     person("Paul", "Rougieux", , "paul.rougieux@gmail.com", c("aut", "cre")))
