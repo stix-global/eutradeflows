@@ -2,24 +2,61 @@
 % Please edit documentation in R/product_code_changes.R
 \name{subsequent_codes}
 \alias{subsequent_codes}
+\alias{previous_codes}
+\alias{subsequent_and_previous_codes}
+\alias{vector_of_subsequent_and_previous_codes}
 \title{Find subsequent code for a given product code}
 \usage{
 subsequent_codes(
   orig_codes_to_check,
   cn_code_changes = eutradeflows::cn_code_changes
 )
+
+previous_codes(
+  dest_codes_to_check,
+  cn_code_changes = eutradeflows::cn_code_changes
+)
+
+subsequent_and_previous_codes(
+  codes_to_check,
+  cn_code_changes = eutradeflows::cn_code_changes
+)
+
+vector_of_subsequent_and_previous_codes(
+  codes_to_check,
+  cn_code_changes = eutradeflows::cn_code_changes
+)
 }
 \arguments{
-\item{orig_codes_to_check}{character, usually one code}
+\item{orig_codes_to_check}{character product code(s)}
 
 \item{cn_code_changes}{a table of cn_code_changes (already contained in the package)}
+
+\item{dest_codes_to_check}{character product code(s)}
+
+\item{codes_to_check}{character product code(s)}
 }
 \value{
 data frame of all subsequent codes for the given original code
+
+    origin_code destination_code orig_end_year dest_start_year
+    <chr>       <chr>                    <dbl>           <dbl>
+    44072969    44072799                  2006            2007
+
+vector of codes
 }
 \description{
-Find subsequent code for a given product code
+Parse a table of 
+Combined Nomenclature Code changes obtained from EUROSTAT Ramon.
+The two functions \code{subsequent_codes} and \code{previous_codes} look
+for all the subsequent (or previous) codes of a given product code.
+They return a table with dates for each code transition.
+the function \code{subsequent_and_previous_codes} binds the two tables above 
+to provide all ancestor codes and a descendant codes.
+
+\code{vector_of_subsequent_and_previous_codes} Creates a vector of unique codes.
 }
 \examples{
 subsequent_codes("44072969")
+previous_codes("44072969")
 }
