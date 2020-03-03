@@ -9,28 +9,28 @@
 \usage{
 subsequent_codes(
   orig_codes_to_check,
-  cn_code_changes = eutradeflows::cn_code_changes
+  code_changes_table = eutradeflows::cn_code_changes
 )
 
 previous_codes(
   dest_codes_to_check,
-  cn_code_changes = eutradeflows::cn_code_changes
+  code_changes_table = eutradeflows::cn_code_changes
 )
 
 subsequent_and_previous_codes(
   codes_to_check,
-  cn_code_changes = eutradeflows::cn_code_changes
+  code_changes_table = eutradeflows::cn_code_changes
 )
 
 vector_of_subsequent_and_previous_codes(
   codes_to_check,
-  cn_code_changes = eutradeflows::cn_code_changes
+  code_changes_table = eutradeflows::cn_code_changes
 )
 }
 \arguments{
 \item{orig_codes_to_check}{character product code(s)}
 
-\item{cn_code_changes}{a table of cn_code_changes (already contained in the package)}
+\item{code_changes_table}{a table of code changes, defaults to cn_code_changes (already contained in the package)}
 
 \item{dest_codes_to_check}{character product code(s)}
 

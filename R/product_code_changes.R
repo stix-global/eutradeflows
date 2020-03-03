@@ -8,7 +8,7 @@
 #' the function \code{subsequent_and_previous_codes} binds the two tables above 
 #' to provide all ancestor codes and a descendant codes. 
 #' @param orig_codes_to_check character product code(s)
-#' @param cn_code_changes a table of cn_code_changes (already contained in the package)
+#' @param code_changes_table a table of code changes, defaults to cn_code_changes (already contained in the package)
 #' @return data frame of all subsequent codes for the given original code
 #' 
 #'     origin_code destination_code orig_end_year dest_start_year
@@ -18,12 +18,12 @@
 #' @examples
 #' subsequent_codes("44072969")
 #' @export
-subsequent_codes <- function(orig_codes_to_check, cn_code_changes = eutradeflows::cn_code_changes){
+subsequent_codes <- function(orig_codes_to_check, code_changes_table = eutradeflows::cn_code_changes){
     # Accumulative CN code changes
     cn_changes_acc <- data.frame()
     i = 1
     while (TRUE){
-        df <- cn_code_changes %>% 
+        df <- code_changes_table %>% 
             filter(origin_code %in% orig_codes_to_check)
         # print(df)
         # Keep previous accumulative data frame for comparison purposes
@@ -49,12 +49,12 @@ subsequent_codes <- function(orig_codes_to_check, cn_code_changes = eutradeflows
 #' @examples
 #' previous_codes("44072969")
 #' @export
-previous_codes <- function(dest_codes_to_check, cn_code_changes = eutradeflows::cn_code_changes){
+previous_codes <- function(dest_codes_to_check, code_changes_table = eutradeflows::cn_code_changes){
     # Accumulative CN code changes
     cn_changes_acc <- data.frame()
     i = 1
     while (TRUE){
-        df <- cn_code_changes %>%
+        df <- code_changes_table %>%
             filter(destination_code %in% dest_codes_to_check)
         # print(df)
         # Keep previous accumulative data frame for comparison purposes
@@ -77,10 +77,10 @@ previous_codes <- function(dest_codes_to_check, cn_code_changes = eutradeflows::
 #' @rdname subsequent_codes
 #' @param codes_to_check character product code(s)
 #' @export
-subsequent_and_previous_codes <- function(codes_to_check, cn_code_changes = eutradeflows::cn_code_changes){
-    subsequent <- subsequent_codes(codes_to_check, cn_code_changes = cn_code_changes)
+subsequent_and_previous_codes <- function(codes_to_check, code_changes_table = eutradeflows::cn_code_changes){
+    subsequent <- subsequent_codes(codes_to_check, code_changes_table = code_changes_table)
     # All previous codes of the subsequent codes
-    previous <- previous_codes(subsequent$origin_code, cn_code_changes = cn_code_changes)
+    previous <- previous_codes(subsequent$origin_code, code_changes_table = code_changes_table)
     return(rbind(previous, subsequent))
 }
 
@@ -88,8 +88,8 @@ subsequent_and_previous_codes <- function(codes_to_check, cn_code_changes = eutr
 #' @description \code{vector_of_subsequent_and_previous_codes} Creates a vector of unique codes.
 #' @return vector of codes
 #' @export
-vector_of_subsequent_and_previous_codes <- function(codes_to_check, cn_code_changes = eutradeflows::cn_code_changes){
-    df <- subsequent_and_previous_codes(codes_to_check, cn_code_changes = cn_code_changes)
+vector_of_subsequent_and_previous_codes <- function(codes_to_check, code_changes_table = eutradeflows::cn_code_changes){
+    df <- subsequent_and_previous_codes(codes_to_check, code_changes_table = code_changes_table)
     code_changes <- unique(c(df$origin_code, df$destination_code))
     return(sort(code_changes))
 }
@@ -112,7 +112,7 @@ vector_of_subsequent_and_previous_codes <- function(codes_to_check, cn_code_chan
 #' update_code_changes()
 #' }
 #' @export
-update_code_changes <- function(csv_file = "~/downloads/CN_2019_update_of_codes.csv",
+update_cn_code_changes <- function(csv_file = "~/downloads/CN_2019_update_of_codes.csv",
                                 rdata_file = "data/cn_code_changes.rda"){
     cn_code_changes <- readr::read_csv(csv_file)
     names(cn_code_changes) <- tolower(gsub(" ","_",names(cn_code_changes)))
