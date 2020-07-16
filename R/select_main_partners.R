@@ -10,6 +10,7 @@
 #' # Load the main partners of plywood
 #' ply_trop_main <- select_main_partners(wood_imports, vpa_partners, "44123190")
 #' @return data fram of main tropical sawnwood partners
+#' @export
 select_main_partners <- function(wood_imports, vpa_partners, product_code_of_interest){
     df <- select_wood_imports(wood_imports=wood_imports,
                               vpa_partners=vpa_partners,
@@ -38,6 +39,7 @@ select_main_partners <- function(wood_imports, vpa_partners, product_code_of_int
 }
 
 #' @rdname select_main_partners
+#' @export
 select_wood_imports <- function(wood_imports, vpa_partners, product_code_of_interest){
     require(dplyr)
     # Select partner countries
@@ -68,6 +70,7 @@ select_wood_imports <- function(wood_imports, vpa_partners, product_code_of_inte
 #' Select all country pairs which represent at least a given
 #' percentage (default to 1%) of the trade value over the whole period.
 #' @param df a data frame of trade flows
+#' @export
 select_large_country_pairs <- function(df, trade_pc_threshold = 0.01){
     # Note: a reporter might appear twice here with different partners.
     large_country_pairs <- df %>%

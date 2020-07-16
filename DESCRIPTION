@@ -18,6 +18,6 @@ Suggests:
     rmarkdown,
     knitr,
     dbplyr,
-    RMySQL
+    RMariaDB
 RoxygenNote: 7.0.2
 VignetteBuilder: knitr

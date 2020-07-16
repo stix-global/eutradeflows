@@ -2,41 +2,52 @@
 % Please edit documentation in R/select_main_partners.R
 \name{select_main_partners}
 \alias{select_main_partners}
-\title{A function to select main partner(s) for each reporter}
+\alias{select_wood_imports}
+\alias{select_large_country_pairs}
+\alias{display_table_percentage}
+\alias{display_table_number_of_flows}
+\title{Select main tropical partners for the product of interest and related products}
 \usage{
-select_main_partners(df, slice_n = 1)
+select_main_partners(wood_imports, vpa_partners, product_code_of_interest)
+
+select_wood_imports(wood_imports, vpa_partners, product_code_of_interest)
+
+select_large_country_pairs(df, trade_pc_threshold = 0.01)
+
+display_table_percentage(
+  df_large_country_pairs,
+ 
+    caption = "Percentage of trade value in the main country pairs compared to trade in all countries"
+)
+
+display_table_number_of_flows(
+  df_large_country_pairs,
+  caption = "Number of trade flows in the main country pairs"
+)
 }
 \arguments{
+\item{wood_imports}{data frame of wood imports from comext}
+
+\item{vpa_partners}{data frame containing the country code of VPA partners}
+
 \item{df}{a data frame of trade flows}
 
-\item{slice_n}{number of partner(s) to slice, defaults to one}
+\item{df_large_country_pairs}{a data frame of main partners with columns `trade_pct` and `n`.
+output of the select_large_country_pairs function.}
+
+\item{caption}{character table caption}
 }
 \value{
-a data frame with the main partner for each reporter
+data fram of main tropical sawnwood partners
 }
 \description{
-A function to select main partner(s) for each reporter
+Select the largest country pairs
+Select all country pairs which represent at least a given
+percentage (default to 1%) of the trade value over the whole period.
 }
 \examples{
-\dontrun{
-library(dplyr)
-# Load sawnwood oak data from the database
-con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
-swd_oak <- tbl(con, "raw_comext_monthly") \%>\%
-    # Filter import flows and oak sawnwood
-    filter(flowcode == 1 & productcode == "44079190") \%>\% 
-    collect()
-# Load reporter country codes and names
-reporter_names <- tbl(con, 'vld_comext_reporter') \%>\% collect()
-# Load partner codes and names
-partner_names <- tbl(con, 'vld_comext_partner') \%>\%collect()
-# Add reporter and partner information
-swd_oak <- swd_oak \%>\%
-    left_join(partner_names, by='partnercode') \%>\%
-    left_join(reporter_names, by='reportercode')
-RMariaDB::dbDisconnect(con)
-# Now use this function:
-swd_oak \%>\%
-    select_main_partners()
-}
+# Load the main partners of tropical sawnwood
+swd_trop_main <- select_main_partners(wood_imports, vpa_partners, "44072969")
+# Load the main partners of plywood
+ply_trop_main <- select_main_partners(wood_imports, vpa_partners, "44123190")
 }
