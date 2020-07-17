@@ -140,7 +140,6 @@ display_table_percentage <- function(df_large_country_pairs,
     df_large_country_pairs %>%
         pivot_wider(id_cols=partner, names_from=reporter, values_from = trade_pct) %>%
         kable(caption = caption)
-
 }
 
 #' @rdname select_main_partners
