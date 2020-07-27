@@ -3,7 +3,7 @@
 #' @name select_main_partners
 #' @title A function to select main partner(s) for each reporter
 #' @param df a data frame of trade flows
-#' @param slice_n number of partner(s) to slice, defaults to one
+#' @param slice_n vector of partner(s) to slice, defaults to one
 #' @return a data frame with the main partner for each reporter
 #' @examples
 #' \dontrun{
@@ -23,9 +23,11 @@
 #'     left_join(partner_names, by='partnercode') %>%
 #'     left_join(reporter_names, by='reportercode')
 #' RMariaDB::dbDisconnect(con)
-#' # Now use this function:
-#' swd_oak %>%
-#'     select_main_partners()
+#' # Now use this function 
+#' # select the first partner for each reporter:
+#' select_main_partners(swd_oak)
+#' # Select the first 3 partners for each reporter:
+#' select_main_partners(swd_oak, slice_n=1:3)
 #' }
 #' @export
 select_main_partners <- function(df, slice_n=1){
@@ -83,6 +85,8 @@ select_main_partners_trop <- function(wood_imports, vpa_partners, product_code_o
 }
 
 #' @rdname select_main_partners
+#' @description \code{select_wood_imports} selects trade flows for the product 
+#' code of interest and its parents.
 #' @export
 select_wood_imports <- function(wood_imports, vpa_partners, product_code_of_interest){
     require(dplyr)
