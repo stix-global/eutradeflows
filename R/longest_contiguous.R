@@ -3,6 +3,7 @@
 #' @param df data frame
 #' @param variable character name of the variable of interest
 #' @return list of start and end dates for the longest time series
+#' @export
 longest_contiguous <- function(df, variable){
     df <- arrange(df, period)
     # Check the function is valid for one reporter, partner pair only
