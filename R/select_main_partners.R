@@ -61,7 +61,7 @@ select_main_partners <- function(df, slice_n=1){
 select_main_partners_trop <- function(wood_imports, 
                                       vpa_partners, 
                                       product_code_of_interest, 
-                                      force_full_series=TRUE){
+                                      force_full_series = TRUE){
     df <- select_wood_imports(wood_imports=wood_imports,
                               vpa_partners=vpa_partners,
                               product_code_of_interest=product_code_of_interest)
