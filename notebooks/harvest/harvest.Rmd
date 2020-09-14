@@ -10,9 +10,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
 library(dplyr)
+library(eutradeflows)
 ```
-
-
 
 Content copied from original file in the docs/harvest.Rmd document of the 
 tradeharvester package. The tradeharvester package has now been merged to this
@@ -46,7 +45,6 @@ Trying to execute transfer7zfolder2db on the yearly data.
 Complete each argument then connect to the server and make that call from the R prompt.
 
 ```{r eval=FALSE}
-library(tradeharvester)
 con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # Prepare path to yearly input data
 rawdatafolder = '/mnt/sdb/public'
@@ -109,8 +107,6 @@ Anyway, seems like I have the yearly data now.
 Download yearly files to a temporary folder "/tmp/COMEXT_DATA/PRODUCTS_YEARLY/". 
 
 ```{r eval=FALSE}
-library(tradeharvester)
-library(dplyr)
 data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
 # Create the data folder, warn if it already exists
 dir.create(data_folder, recursive = TRUE)
@@ -144,8 +140,6 @@ Third year started at 16h20.
 ```{r eval=FALSE}
 # Copy this chunk at an R command prompt.
 # It takes a long time to run.
-library(tradeharvester)
-library(dplyr)
 data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
 # Short list of products used for a test
 # product_codes_of_interest <- c("08", "15", "29", "44", "45", "47", "48")
@@ -168,7 +162,6 @@ transfer7zfolder2db(RMariaDBcon = con,
 ### Harvest metadata
 
 ```{r}
-library(tradeharvester)
 con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 # Empty metadata tables
 eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
@@ -200,8 +193,6 @@ As of July 2020, the latest monthly data available was from April 2020.
 ### Download monthly files
 
 ```{r monthly2020onserver, eval=FALSE}
-library(tradeharvester)
-library(dplyr)
 data_folder <- '/mnt/sdb/public/comext/COMEXT_DATA/PRODUCTS'
 # Get the list of available files
 url_comext_data_folder <- "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext%2FCOMEXT_DATA%2FPRODUCTS"
@@ -222,8 +213,6 @@ purrr::map2(monthly_files$url, monthly_files$file, load_comext_bulk, data_folder
 ```{r eval=FALSE}
 # Copy this chunk at an R command prompt.
 # It takes a long time to run.
-library(tradeharvester)
-library(dplyr)
 data_folder <- '/mnt/sdb/public/comext/COMEXT_DATA/PRODUCTS'
 # List of products used for a test
 product_codes_of_interest <- c("44", "94")
@@ -255,8 +244,6 @@ There is an issue with download dropping because files are too large, or the
 download is too slow on my network. Using a VPN doesn't solve the issue.
 
 ```{r monthly2020, eval=FALSE}
-library(tradeharvester)
-library(dplyr)
 data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
 # Create the data folder, warn if it already exists
 dir.create(data_folder, recursive = TRUE)
