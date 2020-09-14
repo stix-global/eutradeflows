@@ -21,7 +21,8 @@ con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
 
 # Introduction
 
-This has now been moved to a separate repository.
+This has now been moved to a separate repository called env_impact_imports and this 
+notebook is now saved in "/notebooks/update_data"
 
 The purpose of this document is to update the cache in the form of rds files so the data
 can be analysed on machines which do not have a database installation. 
@@ -44,7 +45,7 @@ Object size
 
 # Download from Comext and transfer to DB
 
-See tradeharvester/notebooks/harvest.Rmd, 
+See tradeharvester/notebooks/harvest.Rmd or tradeharvester/docs/harvest.Rmd, 
 the section on 2020 update on the laptop.
 involves the use of `transfer7zfolder2db`, `harvestcomextmetadata` and `eutradeflows::cleanallcomextcodes`
 
