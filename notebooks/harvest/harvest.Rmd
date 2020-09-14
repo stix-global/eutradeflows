@@ -1,0 +1,275 @@
+---
+title: "harvest"
+author: "Paul Rougieux"
+date: "2 August 2017"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+library(dplyr)
+```
+
+
+
+Content copied from original file in the docs/harvest.Rmd document of the 
+tradeharvester package. The tradeharvester package has now been merged to this
+eutradeflows package. 
+
+
+# 2020 Update of the yearly data
+
+In 2020 in noticed many missing data in the monthly data. 
+I am not sure if missing data is 
+I need also the yearly data to be harvested properly. 
+
+Moving down the call stack:
+* harvest calls harvestcomextdata
+* harvestcomextdata does those things with the yearly data:
+    * calls downloadcomextmonthlyrecent which downloads both monthly and yearly files to 
+    the "COMEXT_DATA/PRODUCTS/" folder.
+    * moves yearly files to "COMEXT_DATA/PRODUCTS_YEARLY/" (that works) 
+    * and transfer7zfolder2db on the yearly data (issue: no yearly data in the db).
+
+Details on each function call:
+```
+harvest(rawdatafolder = '/mnt/sdb/public', 
+        dbname = 'tradeflows', 
+        startyear = 2000,
+        productcodestart = tradeharvester::products2harvest$productcode)
+```
+
+## On the server
+Trying to execute transfer7zfolder2db on the yearly data. 
+Complete each argument then connect to the server and make that call from the R prompt.
+
+```{r eval=FALSE}
+library(tradeharvester)
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+# Prepare path to yearly input data
+rawdatafolder = '/mnt/sdb/public'
+comextfolder = 'comext/COMEXT_DATA/PRODUCTS_YEARLY/'
+folderyearly <- file.path(rawdatafolder, comextfolder)
+# Transfer data from the yearly 7z files to the database
+transfer7zfolder2db(RMariaDBcon = con,
+                    rawdatacomextfolder = folderyearly,
+                    productcodestart = tradeharvester::products2harvest$productcode,
+                    tablename = "raw_comext_yearly",
+                    tabletemplate = "raw_comext_monthly_template")
+```
+The above function call seems to work. It transfers yearly data from the 7zip files to the database. 
+I wonder why the table doesn't appear as a dump file? 
+
+```{r}
+rawtables <- RMariaDB::dbListTables(con)
+rawtables <- rawtables[grepl("^raw", rawtables)]
+# Dump the yearly table
+tablename <- "raw_comext_yearly"
+eutradeflows::dumptable("tradeflows", tablename, dumpfolder = file.path(rawdatafolder, "sqldump/"))
+```
+
+The dumptable() command starts with this output :
+```
+> eutradeflows::dumptable("tradeflows", tablename, dumpfolder = file.path(rawdatafolder, "sqldump/"))
+Copying the table raw_comext_yearly to a .sql.7z file with the bash command:
+mysqldump tradeflows raw_comext_yearly | 7zr a -siraw_comext_yearly.sql /mnt/sdb/public/sqldump/raw_comext_yearly.sql.7z
+
+
+7-Zip (a) [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
+p7zip Version 16.02 (locale=en_US.UTF-8,Utf16=on,HugeFiles=on,64 bits,2 CPUs Intel Core Processor (Haswell, no TSX, IBRS) (306C1),ASM,AES-NI)
+
+Creating archive: /mnt/sdb/public/sqldump/raw_comext_yearly.sql.7z
+
+Items to compress: 1
+```
+Maybe it's because the disk is full? 
+Yes the disk is nearly full and there is most of the space taken by /var/lib:
+```
+/var/lib$ sudo du -hd1 |sort -rh
+44G     .
+32G     ./mysql
+12G     ./docker
+265M    ./fail2ban
+109M    ./apt
+26M     ./dpkg
+...
+```
+Mysql is inflating in size more that it needs to due to the fact that it doesn't rebuild the index. 
+I could reinstall mysql to see if it fixes the issue? 
+Otherwise I could simply ask for more space in the / drive. 
+Or install that server somewhere else. 
+
+Anyway, seems like I have the yearly data now. 
+
+## On the laptop
+
+### Download yearly files
+Download yearly files to a temporary folder "/tmp/COMEXT_DATA/PRODUCTS_YEARLY/". 
+
+```{r eval=FALSE}
+library(tradeharvester)
+library(dplyr)
+data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
+# Create the data folder, warn if it already exists
+dir.create(data_folder, recursive = TRUE)
+# Get the list of available files
+url_comext_data_folder <- "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext%2FCOMEXT_DATA%2FPRODUCTS"
+yearly_files <- scraplistoffilesincomext(url_comext_data_folder) %>% 
+    filter(grepl("52.7z",file))
+# Download yearly files
+load_comext_bulk <- function(url_comext, file_name, data_folder){
+    download.file(url_comext,file.path(data_folder, file_name))
+}
+# Download one file
+#load_comext_bulk(yearly_files$url[1], yearly_files$file[1], data_folder)
+# Download all files
+purrr::map2(yearly_files$url, yearly_files$file, load_comext_bulk, data_folder)
+```
+
+### Transfer yearly files to the laptop's DB
+Transfer the files to a new table called
+"raw_comext_yearly_env_impact" so I can keep the other analysis in parallel. 
+
+Started at 10h26 on Monday 27 January 2020.
+Second year started 10 minutes later 10h38, 2003 at 10h51, 2004 at 10h57.
+We will need 200 minutes for 20 years = approx 3 hours. 
+
+Started at around 16h00 on Friday 11 September 2020.
+Second year started about 10 minutes later around 16h13.
+Third year started at 16h20.
+
+
+```{r eval=FALSE}
+# Copy this chunk at an R command prompt.
+# It takes a long time to run.
+library(tradeharvester)
+library(dplyr)
+data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
+# Short list of products used for a test
+# product_codes_of_interest <- c("08", "15", "29", "44", "45", "47", "48")
+# Longer list format string as a character variable with first codes starting with zeros.
+product_codes_of_interest <- sprintf("%02.0f", 1:63)
+# Add some forest-related products necessary for the Bioeconomy Social Accounting Matrices project
+product_codes_of_interest <- c(product_codes_of_interest, 
+                               c("65", "70", "85", "88", "90", "94", "64", "66", "84", "96"))
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+# Prepare path to yearly input data
+data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
+# Transfer data from the yearly 7z files to the database
+transfer7zfolder2db(RMariaDBcon = con,
+                    rawdatacomextfolder = data_folder,
+                    productcodestart = product_codes_of_interest,
+                    tablename = "raw_comext_yearly_env_impact",
+                    tabletemplate = "raw_comext_monthly_template")
+```
+
+### Harvest metadata
+
+```{r}
+library(tradeharvester)
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+# Empty metadata tables
+eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows')
+# I deactivated the filter so that it copies all product codes
+harvestcomextmetadata(con, rawdatafolder = "/tmp/", pause = 0)
+# Transfer only i.e. Avoid re-downloading everything
+# transfertxtcodesfolder2db(RMariaDBcon = con,
+#                           rawdatacomextfolder =  "/tmp/comext/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/ENGLISH/")
+# Validate reporter, partner and product names
+eutradeflows::cleanallcomextcodes(con)
+RMariaDB::dbDisconnect(con)
+```
+
+# 2020 update of the monthly data
+
+As of July 2020, the latest monthly data available was from April 2020. 
+
+## On the server
+
+
+### Download monthly files
+
+```{r monthly2020onserver, eval=FALSE}
+library(tradeharvester)
+library(dplyr)
+data_folder <- '/mnt/sdb/public/comext/COMEXT_DATA/PRODUCTS'
+# Get the list of available files
+url_comext_data_folder <- "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext%2FCOMEXT_DATA%2FPRODUCTS"
+monthly_files <- scraplistoffilesincomext(url_comext_data_folder)
+
+# Download monthly files
+load_comext_bulk <- function(url_comext, file_name, data_folder){
+    download.file(url_comext,file.path(data_folder, file_name))
+}
+# Download one file
+load_comext_bulk(monthly_files$url[1], monthly_files$file[1], data_folder)
+# Download all files
+purrr::map2(monthly_files$url, monthly_files$file, load_comext_bulk, data_folder)
+```
+
+### Transfer monthly files to the DB
+
+```{r eval=FALSE}
+# Copy this chunk at an R command prompt.
+# It takes a long time to run.
+library(tradeharvester)
+library(dplyr)
+data_folder <- '/mnt/sdb/public/comext/COMEXT_DATA/PRODUCTS'
+# List of products used for a test
+product_codes_of_interest <- c("44", "94")
+con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+# Transfer data from the yearly 7z files to the database
+transfer7zfolder2db(RMariaDBcon = con,
+                    rawdatacomextfolder = data_folder,
+                    productcodestart = product_codes_of_interest,
+                    tablename = "raw_comext_monthly",
+                    tabletemplate = "raw_comext_monthly_template")
+```
+
+Check period as they are loaded
+
+```{sql}
+select distinct(period) from raw_comext_monthly;
+```
+
+
+### Dump the DB table
+
+Only for the products of interest.
+
+
+
+## On the laptop
+
+There is an issue with download dropping because files are too large, or the
+download is too slow on my network. Using a VPN doesn't solve the issue.
+
+```{r monthly2020, eval=FALSE}
+library(tradeharvester)
+library(dplyr)
+data_folder <- '/tmp/COMEXT_DATA/PRODUCTS_YEARLY' 
+# Create the data folder, warn if it already exists
+dir.create(data_folder, recursive = TRUE)
+# Get the list of available files
+url_comext_data_folder <- "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&dir=comext%2FCOMEXT_DATA%2FPRODUCTS"
+monthly_files <- scraplistoffilesincomext(url_comext_data_folder)
+
+# Download monthly files
+load_comext_bulk <- function(url_comext, file_name, data_folder){
+    download.file(url_comext,file.path(data_folder, file_name))
+}
+# Download one file
+#load_comext_bulk(monthly_files$url[1], monthly_files$file[1], data_folder)
+# Download all files
+purrr::map2(yearly_files$url, yearly_files$file, load_comext_bulk, data_folder)
+```
+
+The download drops after a few Mb.
+There area 2 versions of the URL, one with file= and
+another with downfile=, not sure if this makes a difference. 
+
+https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&file=comext%2FCOMEXT_DATA%2FPRODUCTS%2Ffull201909.7z
+
+h
