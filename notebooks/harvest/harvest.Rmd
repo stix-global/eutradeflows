@@ -182,6 +182,14 @@ eutradeflows::cleanallcomextcodes(con)
 RMariaDB::dbDisconnect(con)
 ```
 
+Check that you have the most recent metadata by looking for the most recent
+starting date of product change with this SQL query: 
+
+```{sql}
+select max(datestart) from raw_comext_product;
+```
+
+
 # 2020 update of the monthly data
 
 As of July 2020, the latest monthly data available was from April 2020. 
