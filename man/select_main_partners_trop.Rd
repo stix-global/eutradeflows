@@ -6,17 +6,17 @@
 \usage{
 select_main_partners_trop(
   wood_imports,
-  vpa_partners,
-  product_code_of_interest,
+  partner_codes_of_interest,
+  product_codes_of_interest,
   force_full_series = TRUE
 )
 }
 \arguments{
 \item{wood_imports}{data frame of wood imports from comext}
 
-\item{vpa_partners}{data frame containing the country code of VPA partners}
-
 \item{force_full_series}{boolean to force selection of only country pairs which have all data points for all period}
+
+\item{vpa_partners}{data frame containing the country code of VPA partners}
 }
 \value{
 data fram of main tropical sawnwood partners

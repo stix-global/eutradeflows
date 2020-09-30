@@ -59,12 +59,12 @@ select_main_partners <- function(df, slice_n=1){
 #' @return data fram of main tropical sawnwood partners
 #' @export
 select_main_partners_trop <- function(wood_imports, 
-                                      vpa_partners, 
-                                      product_code_of_interest, 
+                                      partner_codes_of_interest, 
+                                      product_codes_of_interest,
                                       force_full_series = TRUE){
     df <- select_wood_imports(wood_imports=wood_imports,
-                              vpa_partners=vpa_partners,
-                              product_code_of_interest=product_code_of_interest)
+                                      partner_codes_of_interest=partner_codes_of_interest, 
+                                      product_codes_of_interest=product_codes_of_interest)
 
     large_country_pairs <- select_large_country_pairs(df)
 
@@ -97,21 +97,16 @@ select_main_partners_trop <- function(wood_imports,
 #' @description \code{select_wood_imports} selects trade flows for the product 
 #' code of interest and its parents.
 #' @export
-select_wood_imports <- function(wood_imports, vpa_partners, product_code_of_interest){
+select_wood_imports <- function(wood_imports, 
+                                partner_codes_of_interest, 
+                                product_codes_of_interest){
     require(dplyr)
-    # Select partner countries
-    vpa_partner_codes <- vpa_partners$partnercode
-    # Add Brazil, China, Malaysia and other main sawnwood trade partners
-    partnercodes_of_interest <- c(272, 314, 322, 508, 676, 680, 701, 720, vpa_partner_codes)
-    # Related product codes #
-    code_changes <- eutradeflows::vector_of_subsequent_and_previous_codes(product_code_of_interest)
-
     # Create a data frame containing trade flows for the product code of interest and its parents
     df <- wood_imports %>%
         # Filter import flows in the partnercodes of interest
         filter(flowcode == 1 &
                    partnercode %in% partnercodes_of_interest &
-                   productcode %in% code_changes) %>%
+                   productcode %in% product_codes_of_interest) %>%
         # Aggregate these flows together
         group_by(reporter, partner, period) %>%
         summarise(tradevalue = sum(tradevalue),

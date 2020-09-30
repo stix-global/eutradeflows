@@ -10,7 +10,11 @@
 \usage{
 select_main_partners(df, slice_n = 1)
 
-select_wood_imports(wood_imports, vpa_partners, product_code_of_interest)
+select_wood_imports(
+  wood_imports,
+  partner_codes_of_interest,
+  product_codes_of_interest
+)
 
 select_large_country_pairs(df, trade_pc_threshold = 0.01)
 
