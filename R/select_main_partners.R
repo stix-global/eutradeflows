@@ -105,7 +105,7 @@ select_wood_imports <- function(wood_imports,
     df <- wood_imports %>%
         # Filter import flows in the partnercodes of interest
         filter(flowcode == 1 &
-                   partnercode %in% partnercodes_of_interest &
+                   partnercode %in% partner_codes_of_interest &
                    productcode %in% product_codes_of_interest) %>%
         # Aggregate these flows together
         group_by(reporter, partner, period) %>%
