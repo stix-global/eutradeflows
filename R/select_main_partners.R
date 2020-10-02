@@ -62,10 +62,9 @@ select_main_partners_trop <- function(wood_imports,
                                       partner_codes_of_interest, 
                                       product_codes_of_interest,
                                       force_full_series = TRUE){
-    df <- select_wood_imports(wood_imports=wood_imports,
-                                      partner_codes_of_interest=partner_codes_of_interest, 
-                                      product_codes_of_interest=product_codes_of_interest)
-
+    df <- select_wood_imports(wood_imports = wood_imports,
+                              partner_codes_of_interest = partner_codes_of_interest, 
+                              product_codes_of_interest = product_codes_of_interest)
     large_country_pairs <- select_large_country_pairs(df)
 
     # See the output of this table in sawnwood_tropical.Rmd
