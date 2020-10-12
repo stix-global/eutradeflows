@@ -276,16 +276,25 @@ Dump the PostgreSQL schema to a sql file:
 
     pg_dump --schema-only tradeflows_migrated > /tmp/tradeflows_migrated.sql
 
-I edited the file and saved it to two different files for reuse purposes.
+I edited the file and saved it to two different files for reuse purposes:
+
+    raw_comext_psql.sql
+    vld_comext_psql.sql
+
+Now I need to modify R/database_create.R so that it can use the psql files.
 
 
+### Create tables
 
-See example files from R/database_create.R
+Load the `raw_comext_psql.sql` database creation file, while connected as user
+rdb:
 
+    psql -d tradeflows -h localhost -U rdb -f ~/rp/eutradeflows/inst/config/raw_comext_psql.sql
 
-Convert 
+Log into the DB as user rdb and check if the schema and databases were created:
 
-    psql -h hostname -U username -f {SQL script file name}
+    psql -d tradeflows -h localhost -U rdb
+    \dt raw_comext.*;
 
 
 # Replace the database engine
