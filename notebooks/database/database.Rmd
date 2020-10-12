@@ -48,9 +48,11 @@ Note: this should probably be changed to environment variables.
 ## Create a database
 
 In bash enter the following commands:
+
 ```
 sudo mariadb
 ```
+
 Then at the MariaDB prompt:
 ```
 CREATE USER 'R'@'localhost' IDENTIFIED BY 'localhost';
@@ -197,7 +199,93 @@ their names, such as "monthly" or "yearly".
 
 # Load data into PostGres
 
+## Create a PostGres database
 
+See my blog post on postgresql to see how to install PostgreSQL, create a user
+called "rdb" and a database called "tradeflows" for use with R.
+
+Connect to the database
+
+## Migrate from MySQL to PostgreSQL
+
+Install [pgloader](https://github.com/dimitri/pgloader) on Debian:
+
+    sudo apt install pgloader
+
+Login as the postgres user and create a database 
+
+    sudo su postgres
+    createdb -O paul tradeflows_migrated
+
+Transfer data from the mysql database to postgresql
+
+    pgloader mysql://paul@localhost/tradeflows postgresql:///tradeflows_migrated
+
+
+### Pgloader log
+
+```
+$ pgloader mysql://paul@localhost/tradeflows postgresql:///tradeflows_migrated
+2020-10-12T12:02:13.017000Z LOG pgloader version "3.6.1"
+2020-10-12T12:02:13.053000Z LOG Migrating from #<MYSQL-CONNECTION mysql://paul@localhost:3306/tradeflows {1005D87DD3}>
+2020-10-12T12:02:13.054000Z LOG Migrating into #<PGSQL-CONNECTION pgsql://paul@UNIX:5432/tradeflows_migrated {1005ED33C3}>
+2020-10-12T12:48:20.720000Z LOG report summary reset
+                             table name     errors       rows      bytes      total time
+---------------------------------------  ---------  ---------  ---------  --------------
+                        fetch meta data          0         62                     0.085s
+                         Create Schemas          0          0                     0.002s
+                       Create SQL Types          0          0                     0.009s
+                          Create tables          0         34                     0.062s
+                         Set Table OIDs          0         17                     0.012s
+---------------------------------------  ---------  ---------  ---------  --------------
+          tradeflows.raw_comext_monthly          0   34549076     2.5 GB      12m43.856s
+ tradeflows.raw_comext_monthly_template          0          0                     0.014s
+          tradeflows.raw_comext_partner          0        338    20.5 kB          0.028s
+         tradeflows.raw_comext_reporter          0         29     1.6 kB          0.033s
+ tradeflows.raw_comext_unit_description          0         34     2.6 kB          0.054s
+tradeflows.raw_comext_yearly_env_impact          0  122689986     8.8 GB      36m23.685s
+          tradeflows.raw_comext_product          0      31215     5.6 MB          2.251s
+             tradeflows.raw_comext_unit          0       5585   179.8 kB          1.148s
+           tradeflows.raw_comext_yearly          0    8027695   589.5 MB        5m2.414s
+  tradeflows.raw_comext_yearly_template          0          0                     0.038s
+          tradeflows.vld_comext_partner          0        295     5.2 kB          0.043s
+          tradeflows.vld_comext_product          0      29390     4.0 MB          1.185s
+             tradeflows.vld_comext_unit          0       5585   136.2 kB          0.268s
+ tradeflows.vld_comext_monthly_template          0          0                     0.002s
+  tradeflows.vld_comext_priceconversion          0          0                     0.007s
+         tradeflows.vld_comext_reporter          0         29     0.3 kB          0.004s
+ tradeflows.vld_comext_unit_description          0         32     1.1 kB          0.006s
+---------------------------------------  ---------  ---------  ---------  --------------
+                COPY Threads Completion          0          4                 36m23.734s
+                         Create Indexes          0         45                1h2m22.680s
+                 Index Build Completion          0         45                  9m43.159s
+                        Reset Sequences          0          0                     0.061s
+                           Primary Keys          0          0                     0.000s
+                    Create Foreign Keys          0          0                     0.000s
+                        Create Triggers          0          0                     0.000s
+                        Set Search Path          0          1                     0.002s
+                       Install Comments          0          0                     0.000s
+---------------------------------------  ---------  ---------  ---------  --------------
+                      Total import time          ✓  165339289    11.8 GB    1h48m29.636s
+```
+
+
+### Dump pg schema
+
+Dump the PostgreSQL schema to a sql file: 
+
+    pg_dump --schema-only tradeflows_migrated > /tmp/tradeflows_migrated.sql
+
+I edited the file and saved it to two different files for reuse purposes.
+
+
+
+See example files from R/database_create.R
+
+
+Convert 
+
+    psql -h hostname -U username -f {SQL script file name}
 
 
 # Replace the database engine
