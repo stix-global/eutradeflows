@@ -282,9 +282,9 @@ I edited the file and saved it to two different files for reuse purposes:
     vld_comext_psql.sql
 
 Now I need to modify R/database_create.R so that it can use the psql files.
+Or simply make it to a bash file.
 
-
-### Create tables
+## Create tables in PostgreSQL
 
 Load the `raw_comext_psql.sql` database creation file, while connected as user
 rdb:
@@ -295,6 +295,44 @@ Log into the DB as user rdb and check if the schema and databases were created:
 
     psql -d tradeflows -h localhost -U rdb
     \dt raw_comext.*;
+
+Check that the tables are empty
+
+    select * from raw_comext.product;
+    select * from raw_comext.partner ;
+    select * from raw_comext.product ;
+    select * from raw_comext.reporter;
+    select * from raw_comext.unit;
+    select * from raw_comext.unit_description;
+    select * from raw_comext.yearly;
+    select * from raw_comext.yearly_template ;
+
+## Harvest metadata from Comext
+
+Install the [RPostgres](https://github.com/r-dbi/RPostgres)
+package so R can communicate with PostGres.
+
+```{r}
+install.packages("RPostgres")
+```
+
+
+
+```{r}
+if(FALSE){
+    dir.create("/tmp/data_raw")
+    data_raw_path <- "/tmp/data_raw"
+    # Connect to the database
+    con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
+    eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows') 
+    tradeharveseter::harvestcomextmetadata(con, data_raw_path)
+
+
+}
+```
+
+
+
 
 
 # Replace the database engine
