@@ -198,7 +198,6 @@ downloadcomextmonthlyrecent <- function(rawdatafolder,
 downloadcomextmetadata <- function(rawdatafolder,
                                    comextfolderpath = "/COMEXT_METADATA/CLASSIFICATIONS_AND_RELATIONS/ENGLISH",
                                    extension = ".txt",
-                                   recentyears = 4,
                                    pause = 10){
     comextfiles <- scraplistoffilesincomextfolder(comextfolderpath = comextfolderpath,
                                                   extension = extension)

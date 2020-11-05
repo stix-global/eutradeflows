@@ -316,16 +316,52 @@ package so R can communicate with PostGres.
 install.packages("RPostgres")
 ```
 
+The following is a decompoistion of the function call that harvests
+metadata:
+
+    harvestcomextmetadata(con, data_raw_path)
+
+Which contains calls to the functions: 
+
+1. downloadcomextmetadata
+2. transfertxtcodesfolder2db
+
+We decompose transfertxtcodesfolder2db into its components.
 
 
 ```{r}
 if(FALSE){
+
+    library(eutradeflows)
     dir.create("/tmp/data_raw")
-    data_raw_path <- "/tmp/data_raw"
+    rawdatafolder <- "/tmp/data_raw"
+    pause = 0
+    # Download recent comext .txt codes files
+    comextfilestxt <- downloadcomextmetadata(rawdatafolder,
+                                             comextfolderpath = getOption("comext")["metadatafolder"],
+                                             extension = ".txt",
+                                             recentyears = recentyears,
+                                             pause = pause)
+    comextfoldertxt <- unique(comextfilestxt$folder)
+
     # Connect to the database
+    # TODO replace this with a PostgreSQL connector
     con <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = "tradeflows")
-    eutradeflows::createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows') 
-    tradeharveseter::harvestcomextmetadata(con, data_raw_path)
+    # Create the database structure
+    # TODO replace this with the PostgreSQL structure
+    createdbstructure(sqlfile = 'raw_comext.sql', dbname = 'tradeflows') 
+
+    # Decompose the call to transfertxtcodesfolder2db
+    rawdatacomextfolder = file.path(rawdatafolder,comextfoldertxt)
+    rawdatacomextfolder <- normalizePath(rawdatacomextfolder)
+
+    # Write product codes to the database
+    # For information, writetxtcodes2db will only perform the transfer if the table is empty
+    # TODO replace this with a PostgreSQL connector
+    writetxtcodes2db(RMariaDBcon, "raw_comext_product", file.path(rawdatacomextfolder,"CN.txt"),
+                     columnnames =  c("productcode", "datestart", "dateend", "liben_to_delete",
+                                      "productdescription", "datestart2", "dateend2"))
+
 
 
 }
@@ -335,7 +371,7 @@ if(FALSE){
 
 
 
-# Replace the database engine
+# Replace the R database package
 
 ## Replace RMySQL with RMariaDB
 

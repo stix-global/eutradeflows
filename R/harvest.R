@@ -86,7 +86,6 @@ harvestcomextmetadata <- function(RMariaDBcon,
     comextfilestxt <- downloadcomextmetadata(rawdatafolder,
                                              comextfolderpath = getOption("comext")["metadatafolder"],
                                              extension = ".txt",
-                                             recentyears = recentyears,
                                              pause = pause)
     comextfoldertxt <- unique(comextfilestxt$folder)
 
